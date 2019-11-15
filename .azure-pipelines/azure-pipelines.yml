@@ -1,0 +1,34 @@
+# Copyright the Hyperledger Fabric contributors. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+name: $(SourceBranchName)-$(Date:yyyyMMdd)$(Rev:.rrr)
+trigger:
+  batch: false
+  branches:
+    include:
+      - master
+
+variables:
+  branch: $[ coalesce(variables['system.PullRequest.TargetBranch'], variables['build.SourceBranchName']) ]
+
+pool:
+  vmImage: ubuntu-16.04
+container:
+  image: sykesm/fabric-chaincode-go:0.1
+
+steps:
+  - checkout: self
+    clean: true
+    fetchDepth: 1
+
+  - script: .azure-pipelines/lint.sh
+    displayName: Vet and lint
+
+  - script: go test -race ./...
+    displayName: Run tests
+
+  - script: go get -u github.com/DATA-DOG/godog/cmd/godog
+    displayName: Install Godog
+
+  - script: cd api/internal/functionaltests; godog
+    displayName: Run Functional Tests

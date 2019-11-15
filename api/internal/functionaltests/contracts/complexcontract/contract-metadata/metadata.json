@@ -1,0 +1,150 @@
+{
+    "contracts": {
+        "ComplexContract": {
+            "info": {
+                "title": "ComplexContract",
+                "version": "latest"
+            },
+            "name": "ComplexContract",
+            "transactions": [
+                {
+                    "parameters": [
+                        {
+                            "name": "param0",
+                            "schema": {
+                                "type": "string"
+                            }
+                        }
+                    ],
+                    "returns": {
+                        "$ref": "#/components/schemas/BasicObject"
+                    },
+                    "tag": [
+                        "evaluate"
+                    ],
+                    "name": "GetObject"
+                },
+                {
+                    "parameters": [
+                        {
+                            "name": "param0",
+                            "schema": {
+                                "type": "string"
+                            }
+                        }
+                    ],
+                    "returns": {
+                        "type": "number",
+                        "format": "double",
+                        "maximum": 10,
+                        "minimum": 0,
+                        "multipleOf": 1
+                    },
+                    "tag": [
+                        "evaluate"
+                    ],
+                    "name": "GetValue"
+                },
+                {
+                    "parameters": [
+                        {
+                            "name": "param0",
+                            "schema": {
+                                "type": "string",
+                                "pattern": "^OBJECT_\\d$"
+                            }
+                        },
+                        {
+                            "name": "param1",
+                            "schema": {
+                                "$ref": "#/components/schemas/BasicOwner"
+                            }
+                        },
+                        {
+                            "name": "param2",
+                            "schema": {
+                                "type": "number",
+                                "format": "double",
+                                "maximum": 18446744073709552000,
+                                "minimum": 0,
+                                "multipleOf": 1
+                            }
+                        },
+                        {
+                            "name": "param3",
+                            "schema": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    ],
+                    "tag": [
+                        "submit"
+                    ],
+                    "name": "NewObject"
+                },
+                {
+                    "parameters": [
+                        {
+                            "name": "param0",
+                            "schema": {
+                                "type": "string"
+                            }
+                        },
+                        {
+                            "name": "param1",
+                            "schema": {
+                                "$ref": "#/components/schemas/BasicOwner"
+                            }
+                        }
+                    ],
+                    "tag": [
+                        "submit"
+                    ],
+                    "name": "UpdateOwner"
+                },
+                {
+                    "parameters": [
+                        {
+                            "name": "param0",
+                            "schema": {
+                                "type": "string"
+                            }
+                        },
+                        {
+                            "name": "param1",
+                            "schema": {
+                                "type": "integer",
+                                "format": "int64"
+                            }
+                        }
+                    ],
+                    "tag": [
+                        "submit"
+                    ],
+                    "name": "UpdateValue"
+                }
+            ]
+        },
+        "org.hyperledger.fabric": {
+            "info": {
+                "title": "org.hyperledger.fabric",
+                "version": "latest"
+            },
+            "name": "org.hyperledger.fabric",
+            "transactions": [
+                {
+                    "returns": {
+                        "type": "string"
+                    },
+                    "tag": [
+                        "evaluate"
+                    ],
+                    "name": "GetMetadata"
+                }
+            ]
+        }
+    }
+}
