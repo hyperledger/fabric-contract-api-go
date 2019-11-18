@@ -24,7 +24,8 @@ steps:
   - script: .azure-pipelines/lint.sh
     displayName: Vet and lint
 
-  - script: 
+  - script: license-check-and-add check -f license-config.json
+    displayName: Check licenses
 
   - script: go test -race ./...
     displayName: Run tests
