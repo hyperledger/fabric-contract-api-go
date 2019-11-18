@@ -14,7 +14,7 @@ variables:
 pool:
   vmImage: ubuntu-16.04
 container:
-  image: sykesm/fabric-chaincode-go:0.1
+  image: awjh/fabric-contract-api-go-env:0.0.1
 
 steps:
   - checkout: self
@@ -23,6 +23,8 @@ steps:
 
   - script: .azure-pipelines/lint.sh
     displayName: Vet and lint
+
+  - script: 
 
   - script: go test -race ./...
     displayName: Run tests
