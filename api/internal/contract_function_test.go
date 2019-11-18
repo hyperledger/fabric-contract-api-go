@@ -551,14 +551,22 @@ func TestCall(t *testing.T) {
 	assert.Equal(t, expectedStr, actualStr, "should return same string as handle response for good function and params")
 	assert.Equal(t, expectedIface, expectedIface, "should return same interface as handle response for good function and params")
 
+	combined := make(map[string]interface{})
+	combined["components"] = nil
+	combined["properties"] = make(map[string]interface{})
+	combined["properties"].(map[string]interface{})["param0"] = spec.StringProperty()
+	combined["properties"].(map[string]interface{})["param1"] = spec.StringProperty()
+	combined["properties"].(map[string]interface{})["returns"] = spec.StringProperty()
+	combinedLoader := gojsonschema.NewGoLoader(combined)
+	compiled, _ := gojsonschema.NewSchema(combinedLoader)
 	schema := metadata.TransactionMetadata{}
 	schema.Parameters = []metadata.ParameterMetadata{
-		{Schema: spec.StringProperty()},
-		{Schema: spec.StringProperty()},
+		{Name: "param0", Schema: spec.StringProperty(), CompiledSchema: compiled},
+		{Name: "param1", Schema: spec.StringProperty(), CompiledSchema: compiled},
 	}
-	schema.Returns = metadata.ReturnMetadata{Schema: spec.StringProperty()}
-	expectedStr, expectedIface, expectedErr = testCf.handleResponse([]reflect.Value{reflect.ValueOf("helloworld")}, nil, nil, serializer)
-	actualStr, actualIface, actualErr = testCf.Call(ctx, nil, nil, serializer, "hello", "world")
+	schema.Returns = metadata.ReturnMetadata{Schema: spec.StringProperty(), CompiledSchema: compiled}
+	expectedStr, expectedIface, expectedErr = testCf.handleResponse([]reflect.Value{reflect.ValueOf("helloworld")}, &schema.Returns, nil, serializer)
+	actualStr, actualIface, actualErr = testCf.Call(ctx, &schema, nil, serializer, "hello", "world")
 	assert.Equal(t, actualErr, expectedErr, "should return same error as handle response for good function with schema")
 	assert.Equal(t, expectedStr, actualStr, "should return same string as handle response for good function and params with schema")
 	assert.Equal(t, expectedIface, expectedIface, "should return same interface as handle response for good function and params with schema")

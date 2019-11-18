@@ -4,6 +4,8 @@
 package utils
 
 import (
+	"fmt"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -26,6 +28,21 @@ func (re MyResultError) String() string {
 // ================================
 // TESTS
 // ================================
+
+func TestMain(m *testing.M) {
+	rc := m.Run()
+
+	if rc == 0 && testing.CoverMode() != "" {
+		c := testing.Coverage()
+
+		if c < 1 {
+			fmt.Println("Tests passed but coverage failed at", c)
+			rc = -1
+		}
+	}
+
+	os.Exit(rc)
+}
 
 func TestValidateErrorsToString(t *testing.T) {
 	// should join errors with a new line

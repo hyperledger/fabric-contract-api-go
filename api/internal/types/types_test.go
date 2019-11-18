@@ -6,6 +6,7 @@ package types
 import (
 	"fmt"
 	"math"
+	"os"
 	"reflect"
 	"strconv"
 	"testing"
@@ -22,6 +23,21 @@ const convertError = "Cannot convert passed value %s to int"
 // ================================
 // TESTS
 // ================================
+
+func TestMain(m *testing.M) {
+	rc := m.Run()
+
+	if rc == 0 && testing.CoverMode() != "" {
+		c := testing.Coverage()
+
+		if c < 1 {
+			fmt.Println("Tests passed but coverage failed at", c)
+			rc = -1
+		}
+	}
+
+	os.Exit(rc)
+}
 
 func TestStringType(t *testing.T) {
 	var stringTypeVar = new(stringType)
