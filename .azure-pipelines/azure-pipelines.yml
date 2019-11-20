@@ -27,11 +27,11 @@ steps:
   - script: license-check-and-add check -f license-config.json
     displayName: Check licenses
 
-  - script: go test -race ./...
+  - script: go test -race ./... -v
     displayName: Run tests
 
   - script: go get -u github.com/DATA-DOG/godog/cmd/godog
     displayName: Install Godog
 
-  - script: cd api/internal/functionaltests; godog
+  - script: cd internal/functionaltests && godog
     displayName: Run Functional Tests
