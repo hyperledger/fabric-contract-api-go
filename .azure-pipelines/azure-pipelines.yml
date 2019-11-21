@@ -21,7 +21,7 @@ steps:
     clean: true
     fetchDepth: 1
 
-  - script: .azure-pipelines/lint.sh
+  - script: .azure-pipelines/scripts/lint.sh
     displayName: Vet and lint
 
   - script: license-check-and-add check -f license-config.json
@@ -35,3 +35,8 @@ steps:
 
   - script: cd internal/functionaltests && godog
     displayName: Run Functional Tests
+
+  - script: .azure-pipelines/scripts/release-checks.sh $(Build.SourceBranchName)
+    displayName: Release checklist
+    condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags'))
+
