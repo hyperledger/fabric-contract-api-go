@@ -5,6 +5,10 @@
 
 set -e
 
+if [[ $1 == *"beta"* ]]; then
+    exit 0
+fi
+
 if ! cat ./CHANGELOG.md | grep -q "## $1"; then
     echo "Changelog does not contain tag. Have you run ./.release/changelog.sh?"
     exit 1
