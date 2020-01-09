@@ -33,6 +33,9 @@ steps:
   - script: cd internal/functionaltests && godog
     displayName: Run Functional Tests
 
+  - script: .azure-pipelines/scripts/tutorial-checks.sh
+    displayName: Check tutorial contents
+
   - script: .azure-pipelines/scripts/release-checks.sh $(Build.SourceBranchName)
     displayName: Release checklist
     condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags'))

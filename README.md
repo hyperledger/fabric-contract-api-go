@@ -23,6 +23,11 @@ There’s always plenty to do! Check the documentation on
 ## Documentation
 Documentation for all packages within this repo can be found [here](http://godoc.org/github.com/hyperledger/fabric-contract-api-go)
 
+## Tutorial
+Tutorials for how to create smart contracts using packages in this repo can be [here](./tutorials)
+
+A sample chaincode built using packages from this repo can be found in [fabric-samples](https://github.com/hyperledger/fabric-samples/tree/master/chaincode/fabcar/go)
+
 ## License <a name="license"></a>
 
 Hyperledger Project source code files are made available under the Apache License, Version 2.0 (Apache-2.0), located in the [LICENSE](LICENSE) file. Hyperledger Project documentation files are made available under the Creative Commons Attribution 4.0 International License (CC-BY-4.0), available at http://creativecommons.org/licenses/by/4.0/.
