@@ -1,0 +1,23 @@
+# Copyright the Hyperledger Fabric contributors. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+
+steps:
+    - task: NodeTool@0 
+      inputs:
+        versionSpec: 10.x
+      displayName: Install Node
+    - script: |
+        npm install -g license-check-and-add@3.0.3
+        npm install -g fabric-chaincode-integration@0.3.0-202003161017
+      displayName: Install NPM Globals
+    - task: GoTool@0
+      inputs:
+        version: $(GOVER)
+        goPath:  $(GOPATH)
+      displayName: Install GoLang
+    - script: |
+        go get -u github.com/DATA-DOG/godog/cmd/godog
+        go get -u golang.org/x/lint/golint
+        go get -u golang.org/x/tools/cmd/goimports
+      displayName: Install GoLang tools

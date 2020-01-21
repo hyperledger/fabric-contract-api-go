@@ -9,14 +9,16 @@ trigger:
       - master
 
 variables:
+  GOPATH: $(Agent.BuildDirectory)/go
+  PATH: $(Agent.BuildDirectory)/go/bin:/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:/usr/local/sbin
+  GOVER: 1.13.4
   branch: $[ coalesce(variables['system.PullRequest.TargetBranch'], variables['build.SourceBranchName']) ]
 
 pool:
   vmImage: ubuntu-16.04
-container:
-  image: awjh/fabric-contract-api-go-env:0.0.2
 
 steps:
+  - template: install_deps.yml
   - checkout: self
     clean: true
     fetchDepth: 1
@@ -24,17 +26,21 @@ steps:
   - script: .azure-pipelines/scripts/lint.sh
     displayName: Vet and lint
 
-  - script: license-check-and-add check -f .azure-pipelines/resources/license-config.json
+  - script:
+      license-check-and-add check -f .azure-pipelines/resources/license-config.json
     displayName: Check licenses
 
   - script: go test -race ./... -v
     displayName: Run tests
 
   - script: cd internal/functionaltests && godog
-    displayName: Run Functional Tests
+    displayName: Run functional tests
 
   - script: .azure-pipelines/scripts/tutorial-checks.sh
     displayName: Check tutorial contents
+
+  - script: fabric-chaincode-integration run --chaincode-dir .azure-pipelines/resources/chaincode  --language golang --logging-level debug
+    displayName: Run integration tests
 
   - script: .azure-pipelines/scripts/release-checks.sh $(Build.SourceBranchName)
     displayName: Release checklist
