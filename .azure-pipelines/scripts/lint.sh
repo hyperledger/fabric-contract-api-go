@@ -7,7 +7,7 @@ set -euo pipefail
 
 ## Formatting
 echo "running gofmt..."
-gofmt_output="$(gofmt -l -s .)"
+gofmt_output="$(gofmt -l -s . | grep -v .azure-pipelines && exit 1 || exit 0)"
 if [ -n "$gofmt_output" ]; then
     echo "The following files contain gofmt errors:"
     echo "$gofmt_output"
@@ -17,7 +17,7 @@ fi
 
 ## Import management
 echo "running goimports..."
-goimports_output="$(goimports -l  .)"
+goimports_output="$(goimports -l  . | grep -v .azure-pipelines && exit 1 || exit 0)"
 if [ -n "$goimports_output" ]; then
     echo "The following files contain goimport errors:"
     echo "$goimports_output"
