@@ -14,27 +14,31 @@ variables:
 pool:
   vmImage: ubuntu-16.04
 container:
-  image: awjh/fabric-contract-api-go-env:0.0.2
+  image: awjh/fabric-contract-api-go-env:0.0.3-beta
+  options: -v /var/run/docker.sock:/var/run/docker.sock
 
 steps:
   - checkout: self
     clean: true
     fetchDepth: 1
 
-  - script: .azure-pipelines/scripts/lint.sh
-    displayName: Vet and lint
+  # - script: .azure-pipelines/scripts/lint.sh
+  #   displayName: Vet and lint
 
-  - script: license-check-and-add check -f .azure-pipelines/resources/license-config.json
-    displayName: Check licenses
+  # - script: license-check-and-add check -f .azure-pipelines/resources/license-config.json
+  #   displayName: Check licenses
 
-  - script: go test -race ./... -v
-    displayName: Run tests
+  # - script: go test -race ./... -v
+  #   displayName: Run tests
 
-  - script: cd internal/functionaltests && godog
-    displayName: Run Functional Tests
+  # - script: cd internal/functionaltests && godog
+  #   displayName: Run functional tests
 
-  - script: .azure-pipelines/scripts/tutorial-checks.sh
-    displayName: Check tutorial contents
+  # - script: .azure-pipelines/scripts/tutorial-checks.sh
+  #   displayName: Check tutorial contents
+
+  - script: fabric-chaincode-integration run --chaincode-dir .azure-pipelines/resources/chaincode  --language golang --logging-level debug
+    displayName: Run integration tests
 
   - script: .azure-pipelines/scripts/release-checks.sh $(Build.SourceBranchName)
     displayName: Release checklist
