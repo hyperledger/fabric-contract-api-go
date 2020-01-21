@@ -6,6 +6,8 @@
 # Go through each file in tutorial folder and test that all headers in file exist in contents
 # and follow correct format
 
+set -e
+
 cd tutorials
 
 check_contents_entries() {
