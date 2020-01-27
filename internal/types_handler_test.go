@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/hyperledger/fabric-contract-api-go/internal/types"
+	"github.com/hyperledger/fabric-contract-api-go/internal/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -93,7 +94,7 @@ func (s *structMeetsInterface) SomeFunction(param1 string, param2 int) (string, 
 func TestListBasicTypes(t *testing.T) {
 	types := []string{"bool", "float32", "float64", "int", "int16", "int32", "int64", "int8", "interface", "string", "uint", "uint16", "uint32", "uint64", "uint8"}
 
-	assert.Equal(t, sliceAsCommaSentence(types), listBasicTypes(), "should return basic types as a human readable list")
+	assert.Equal(t, utils.SliceAsCommaSentence(types), listBasicTypes(), "should return basic types as a human readable list")
 }
 
 func TestArrayOfValidType(t *testing.T) {

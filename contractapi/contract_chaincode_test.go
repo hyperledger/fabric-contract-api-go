@@ -14,6 +14,7 @@ import (
 	"github.com/hyperledger/fabric-chaincode-go/shim"
 	"github.com/hyperledger/fabric-chaincode-go/shimtest"
 	"github.com/hyperledger/fabric-contract-api-go/internal"
+	"github.com/hyperledger/fabric-contract-api-go/internal/utils"
 	"github.com/hyperledger/fabric-contract-api-go/metadata"
 	"github.com/hyperledger/fabric-contract-api-go/serializer"
 	"github.com/hyperledger/fabric-protos-go/peer"
@@ -39,6 +40,18 @@ func (ss *simpleStruct) GoodMethod(param1 string, param2 string) string {
 }
 
 func (ss *simpleStruct) AnotherGoodMethod() int {
+	return 1
+}
+
+type emptyContract struct {
+	Contract
+}
+
+type privateContract struct {
+	Contract
+}
+
+func (pc *privateContract) privateMethod() int64 {
 	return 1
 }
 
@@ -437,6 +450,19 @@ func TestAddContract(t *testing.T) {
 	mc.Name = "customname"
 	err = cc.addContract(mc, []string{})
 	assert.EqualError(t, err, "Multiple contracts being merged into chaincode with name customname", "should error when contract already exists with name")
+
+	// should error when no public functions
+	cc = new(ContractChaincode)
+	cc.contracts = make(map[string]contractChaincodeContract)
+	ic := new(emptyContract)
+	err = cc.addContract(ic, defaultExcludes)
+	assert.EqualError(t, err, fmt.Sprintf("Contracts are required to have at least 1 (non-ignored) public method. Contract emptyContract has none. Method names that have been ignored: %s", utils.SliceAsCommaSentence(defaultExcludes)), "should error when contract has no public functions")
+
+	cc = new(ContractChaincode)
+	cc.contracts = make(map[string]contractChaincodeContract)
+	pc := new(privateContract)
+	err = cc.addContract(pc, defaultExcludes)
+	assert.EqualError(t, err, fmt.Sprintf("Contracts are required to have at least 1 (non-ignored) public method. Contract privateContract has none. Method names that have been ignored: %s", utils.SliceAsCommaSentence(defaultExcludes)), "should error when contract has no public functions but private ones")
 
 	// should add by default name
 	existingCCC := contractChaincodeContract{

@@ -231,7 +231,7 @@ func (cc *ContractChaincode) addContract(contract ContractInterface, excludeFunc
 	}
 
 	if _, ok := cc.contracts[ns]; ok {
-		return fmt.Errorf("Multiple contracts being merged into chaincode with name %s", contract.GetName())
+		return fmt.Errorf("Multiple contracts being merged into chaincode with name %s", ns)
 	}
 
 	ccn := contractChaincodeContract{}
@@ -309,6 +309,10 @@ func (cc *ContractChaincode) addContract(contract ContractInterface, excludeFunc
 				return err
 			}
 		}
+	}
+
+	if len(ccn.functions) == 0 {
+		return fmt.Errorf("Contracts are required to have at least 1 (non-ignored) public method. Contract %s has none. Method names that have been ignored: %s", ns, utils.SliceAsCommaSentence(excludeFuncs))
 	}
 
 	cc.contracts[ns] = ccn
