@@ -205,20 +205,20 @@ Chaincode created using the contractapi package automatically has generated for 
 
 In Go the metadata is produced automatically for you using reflection, due to limitations of Go reflection the parameter names of functions in the metadata will not match the chaincode code but will instead use param0, param1, ..., paramN.
 
-You can view the metadata for your chaincode by querying the system chaincode 'org.hyperledger.fabric' and its function 'getMetadata'. This is also how you view the metadata of chaincodes written in Node and Java (as long as they follow the [Fabric programming model](https://hyperledger-fabric.readthedocs.io/en/release-1.4/whatsnew.html#improved-programming-model-for-developing-applications)).
+You can view the metadata for your chaincode by querying the system chaincode 'org.hyperledger.fabric' and its function 'GetMetadata'. This is also how you view the metadata of chaincodes written in Node and Java (as long as they follow the [Fabric programming model](https://hyperledger-fabric.readthedocs.io/en/release-1.4/whatsnew.html#improved-programming-model-for-developing-applications)).
 
 To see the metadata of the chaincode made in this tutorial issue the following command in the CLI docker terminal:
 
 ```
-peer chaincode query -n mycc -c '{"Args":["org.hyperledger.fabric:getMetadata"]}' -C myc
+peer chaincode query -n mycc -c '{"Args":["org.hyperledger.fabric:GetMetadata"]}' -C myc
 ```
 
 Notice in the chaincode that contract functions have a property `tag` which contains a string array with one element `submit`. A submit tag is used in the metadata to indicate that the function when called as part of a transaction should be "submitted" rather than "evaluated". Submitting a transaction (invoking) means that can be written to the world state, evaluating (querying) runs the function as read only. The `Read` function of `SimpleContract` is tagged as `submit` however in the code it never writes to the world state. This is as all contract functions are tagged as `submit` by default when the contractapi package is used to create chaincode. You must therefore explicitly mark which functions are for evaluating rather than submitting. Chaincode created using the contractapi calls the `GetEvaluateTransactions()` function of a contract (should it exist) to retrieve a list of name of functions that are evaluate rather than submit.
 
-Define a `GetEvaluateTransactions` function on `SimpleChaincode` and have it return `Read` as the only element of the string array:
+Define a `GetEvaluateTransactions` function on `SimpleContract` and have it return `Read` as the only element of the string array:
 
 ```
-// GetEvaluateTransactions returns functions of SimpleChaincode not to be tagged as submit
+// GetEvaluateTransactions returns functions of SimpleContract not to be tagged as submit
 func (sc *SimpleContract) GetEvaluateTransactions() []string {
 	return []string{"Read"}
 }

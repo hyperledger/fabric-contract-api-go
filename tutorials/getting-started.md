@@ -155,7 +155,7 @@ type SimpleContract struct {
 }
 
 // Create adds a new key with value to the world state
-func (sc *SimpleContract) Create(ctx *contractapi.TransactionContextInterface, key string, value string) error {
+func (sc *SimpleContract) Create(ctx contractapi.TransactionContextInterface, key string, value string) error {
     existing, err := ctx.GetStub().GetState(key)
 
     if err != nil {
@@ -176,7 +176,7 @@ func (sc *SimpleContract) Create(ctx *contractapi.TransactionContextInterface, k
 }
 
 // Update changes the value with key in the world state
-func (sc *SimpleContract) Update(ctx *contractapi.TransactionContextInterface, key string, value string) error {
+func (sc *SimpleContract) Update(ctx contractapi.TransactionContextInterface, key string, value string) error {
     existing, err := ctx.GetStub().GetState(key)
 
     if err != nil {

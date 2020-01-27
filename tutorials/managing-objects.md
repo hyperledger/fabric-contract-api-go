@@ -162,7 +162,7 @@ func (cc *ComplexContract) UpdateValue(ctx CustomTransactionContextInterface, id
 }
 ```
 
-Add a final function to allow a transaction caller to read your asset from the world state.
+Add a further function to allow a transaction caller to read your asset from the world state.
 
 ```
 // GetAsset returns the basic asset with id given from the world state
@@ -182,6 +182,15 @@ func (cc *ComplexContract) GetAsset(ctx CustomTransactionContextInterface, id st
 	}
 
 	return ba, nil
+}
+```
+
+Finally define a `GetEvaluateTransactions` functions for your new contract. Make this function return `GetAsset` since this is the only function that does not write to the world state.
+
+```
+// GetEvaluateTransactions returns functions of ComplexContract not to be tagged as submit
+func (cc *ComplexContract) GetEvaluateTransactions() []string {
+	return []string{"GetAsset"}
 }
 ```
 
