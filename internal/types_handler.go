@@ -9,6 +9,7 @@ import (
 	"sort"
 
 	"github.com/hyperledger/fabric-contract-api-go/internal/types"
+	"github.com/hyperledger/fabric-contract-api-go/internal/utils"
 )
 
 func basicTypesAsSlice() []string {
@@ -23,7 +24,7 @@ func basicTypesAsSlice() []string {
 }
 
 func listBasicTypes() string {
-	return sliceAsCommaSentence(basicTypesAsSlice())
+	return utils.SliceAsCommaSentence(basicTypesAsSlice())
 }
 
 func arrayOfValidType(array reflect.Value, additionalTypes []reflect.Type) error {

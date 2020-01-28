@@ -61,8 +61,16 @@ func TestStringInSlice(t *testing.T) {
 	slice := []string{"word", "another word"}
 
 	// Should return true when string present in slice
-	assert.True(t, StringInSlice("word", slice), "should have returned true when sling in slice")
+	assert.True(t, StringInSlice("word", slice), "should have returned true when string in slice")
 
-	// Should return false when string no present in slice
-	assert.False(t, StringInSlice("bad word", slice), "should have returned true when sling in slice")
+	// Should return false when string not present in slice
+	assert.False(t, StringInSlice("bad word", slice), "should have returned true when string in slice")
+}
+
+func TestSliceAsCommaSentence(t *testing.T) {
+	slice := []string{"one", "two", "three"}
+
+	assert.Equal(t, "one, two and three", SliceAsCommaSentence(slice), "should have put commas between slice elements and join last element with and")
+
+	assert.Equal(t, "one", SliceAsCommaSentence([]string{"one"}), "should handle single item")
 }

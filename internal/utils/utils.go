@@ -35,3 +35,8 @@ func StringInSlice(a string, list []string) bool {
 	}
 	return false
 }
+
+// SliceAsCommaSentence returns string slice as comma separated sentence
+func SliceAsCommaSentence(slice []string) string {
+	return strings.Replace(strings.Join(slice, " and "), " and ", ", ", len(slice)-2)
+}
