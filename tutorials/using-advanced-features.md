@@ -23,7 +23,7 @@ func MyBeforeTransaction(ctx contractapi.TransactionContextInterface) error {
 	...
 }
 
-func (c *MyContract) DoSomething(ctx contractapi.TransactionContextInterface) string {
+func (mc *MyContract) DoSomething(ctx contractapi.TransactionContextInterface) string {
 	return "Hello World"
 }
 
@@ -43,7 +43,7 @@ func MyBeforeTransaction(ctx contractapi.TransactionContextInterface) error {
 	return errors.New("Before failed")
 }
 
-func (c *MyContract) DoSomething(ctx contractapi.TransactionContextInterface) string {
+func (mc *MyContract) DoSomething(ctx contractapi.TransactionContextInterface) string {
 	return "Hello World"
 }
 
@@ -73,17 +73,17 @@ type CustomTransactionContext struct {
 }
 
 // GetData return set data
-func (c *CustomTransactionContext) GetData() []byte {
-	return c.data
+func (ctc *CustomTransactionContext) GetData() []byte {
+	return ctc.data
 }
 
 // SetData provide a value for data
-func (c *CustomTransactionContext) SetData(data []byte) {
-	c.data = data
+func (ctc *CustomTransactionContext) SetData(data []byte) {
+	ctc.data = data
 }
 ```
 
-In the previous tutorial it was mentioned that it is more practical from a testing perspective to take an interface for the transaction context. So that we can do this again for our custom transaction context, we must define an interface it meets. So that you can still use the functions from the default transaction context, embed `contractapi.TransactionContextInterface` in the custom transaction interface.
+In the previous tutorial it was mentioned that it is more practical from a testing perspective to take an interface for the transaction context. So that we can do this again for our custom transaction context, we must define an interface it meets. So that you can still use the functions from the default transaction context, embed `contractapi.TransactionContextInterface` in the custom transaction interface. Define this interface in the same file as you defined your custom transaction context.
 
 ```
 // CustomTransactionContextInterface interface to define interaction with custom transaction context
@@ -169,9 +169,17 @@ existing := ctx.GetData()
 
 Your chaincode should now work exactly the same as before. If you have torn down your network from the previous tutorial, you can run through the steps outlined [here](./getting-started.md#testing-your-chaincode-as-a-developer) to bring your chaincode up and interact with it. Otherwise stop the chaincode process, rebuild your go program and restart it using the same command. You can then interact with the same invoke/query commands.
 
+> Note: if you have not torn down the network data will still persist in the world state and therefore you will need to use another key (e.g. `KEY_2`) in your commands
+
 ## Handling unknown function calls
 
-By default if a function name is passed during an instantiate, invoke or query request that is unknown to the chaincode the chaincode returns an error response to the peer to let the user know of the issue. For example, when a user misspells a known function or enters a non-existent one. It is possible, however, to specify a custom handler for these unknown function requests for each contract. A handler for unknown requests may (optionally) take the transaction context as its sole parameter. It does not need to be public or a function of the contract. The unknown transaction handler may return an error type, if it does return a value for this error then any after transaction specified for the contract will not be run. Any before transaction function is always run.
+By default if a function name is passed during an instantiate, invoke or query request that is unknown to the chaincode the chaincode returns an error response to the peer to let the user know of the issue. For example, when a user misspells a known function or enters a non-existent one. To see this in action issue the following command:
+
+```
+peer chaincode query -n mycc -c '{"Args":["BadFunction", "KEY_1"]}' -C myc
+```
+
+It is possible, however, to specify a custom handler for these unknown function requests for each contract. A handler for unknown requests may (optionally) take the transaction context as its sole parameter. It does not need to be public or a function of the contract. The unknown transaction handler may return an error type, if it does return a value for this error then any after transaction specified for the contract will not be run. Any before transaction function is always run.
 
 Define your own function for handling unknown function names in transactions. In the `utils.go` file (where you defined `GetWorldState`) create the following function:
 
@@ -200,6 +208,8 @@ If in the chaincode docker container terminal you now stop the chaincode process
 peer chaincode query -n mycc -c '{"Args":["BadFunction", "KEY_1"]}' -C myc
 ```
 
+Notice that the output differs from what was returned when you issued the same command before setting up the custom unknown transaction handler.
+
 ## Chaincode metadata
 Chaincode created using the contractapi package automatically has generated for it a system contract which provides metadata about the chaincode. This metadata describes the contracts that form the chaincode, describing their functions, the parameters those functions take, as well as function return values. The metadata produced follows this [schema](https://raw.githubusercontent.com/hyperledger/fabric-contract-api-go/master/metadata/schema/schema.json).
 
@@ -213,9 +223,9 @@ To see the metadata of the chaincode made in this tutorial issue the following c
 peer chaincode query -n mycc -c '{"Args":["org.hyperledger.fabric:GetMetadata"]}' -C myc
 ```
 
-Notice in the chaincode that contract functions have a property `tag` which contains a string array with one element `submit`. A submit tag is used in the metadata to indicate that the function when called as part of a transaction should be "submitted" rather than "evaluated". Submitting a transaction (invoking) means that can be written to the world state, evaluating (querying) runs the function as read only. The `Read` function of `SimpleContract` is tagged as `submit` however in the code it never writes to the world state. This is as all contract functions are tagged as `submit` by default when the contractapi package is used to create chaincode. You must therefore explicitly mark which functions are for evaluating rather than submitting. Chaincode created using the contractapi calls the `GetEvaluateTransactions()` function of a contract (should it exist) to retrieve a list of name of functions that are evaluate rather than submit.
+Notice in the chaincode that contract functions have a property `tag` which contains a string array with one element `submit`. A submit tag is used in the metadata to indicate that the function when called as part of a transaction should be "submitted" rather than "evaluated" by the client. Submitting a transaction (invoking) means that data can be written to the world state, evaluating (querying) runs the function as read only. The `Read` function of `SimpleContract` is tagged as `submit` however in the code it never writes to the world state. This is as all contract functions are tagged as `submit` by default when the contractapi package is used to create chaincode. You must therefore explicitly mark which functions are for evaluating rather than submitting. It is important to note that metadata merely provides a guide for interaction with the chaincode and its contracts. Having a tag of submit or evaluate does not force the client issuing the transaction to use that method. A function marked as evaluate can be called via a submit transaction.
 
-Define a `GetEvaluateTransactions` function on `SimpleContract` and have it return `Read` as the only element of the string array:
+Chaincode created using the contractapi calls the `GetEvaluateTransactions()` function of a contract (should it exist) to retrieve a list of name of functions that are evaluate rather than submit. Define a `GetEvaluateTransactions` function on `SimpleContract` and have it return `Read` as the only element of the string array:
 
 ```
 // GetEvaluateTransactions returns functions of SimpleContract not to be tagged as submit

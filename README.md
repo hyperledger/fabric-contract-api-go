@@ -23,8 +23,8 @@ There’s always plenty to do! Check the documentation on
 ## Documentation
 Documentation for all packages within this repo can be found [here](http://godoc.org/github.com/hyperledger/fabric-contract-api-go)
 
-## Tutorial
-Tutorials for how to create smart contracts using packages in this repo can be [here](./tutorials)
+## Tutorials
+Tutorials for how to create smart contracts using packages in this repo can be found [here](./tutorials)
 
 A sample chaincode built using packages from this repo can be found in [fabric-samples](https://github.com/hyperledger/fabric-samples/tree/master/chaincode/fabcar/go)
 

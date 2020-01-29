@@ -13,7 +13,7 @@ This tutorial will assume you have:
 - Completed [Using advanced features](./using-advance-features.md)
 
 ## Defining an object
-The chaincode written so far contains a single contract and purely works with taking and returning string values. As mentioned in the [first tutorial](./getting-started.md) functions can take and return many types including structs (and pointers to structs). This tutorial will create a contract which handles the management of an object.
+The chaincode written so far contains a single contract and purely works with taking and returning string values. As mentioned in the [first tutorial](./getting-started.md) functions can take and return many types including structs (and pointers to structs). This tutorial will create a contract which handles the management of an object to show how the contract API handles the taking and returning of non-string types.
 
 Create a new file in your `contract-tutorial` folder called `basic-asset.go`. In here we will create the object to manage, in this case we will call it `BasicAsset`. 
 
@@ -226,7 +226,7 @@ You now have a chaincode consisting of two contracts.
 > Note: since both contracts are part of the same chaincode they can read and write to the same keys in the ledger.
 
 ## Using a custom name for your contracts
-When there was only one contract in the chaincode, calling it consisted of just passing the function name. With multiple it is now necessary to know the contract name and namespace calls in the format `<CONTRACT_NAME>:<FUNCTION_NAME>`. By default the contracts can be referenced by their struct name, in this case they would be `SimpleContract` and `ComplexContract`. The first contract passed to the `NewChaincode` function is also the default contract and therefore its functions can be called without namespacing. Sometimes it is desirable to to use custom names for contracts. The chaincode calls `GetName` on the contract when it is created to determine the name of the contract and since both our contracts embed the `contractapi.Contract` struct, we can set the value to be returned from this function by setting the name property of the contracts before calling `NewChaincode`.
+When there was only one contract in the chaincode, calling it consisted of just passing the function name. With multiple it is now necessary to know the contract name and namespace calls in the format `<CONTRACT_NAME>:<FUNCTION_NAME>`. By default the contracts can be referenced by their struct name, in this case they would be `SimpleContract` and `ComplexContract`. The first contract passed to the `NewChaincode` function is also the default contract and therefore its functions can be called without namespacing. Sometimes it is desirable to to use custom names for contracts. The chaincode calls `GetName` on the contract when it is created to determine the name of the contract and since both our contracts embed the `contractapi.Contract` struct, we can set the value to be returned from this function by setting the name property of the contracts before calling `NewChaincode` in your `main` function.
 
 ```
 simpleContract.Name = "org.example.com.SimpleContract"
@@ -234,7 +234,7 @@ simpleContract.Name = "org.example.com.SimpleContract"
 complexContract.Name = "org.example.com.ComplexContract"
 ```
 
-You can then set the default contract to be the complex contract by setting the `DefaultContract` property of the chaincode to be the name of the complex chaincode. Do this after checking the error value returned by `NewChaincode` or you may get a runtime error as if an error occurs chaincode will be `nil`.
+You can then set the default contract to be the complex contract by, in your `main` function, setting the `DefaultContract` property of the chaincode to be the name of the complex chaincode. Do this after checking the error value returned by `NewChaincode` or you may get a runtime error as if an error occurs chaincode will be `nil`.
 
 ```
 cc.DefaultContract = complexContract.GetName()
@@ -245,18 +245,22 @@ If you have torn down your network from the previous tutorials you can run throu
 ### Simple contract
 
 ```
-peer chaincode invoke -n mycc -c '{"Args":["org.example.com.SimpleContract:Create", "KEY_1", "VALUE_1"]}' -C myc
+peer chaincode invoke -n mycc -c '{"Args":["org.example.com.SimpleContract:Create", "KEY_3", "VALUE_1"]}' -C myc
 
-peer chaincode invoke -n mycc -c '{"Args":["org.example.com.SimpleContract:Update", "KEY_1", "VALUE_2"]}' -C myc
+peer chaincode invoke -n mycc -c '{"Args":["org.example.com.SimpleContract:Update", "KEY_3", "VALUE_2"]}' -C myc
 
-peer chaincode query -n mycc -c '{"Args":["org.example.com.SimpleContract:Read", "KEY_1"]}' -C myc
+peer chaincode query -n mycc -c '{"Args":["org.example.com.SimpleContract:Read", "KEY_3"]}' -C myc
 ```
 
 ### Complex contract
 
-```
-peer chaincode invoke -n mycc -c '{"Args":["org.example.com.ComplexContract:NewAsset", "ASSET_1", "{\"forename\": \"blue\", \"surname\": \"conga\"}", "100"]}' -C myc
+> You can call the complex contract both using its name or by just passing the name of its functions since it is now the default
 
+```
+# call without passing name
+peer chaincode invoke -n mycc -c '{"Args":["NewAsset", "ASSET_1", "{\"forename\": \"blue\", \"surname\": \"conga\"}", "100"]}' -C myc
+
+# call passing name
 peer chaincode invoke -n mycc -c '{"Args":["org.example.com.ComplexContract:UpdateOwner", "ASSET_1", "{\"forename\": \"green\", \"surname\": \"conga\"}"]}' -C myc
 
 peer chaincode invoke -n mycc -c '{"Args":["org.example.com.ComplexContract:UpdateValue", "ASSET_1", "300"]}' -C myc
