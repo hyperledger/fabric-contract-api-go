@@ -101,6 +101,9 @@
                 "transactions"
             ],
             "properties": {
+                "default": {
+                    "type": "boolean"
+                },
                 "info": {
                     "$ref": "#/definitions/info"
                 },
@@ -120,6 +123,7 @@
             "type": "object",
             "description": "A complex type used in a domain",
             "required": [
+                "$id",
                 "properties"
             ],
             "properties": {
