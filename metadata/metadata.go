@@ -136,6 +136,7 @@ type ContractMetadata struct {
 	Info         *InfoMetadata         `json:"info,omitempty"`
 	Name         string                `json:"name"`
 	Transactions []TransactionMetadata `json:"transactions"`
+	Default      bool                  `json:"default"`
 }
 
 // ObjectMetadata description of a component

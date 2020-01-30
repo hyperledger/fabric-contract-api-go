@@ -344,6 +344,10 @@ func (cc *ContractChaincode) reflectMetadata() metadata.ContractChaincodeMetadat
 		infoCopy := contract.info
 		contractMetadata.Info = &infoCopy
 
+		if cc.DefaultContract == key {
+			contractMetadata.Default = true
+		}
+
 		for key, fn := range contract.functions {
 			fnMetadata := fn.ReflectMetadata(key, &reflectedMetadata.Components)
 
