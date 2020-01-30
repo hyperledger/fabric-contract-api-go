@@ -12,12 +12,24 @@
 ## Prerequisites
 This tutorial will assume you have:
 - A clone of [fabric-samples](https://github.com/hyperledger/fabric-samples)
-- [Go 1.12+](https://golang.org/doc/install)
+- [Go 1.13.x](https://golang.org/doc/install)
 - [Docker](https://docs.docker.com/install/)
 - [Docker compose](https://docs.docker.com/compose/install/)
 
 ## Housekeeping
-Since this tutorial will make use of fabric-samples' `chaincode-docker-devmode` setup you should be developing within `fabric-samples/chaincode`. Make a folder inside `fabric-samples/chaincode` called `contract-tutorial` and open your preferred editor there. In your terminal run the command `go mod init github.com/hyperledger/fabric-samples/chaincode/contract-tutorial` to setup go modules. You can then run `go get -u github.com/hyperledger/fabric-contract-api-go` to get the latest release of fabric-contract-api-go for use in your chaincode.
+Since this tutorial will make use of fabric-samples' `chaincode-docker-devmode` setup you should be developing within `fabric-samples/chaincode`. Make a folder inside `fabric-samples/chaincode` called `contract-tutorial` and open your preferred editor there. In your terminal run the command
+
+```
+go mod init github.com/hyperledger/fabric-samples/chaincode/contract-tutorial
+```
+
+to setup go modules. You can then run
+ 
+```
+go get -u github.com/hyperledger/fabric-contract-api-go
+```
+
+to get the latest release of fabric-contract-api-go for use in your chaincode.
 
 ## Declaring a contract
 The contractapi generates chaincode by taking one or more "contracts" that it bundles into a running chaincode. The first thing we will do here is declare a contract for use in our chaincode. This contract will be simple, handling the reading and writing of strings to and from the world state. All contracts for use in chaincode must implement the [contractapi.ContractInterface](https://godoc.org/github.com/hyperledger/fabric-contract-api-go/contractapi#ContractInterface). The easiest way to do this is to embed the `contractapi.Contract` struct within your own contract which will provide default functionality for meeting this interface.
@@ -242,8 +254,8 @@ Once you have your chaincode, to make it callable via transactions you must star
 
 ```
     if err := cc.Start(); err != nil {
-		panic(err.Error())
-	}
+        panic(err.Error())
+    }
 ```
 
 Your `main.go` file should now look like this:
@@ -265,8 +277,8 @@ func main() {
     }
 
     if err := cc.Start(); err != nil {
-		panic(err.Error())
-	}
+        panic(err.Error())
+    }
 }
 ```
 
@@ -275,7 +287,7 @@ Open a terminal to where you have cloned `fabric-samples` and cd into the `chain
 
 Startup the simple fabric network using:
 
-> Note: this command will not exit
+> Note: this command will continuously print output and will not exit
 
 ```
 docker-compose -f docker-compose-simple.yaml up
@@ -300,6 +312,7 @@ cd contract-tutorial
 Once in that folder you must build your chaincode program for running. You must also 'vendor' the imports for the go program as the peer will be missing these packages.
 
 > Note: ensure you have the 2.x.x version of the fabric docker images or the `go build` command will fail.
+> Note: ensure you have the correct permissions configured on your contract-tutorial folder for docker to create files there. Running `chmod -R 766` should set the correct permission levels.
 
 ```
 go mod vendor
