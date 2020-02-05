@@ -31,11 +31,11 @@ func getSchema(field reflect.Type, components *ComponentMetadata, nested bool) (
 		if field == types.TimeType {
 			schema = spec.DateTimeProperty()
 		} else if field.Kind() == reflect.Array {
-			schema, err = buildArraySchema(reflect.New(field).Elem(), components)
+			schema, err = buildArraySchema(reflect.New(field).Elem(), components, nested)
 		} else if field.Kind() == reflect.Slice {
-			schema, err = buildSliceSchema(reflect.MakeSlice(field, 1, 1), components)
+			schema, err = buildSliceSchema(reflect.MakeSlice(field, 1, 1), components, nested)
 		} else if field.Kind() == reflect.Map {
-			schema, err = buildMapSchema(reflect.MakeMap(field), components)
+			schema, err = buildMapSchema(reflect.MakeMap(field), components, nested)
 		} else if field.Kind() == reflect.Struct || (field.Kind() == reflect.Ptr && field.Elem().Kind() == reflect.Struct) {
 			schema, err = buildStructSchema(field, components, nested)
 		} else {
@@ -52,12 +52,12 @@ func getSchema(field reflect.Type, components *ComponentMetadata, nested bool) (
 	return schema, nil
 }
 
-func buildArraySchema(array reflect.Value, components *ComponentMetadata) (*spec.Schema, error) {
+func buildArraySchema(array reflect.Value, components *ComponentMetadata, nested bool) (*spec.Schema, error) {
 	if array.Len() < 1 {
 		return nil, fmt.Errorf("Arrays must have length greater than 0")
 	}
 
-	lowerSchema, err := GetSchema(array.Index(0).Type(), components)
+	lowerSchema, err := getSchema(array.Index(0).Type(), components, nested)
 
 	if err != nil {
 		return nil, err
@@ -66,12 +66,12 @@ func buildArraySchema(array reflect.Value, components *ComponentMetadata) (*spec
 	return spec.ArrayProperty(lowerSchema), nil
 }
 
-func buildSliceSchema(slice reflect.Value, components *ComponentMetadata) (*spec.Schema, error) {
+func buildSliceSchema(slice reflect.Value, components *ComponentMetadata, nested bool) (*spec.Schema, error) {
 	if slice.Len() < 1 {
 		slice = reflect.MakeSlice(slice.Type(), 1, 10)
 	}
 
-	lowerSchema, err := GetSchema(slice.Index(0).Type(), components)
+	lowerSchema, err := getSchema(slice.Index(0).Type(), components, nested)
 
 	if err != nil {
 		return nil, err
@@ -80,8 +80,8 @@ func buildSliceSchema(slice reflect.Value, components *ComponentMetadata) (*spec
 	return spec.ArrayProperty(lowerSchema), nil
 }
 
-func buildMapSchema(rmap reflect.Value, components *ComponentMetadata) (*spec.Schema, error) {
-	lowerSchema, err := GetSchema(rmap.Type().Elem(), components)
+func buildMapSchema(rmap reflect.Value, components *ComponentMetadata, nested bool) (*spec.Schema, error) {
+	lowerSchema, err := getSchema(rmap.Type().Elem(), components, nested)
 
 	if err != nil {
 		return nil, err
