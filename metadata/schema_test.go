@@ -71,6 +71,32 @@ var complexStructMetadata = ObjectMetadata{
 	AdditionalProperties: false,
 }
 
+type superComplexStruct struct {
+	complexStruct
+	Prop4 []complexStruct
+	Prop5 [2]simpleStruct
+	Prop6 map[string]*complexStruct
+	Prop7 map[string][]*simpleStruct
+}
+
+var superComplexStructPropertiesMap = map[string]spec.Schema{
+	"Prop0": *spec.StringProperty(),
+	"Prop1": *spec.StringProperty(),
+	"Prop2": *spec.RefSchema("simpleStruct"),
+	"Prop3": *spec.RefSchema("complexStruct"),
+	"Prop4": *spec.ArrayProperty(spec.RefSchema("complexStruct")),
+	"Prop5": *spec.ArrayProperty(spec.RefSchema("simpleStruct")),
+	"Prop6": *spec.MapProperty(spec.RefSchema("complexStruct")),
+	"Prop7": *spec.MapProperty(spec.ArrayProperty(spec.RefSchema("simpleStruct"))),
+}
+
+var superComplexStructMetadata = ObjectMetadata{
+	ID:                   "superComplexStruct",
+	Properties:           superComplexStructPropertiesMap,
+	Required:             append(complexStructMetadata.Required, "Prop4", "Prop5", "Prop6", "Prop7"),
+	AdditionalProperties: false,
+}
+
 type badStruct struct {
 	Prop1 complex64
 }
@@ -117,17 +143,17 @@ func TestBuildArraySchema(t *testing.T) {
 	var err error
 
 	zeroArr := [0]int{}
-	schema, err = buildArraySchema(reflect.ValueOf(zeroArr), nil)
+	schema, err = buildArraySchema(reflect.ValueOf(zeroArr), nil, false)
 	assert.Equal(t, errors.New("Arrays must have length greater than 0"), err, "should throw error when 0 length array passed")
 	assert.Nil(t, schema, "should not have returned a schema for zero array")
 
-	schema, err = buildArraySchema(reflect.ValueOf([1]complex128{}), nil)
-	_, expectedErr := GetSchema(reflect.TypeOf(complex128(1)), nil)
+	schema, err = buildArraySchema(reflect.ValueOf([1]complex128{}), nil, false)
+	_, expectedErr := getSchema(reflect.TypeOf(complex128(1)), nil, false)
 	assert.Nil(t, schema, "spec should be nil when GetSchema fails for array")
 	assert.Equal(t, expectedErr, err, "should have same error as GetSchema for array")
 
-	schema, err = buildArraySchema(reflect.ValueOf([1]string{}), nil)
-	expectedLowerSchema, _ := GetSchema(reflect.TypeOf(""), nil)
+	schema, err = buildArraySchema(reflect.ValueOf([1]string{}), nil, false)
+	expectedLowerSchema, _ := getSchema(reflect.TypeOf(""), nil, false)
 	assert.Nil(t, err, "should not error for valid array")
 	assert.Equal(t, spec.ArrayProperty(expectedLowerSchema), schema, "should return array of lower schema")
 }
@@ -136,13 +162,13 @@ func TestBuildSliceSchema(t *testing.T) {
 	var schema *spec.Schema
 	var err error
 
-	schema, err = buildSliceSchema(reflect.ValueOf([]complex128{}), nil)
+	schema, err = buildSliceSchema(reflect.ValueOf([]complex128{}), nil, false)
 	_, expectedErr := GetSchema(reflect.TypeOf(complex128(1)), nil)
 	assert.Nil(t, schema, "spec should be nil when GetSchema errors for slice")
 	assert.Equal(t, expectedErr, err, "should have same error as Getschema for slice")
 
-	schema, err = buildSliceSchema(reflect.ValueOf([]string{}), nil)
-	expectedLowerSchema, _ := GetSchema(reflect.TypeOf(""), nil)
+	schema, err = buildSliceSchema(reflect.ValueOf([]string{}), nil, false)
+	expectedLowerSchema, _ := getSchema(reflect.TypeOf(""), nil, false)
 	assert.Nil(t, err, "should not error for valid slice")
 	assert.Equal(t, spec.ArrayProperty(expectedLowerSchema), schema, "should return spec array of lower schema for slice")
 }
@@ -151,13 +177,13 @@ func TestBuildMapSchema(t *testing.T) {
 	var schema *spec.Schema
 	var err error
 
-	schema, err = buildMapSchema(reflect.ValueOf(make(map[string]complex128)), nil)
-	_, expectedErr := GetSchema(reflect.TypeOf(complex128(1)), nil)
+	schema, err = buildMapSchema(reflect.ValueOf(make(map[string]complex128)), nil, false)
+	_, expectedErr := getSchema(reflect.TypeOf(complex128(1)), nil, false)
 	assert.Nil(t, schema, "spec should be nil when GetSchema errors for map")
 	assert.Equal(t, expectedErr, err, "should have same error as Getschema for map")
 
-	schema, err = buildMapSchema(reflect.ValueOf(make(map[string]string)), nil)
-	expectedLowerSchema, _ := GetSchema(reflect.TypeOf(""), nil)
+	schema, err = buildMapSchema(reflect.ValueOf(make(map[string]string)), nil, false)
+	expectedLowerSchema, _ := getSchema(reflect.TypeOf(""), nil, false)
 	assert.Nil(t, err, "should not error for valid map")
 	assert.Equal(t, spec.MapProperty(expectedLowerSchema), schema, "should return spec map of lower schema")
 }
@@ -249,17 +275,17 @@ func TestGetSchema(t *testing.T) {
 	assert.Nil(t, schema, "should return no schema for bad type")
 
 	schema, err = GetSchema(badArrayType, components)
-	_, expectedErr = buildArraySchema(reflect.New(badArrayType).Elem(), components)
+	_, expectedErr = buildArraySchema(reflect.New(badArrayType).Elem(), components, false)
 	assert.EqualError(t, err, expectedErr.Error(), "should return error when build array errors")
 	assert.Nil(t, schema, "should return no schema when build array errors")
 
 	schema, err = GetSchema(badSliceType, components)
-	_, expectedErr = buildSliceSchema(reflect.MakeSlice(badSliceType, 1, 1), components)
+	_, expectedErr = buildSliceSchema(reflect.MakeSlice(badSliceType, 1, 1), components, false)
 	assert.EqualError(t, err, expectedErr.Error(), "should return error when build slice errors")
 	assert.Nil(t, schema, "should return no schema when build slice errors")
 
 	schema, err = GetSchema(badMapItemType, components)
-	_, expectedErr = buildMapSchema(reflect.MakeMap(badMapItemType), components)
+	_, expectedErr = buildMapSchema(reflect.MakeMap(badMapItemType), components, false)
 	assert.EqualError(t, err, expectedErr.Error(), "should return error when build map errors")
 	assert.Nil(t, schema, "should return no schema when build map errors")
 
@@ -464,6 +490,19 @@ func TestGetSchema(t *testing.T) {
 	assert.Equal(t, components.Schemas["simpleStruct"], simpleStructMetadata, "should have added correct metadata to components for sub struct")
 	assert.Equal(t, components.Schemas["complexStruct"], complexStructMetadata, "should have added correct metadata to components for main struct")
 	assert.Equal(t, schema, spec.RefSchema("#/components/schemas/complexStruct"))
+
+	// Should handle a valid struct with struct properties of array, slice and map types
+	components = new(ComponentMetadata)
+	components.Schemas = make(map[string]ObjectMetadata)
+
+	schema, err = GetSchema(reflect.TypeOf(new(superComplexStruct)), components)
+
+	assert.Nil(t, err, "should return nil when valid object")
+	assert.Equal(t, len(components.Schemas), 3, "should have added two new components")
+	assert.Equal(t, components.Schemas["simpleStruct"], simpleStructMetadata, "should have added correct metadata to components for sub struct")
+	assert.Equal(t, components.Schemas["complexStruct"], complexStructMetadata, "should have added correct metadata to components for sub struct")
+	assert.Equal(t, components.Schemas["superComplexStruct"], superComplexStructMetadata, "should have added correct metadata to components for main struct")
+	assert.Equal(t, schema, spec.RefSchema("#/components/schemas/superComplexStruct"))
 
 	// Should return an error for a bad struct
 	components = new(ComponentMetadata)
