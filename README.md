@@ -1,7 +1,5 @@
 # Hyperledger Fabric Go Contract API
 
-⚠️ WARNING: This repository is in development. It is therefore NOT recommended for use in its current state. A release is planned to work with Hyperledger Fabric v2.0.0⚠️
-
 [![](http://godoc.org/github.com/hyperledger/fabric-contract-api-go?status.svg)](http://godoc.org/github.com/hyperledger/fabric-contract-api-go)
 
 This repository contains the packages for the implementation of the contract API for use in Go chaincode
