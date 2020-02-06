@@ -1,4 +1,4 @@
-## v2.0.0
+## v1.0.0
 Wed  5 Feb 2020 16:17:56 GMT
 
 * [3f06eb6](https://github.com/hyperledger/fabric-contract-api-go/commit/3f06eb6) [FABCAG-23](https://jira.hyperledger.org/browse/FABCAG-23) fix struct having array/slice/map of struct (#24)

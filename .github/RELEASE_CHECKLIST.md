@@ -1,7 +1,7 @@
 # Release Checklist
 
 Before releasing ensure that you have:
-- Decided on a release tag. The repo uses a 3 number semantic versioning system and therefore the tag should be of the form v.X.X.X e.g. v2.0.0. This value will be known in the rest of this document as `<RELEASE_TAG>`.
+- Decided on a release tag. The repo uses a 3 number semantic versioning system and therefore the tag should be of the form v.X.X.X e.g. v1.0.0. This value will be known in the rest of this document as `<RELEASE_TAG>`.
 - Run `.release/changelog.sh <PREVIOUS_RELEASE_TAG> <RELEASE_TAG>` to update CHANGELOG.md to contain all commits since the previous tag. Running without the previous release tag will get all commits.
 - Commit the updated changelog via PR with commit message "Preparing for release `<RELEASE_TAG>`"
 
