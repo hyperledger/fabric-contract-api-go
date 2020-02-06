@@ -4,7 +4,7 @@ GitHub is used for code base management, issues should be reported in the [FABCA
 
 ## Summary of Compatibility
 
-This table shows the summary of the compatibility of the package at version 2.0, together with the Go version it requires and the Fabric Peer version it can communicate with.
+This table shows the summary of the compatibility of the package at version 1.0, together with the Go version it requires and the Fabric Peer version it can communicate with.
 
 |            | Tested | Supported |
 | ---------- | ------ | --------- |
@@ -26,4 +26,4 @@ With Fabric v2.0, the chaincode container can be configured to be started by oth
 
 ## Supported Go versions
 
-v2.0.0 packages are supported for building with Go 1.13.
+v1.0.0 packages are supported for building with Go 1.13.

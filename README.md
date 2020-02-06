@@ -2,7 +2,7 @@
 
 [![](http://godoc.org/github.com/hyperledger/fabric-contract-api-go?status.svg)](http://godoc.org/github.com/hyperledger/fabric-contract-api-go)
 
-This repository contains the packages for the implementation of the contract API for use in Go chaincode
+This repository contains the packages for the implementation of the contract API for use in Go chaincode running on Fabric v2.0
 
 We welcome contributions to the Hyperledger Fabric project in many forms.
 There’s always plenty to do! Check the documentation on
