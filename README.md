@@ -26,6 +26,11 @@ Tutorials for how to create smart contracts using packages in this repo can be f
 
 A sample chaincode built using packages from this repo can be found in [fabric-samples](https://github.com/hyperledger/fabric-samples/tree/master/chaincode/fabcar/go)
 
+## Raising issues
+Issues for packages in this repository are raised and tracked using [JIRA](https://jira.hyperledger.org) under the project Fabric Contract API Go (FABCAG). You can view the current open issues by visiting [https://jira.hyperledger.org/projects/FABCAG/issues?filter=allopenissues](https://jira.hyperledger.org/projects/FABCAG/issues?filter=allopenissues). Before raising an issue please check existing issues to avoid duplication.
+
+To raise an issue in JIRA press the `create` button at the top of the page, set the project to "Fabric Contract API Go (FABCAG)" and fill in the remainder of the form setting the issue type, providing a summary and giving a description. For bugs it is helpful if the description contains details on how they can be replicated.
+
 ## License <a name="license"></a>
 
 Hyperledger Project source code files are made available under the Apache License, Version 2.0 (Apache-2.0), located in the [LICENSE](LICENSE) file. Hyperledger Project documentation files are made available under the Creative Commons Attribution 4.0 International License (CC-BY-4.0), available at http://creativecommons.org/licenses/by/4.0/.
