@@ -10,7 +10,7 @@
 
 ## Prerequisites
 This tutorial will assume you have:
-- Completed [Using advanced features](./using-advance-features.md)
+- Completed [Using advanced features](./using-advanced-features.md)
 
 ## Defining an object
 The chaincode written so far contains a single contract and purely works with taking and returning string values. As mentioned in the [first tutorial](./getting-started.md) functions can take and return many types including structs (and pointers to structs). This tutorial will create a contract which handles the management of an object to show how the contract API handles the taking and returning of non-string types.
