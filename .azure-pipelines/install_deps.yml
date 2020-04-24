@@ -9,15 +9,16 @@ steps:
       displayName: Install Node
     - script: |
         npm install -g license-check-and-add@3.0.3
-        npm install -g fabric-chaincode-integration@0.4.0-20201313052
+        npm install -g fabric-chaincode-integration@0.4.0-2020330103418
       displayName: Install NPM Globals
     - task: GoTool@0
       inputs:
         version: $(GOVER)
-        goPath:  $(GOPATH)
+        goPath: $(GOPATH)
+        goBin: $(GOBIN)
       displayName: Install GoLang
     - script: |
-        go get -u github.com/cucumber/godog/cmd/godog
+        GO111MODULE=on go get github.com/cucumber/godog/cmd/godog@v0.8.0
         go get -u golang.org/x/lint/golint
         go get -u golang.org/x/tools/cmd/goimports
       displayName: Install GoLang tools
