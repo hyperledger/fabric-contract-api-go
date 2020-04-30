@@ -1,3 +1,12 @@
+## v1.1.0
+Thu 30 Apr 2020 14:31:15 BST
+
+* [be511a4](https://github.com/hyperledger/fabric-contract-api-go/commit/be511a4) [FABCAG-27](https://jira.hyperledger.org/browse/FABCAG-27) Support fabric v2.1 (#31)
+* [e973453](https://github.com/hyperledger/fabric-contract-api-go/commit/e973453) Update GoDog Repo Reference (#34)
+* [0c9e323](https://github.com/hyperledger/fabric-contract-api-go/commit/0c9e323) [FABCAG-26](https://jira.hyperledger.org/browse/FABCAG-26) fix prereqs link (#30)
+* [e38b542](https://github.com/hyperledger/fabric-contract-api-go/commit/e38b542) [FABCAG-25](https://jira.hyperledger.org/browse/FABCAG-25) add details about JIRA to readme (#29)
+* [6c81787](https://github.com/hyperledger/fabric-contract-api-go/commit/6c81787) [FABCAG-24](https://jira.hyperledger.org/browse/FABCAG-24) update reference to godog for new URL (#28)
+
 ## v1.0.0
 Wed  5 Feb 2020 16:17:56 GMT
 
