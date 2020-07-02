@@ -338,7 +338,7 @@ docker exec -it cli sh
 Despite being in devmode you still have to install the chaincode. To do this use the following command:
 
 ```
-peer chaincode install -p chaincodedev/chaincode/contract-tutorial -n mycc -v 0
+peer chaincode install -p chaincode/contract-tutorial -n mycc -v 0
 ```
 
 Next instantiate the chaincode so that you can start talking via the peer to it. Passing no arguments to instantiate means that no function of your contract is called.
