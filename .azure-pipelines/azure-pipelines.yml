@@ -14,7 +14,7 @@ trigger:
 variables:
   GOPATH: $(Agent.BuildDirectory)/go
   GOBIN: $(Agent.BuildDirectory)/go/bin
-  GOVER: 1.13.4
+  GOVER: 1.14.7
   PATH: $(Agent.BuildDirectory)/go/bin:/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:/usr/local/sbin
   branch: $[ coalesce(variables['system.PullRequest.TargetBranch'], variables['build.SourceBranchName']) ]
 
