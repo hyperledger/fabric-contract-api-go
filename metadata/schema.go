@@ -161,6 +161,12 @@ func getField(field reflect.StructField, schema *ObjectMetadata, components *Com
 		name = field.Tag.Get("json")
 	}
 
+	if strings.Contains(name, ",") {
+		spl := strings.Split(name, ",")
+
+		name = spl[0]
+	}
+
 	if name == "" || name == "-" {
 		name = field.Name
 	}
