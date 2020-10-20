@@ -9,7 +9,7 @@ steps:
       displayName: Install Node
     - script: |
         npm install -g license-check-and-add@3.0.3
-        npm install -g fabric-chaincode-integration@0.4.0-2020330103418
+        npm install -g fabric-chaincode-integration@0.5.0-2020921131117
       displayName: Install NPM Globals
     - task: GoTool@0
       inputs:
