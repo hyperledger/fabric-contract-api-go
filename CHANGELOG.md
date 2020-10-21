@@ -1,3 +1,12 @@
+## v1.1.1
+Wed 21 Oct 2020 16:35:15 BST
+
+* [1fa2735](https://github.com/hyperledger/fabric-contract-api-go/commit/1fa2735) Bump Go Version
+* [4f4fb4d](https://github.com/hyperledger/fabric-contract-api-go/commit/4f4fb4d) [FABCAG-31](https://jira.hyperledger.org/browse/FABCAG-31) update to use only first part of JSON tag
+* [188bfec](https://github.com/hyperledger/fabric-contract-api-go/commit/188bfec) Fix build failures (#41)
+* [ef92fe0](https://github.com/hyperledger/fabric-contract-api-go/commit/ef92fe0) FAB-17777 Create basic settings.yaml
+* [901ce77](https://github.com/hyperledger/fabric-contract-api-go/commit/901ce77) Add MAINTAINERS.md file and nominate James Taylor as a maintainer (#35)
+
 ## v1.1.0
 Thu 30 Apr 2020 14:31:15 BST
 
