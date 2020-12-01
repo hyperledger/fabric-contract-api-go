@@ -5,9 +5,12 @@
 
 set -euo pipefail
 
+fabric_dir="$(cd "$(dirname "$0")/../.." && pwd)"
+source_dirs=$(go list -f  '{{ .Dir }}' ./... | sed s,"${fabric_dir}".,,g | cut -f 1 -d / | sort -u)
+
 ## Formatting
 echo "running gofmt..."
-gofmt_output="$(gofmt -l -s . | grep -v .azure-pipelines && exit 1 || exit 0)"
+gofmt_output="$(gofmt -l -s ${source_dirs})"
 if [ -n "$gofmt_output" ]; then
     echo "The following files contain gofmt errors:"
     echo "$gofmt_output"
@@ -17,7 +20,7 @@ fi
 
 ## Import management
 echo "running goimports..."
-goimports_output="$(goimports -l  . | grep -v .azure-pipelines && exit 1 || exit 0)"
+goimports_output="$(goimports -l  ${source_dirs})"
 if [ -n "$goimports_output" ]; then
     echo "The following files contain goimport errors:"
     echo "$goimports_output"
