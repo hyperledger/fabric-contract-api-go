@@ -17,8 +17,11 @@ import (
 	"github.com/xeipuuv/gojsonschema"
 )
 
-// MetadataFolder name of folder metadata should be placed in
-const MetadataFolder = "contract-metadata"
+// MetadataFolder name of the main folder metadata should be placed in
+const MetadataFolder = "META-INF"
+
+// MetadataFolderSecondary name of the secondary folder metadata should be placed in
+const MetadataFolderSecondary = "contract-metadata"
 
 // MetadataFile name of file metadata should be written in
 const MetadataFile = "metadata.json"
@@ -245,7 +248,11 @@ func ReadMetadataFile() (ContractChaincodeMetadata, error) {
 	_, err := osAbs.Stat(metadataPath)
 
 	if osAbs.IsNotExist(err) {
-		return ContractChaincodeMetadata{}, errors.New("Failed to read metadata from file. Metadata file does not exist")
+		metadataPath = filepath.Join(exPath, MetadataFolderSecondary, MetadataFile)
+		_, err = osAbs.Stat(metadataPath)
+		if osAbs.IsNotExist(err) {
+			return ContractChaincodeMetadata{}, errors.New("Failed to read metadata from file. Metadata file does not exist")
+		}
 	}
 
 	fileMetadata.Contracts = make(map[string]ContractMetadata)

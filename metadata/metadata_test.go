@@ -21,6 +21,8 @@ import (
 // Helpers
 // ================================
 
+var ContractMetaNumberOfCalls int
+
 type ioUtilReadFileTestStr struct{}
 
 func (io ioUtilReadFileTestStr) ReadFile(filename string) ([]byte, error) {
@@ -63,6 +65,44 @@ func (o osStatTestStr) Stat(name string) (os.FileInfo, error) {
 
 func (o osStatTestStr) IsNotExist(err error) bool {
 	return os.IsNotExist(err)
+}
+
+type osStatTestStrContractMeta struct{}
+
+func (o osStatTestStrContractMeta) Executable() (string, error) {
+	return "", nil
+}
+
+func (o osStatTestStrContractMeta) Stat(name string) (os.FileInfo, error) {
+	ContractMetaNumberOfCalls++
+	if ContractMetaNumberOfCalls == 1 {
+		ContractMetaNumberOfCalls++
+		return os.Stat("some bad file")
+	}
+	return os.Stat("some good file")
+}
+
+func (o osStatTestStrContractMeta) IsNotExist(err error) bool {
+	return false
+}
+
+type osWorkTestStrContractMeta struct{}
+
+func (o osWorkTestStrContractMeta) Executable() (string, error) {
+	return "", nil
+}
+
+func (o osWorkTestStrContractMeta) Stat(name string) (os.FileInfo, error) {
+	ContractMetaNumberOfCalls++
+	if ContractMetaNumberOfCalls == 1 {
+		ContractMetaNumberOfCalls++
+		return os.Stat("some bad file")
+	}
+	return os.Stat("some good file")
+}
+
+func (o osWorkTestStrContractMeta) IsNotExist(err error) bool {
+	return false
 }
 
 type osWorkTestStr struct{}
@@ -300,6 +340,7 @@ func validateCompiledSchema(t *testing.T, propName string, propValue interface{}
 }
 
 func TestReadMetadataFile(t *testing.T) {
+	ContractMetaNumberOfCalls = 0
 	var metadata ContractChaincodeMetadata
 	var err error
 
@@ -314,6 +355,13 @@ func TestReadMetadataFile(t *testing.T) {
 	metadata, err = ReadMetadataFile()
 	assert.EqualError(t, err, "Failed to read metadata from file. Metadata file does not exist", "should error when cannot read file due to stat error")
 	assert.Equal(t, ContractChaincodeMetadata{}, metadata, "should return blank metadata when cannot read file due to stat error")
+
+	osAbs = osStatTestStrContractMeta{}
+	metadata, err = ReadMetadataFile()
+	assert.Equal(t, ContractMetaNumberOfCalls, 2, "Should check contract-metadata directory if META-INF doesn't contain metadata.json file")
+	assert.Contains(t, err.Error(), "Failed to read metadata from file. Could not read file", "should error when cannot read file due to read error")
+	assert.Equal(t, ContractChaincodeMetadata{}, metadata, "should return blank metadata when cannot read file due to read error")
+	ContractMetaNumberOfCalls = 0
 
 	oldIoUtilHelper := ioutilAbs
 	osAbs = osWorkTestStr{}
@@ -330,6 +378,13 @@ func TestReadMetadataFile(t *testing.T) {
 	json.Unmarshal(metadataBytes, &expectedContractChaincodeMetadata)
 	assert.Nil(t, err, "should not return error when can read file")
 	assert.Equal(t, expectedContractChaincodeMetadata, metadata, "should return contract metadata that was in the file")
+
+	osAbs = osWorkTestStrContractMeta{}
+	metadata, err = ReadMetadataFile()
+	assert.Equal(t, ContractMetaNumberOfCalls, 2, "Should check contract-metadata directory if META-INF doesn't contain metadata.json file")
+	assert.Nil(t, err, "should not return error when can read file")
+	assert.Equal(t, expectedContractChaincodeMetadata, metadata, "should return contract metadata that was in the file")
+	ContractMetaNumberOfCalls = 0
 
 	ioutilAbs = oldIoUtilHelper
 	osAbs = oldOsHelper
