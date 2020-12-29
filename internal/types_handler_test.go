@@ -30,6 +30,16 @@ type BadStruct struct {
 	Prop2 complex64 `json:"prop2"`
 }
 
+type goodStructWithBadPrivateFields struct {
+	unexported complex64
+	Valid      int `json:"Valid"`
+}
+
+type badStructWithMetadataPrivateFields struct {
+	Prop  string    `json:"prop"`
+	class complex64 `metadata:"class"`
+}
+
 type UsefulInterface interface{}
 
 var badType = reflect.TypeOf(complex64(1))
@@ -117,6 +127,10 @@ func TestStructOfValidType(t *testing.T) {
 	assert.Nil(t, structOfValidType(reflect.TypeOf(goodStruct{}), []reflect.Type{}), "should not return an error for a valid struct")
 
 	assert.EqualError(t, structOfValidType(reflect.TypeOf(BadStruct{}), []reflect.Type{}), fmt.Sprintf(basicErr, badType.String(), listBasicTypes()), "should return an error for invalid struct")
+
+	assert.Nil(t, structOfValidType(reflect.TypeOf(goodStructWithBadPrivateFields{}), []reflect.Type{}), "should not return an error for unexported fields")
+
+	assert.EqualError(t, structOfValidType(reflect.TypeOf(badStructWithMetadataPrivateFields{}), []reflect.Type{}), fmt.Sprintf(basicErr, badType.String(), listBasicTypes()), "should return an error for invalid metadata private fields")
 }
 
 func TestTypeIsValid(t *testing.T) {
