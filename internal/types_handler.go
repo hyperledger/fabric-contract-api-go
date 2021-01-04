@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"reflect"
 	"sort"
+	"unicode"
 
 	"github.com/hyperledger/fabric-contract-api-go/internal/types"
 	"github.com/hyperledger/fabric-contract-api-go/internal/utils"
@@ -41,7 +42,14 @@ func structOfValidType(obj reflect.Type, additionalTypes []reflect.Type) error {
 	}
 
 	for i := 0; i < obj.NumField(); i++ {
-		err := typeIsValid(obj.Field(i).Type, additionalTypes, false)
+		field := obj.Field(i)
+
+		if runes := []rune(field.Name); len(runes) > 0 && !unicode.IsUpper(runes[0]) && field.Tag.Get("metadata") == "" {
+			// Skip validation for private fields, except those tagged as metadata
+			continue
+		}
+
+		err := typeIsValid(field.Type, additionalTypes, false)
 
 		if err != nil {
 			return err
