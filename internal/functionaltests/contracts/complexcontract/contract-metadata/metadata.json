@@ -20,7 +20,8 @@
                         "$ref": "#/components/schemas/BasicObject"
                     },
                     "tag": [
-                        "evaluate"
+                        "evaluate",
+                        "EVALUATE"
                     ],
                     "name": "GetObject"
                 },
@@ -41,7 +42,8 @@
                         "multipleOf": 1
                     },
                     "tag": [
-                        "evaluate"
+                        "evaluate",
+                        "EVALUATE"
                     ],
                     "name": "GetValue"
                 },
@@ -81,7 +83,8 @@
                         }
                     ],
                     "tag": [
-                        "submit"
+                        "submit",
+                        "SUBMIT"
                     ],
                     "name": "NewObject"
                 },
@@ -101,7 +104,8 @@
                         }
                     ],
                     "tag": [
-                        "submit"
+                        "submit",
+                        "SUBMIT"
                     ],
                     "name": "UpdateOwner"
                 },
@@ -122,7 +126,8 @@
                         }
                     ],
                     "tag": [
-                        "submit"
+                        "submit",
+                        "SUBMIT"
                     ],
                     "name": "UpdateValue"
                 }
@@ -140,7 +145,8 @@
                         "type": "string"
                     },
                     "tag": [
-                        "evaluate"
+                        "evaluate",
+                        "EVALUATE"
                     ],
                     "name": "GetMetadata"
                 }
