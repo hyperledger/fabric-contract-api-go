@@ -1,6 +1,6 @@
 # Hyperledger Fabric Go Contract API
 
-[![Build Status](https://dev.azure.com/Hyperledger/Fabric-Contract-API-Go/_apis/build/status/Fabric-Contract-API-Go?branchName=master)](https://dev.azure.com/Hyperledger/Fabric-Contract-API-Go/_build/latest?definitionId=48&branchName=master)
+[![Build Status](https://dev.azure.com/Hyperledger/Fabric-Contract-API-Go/_apis/build/status/Fabric-Contract-API-Go?branchName=main)](https://dev.azure.com/Hyperledger/Fabric-Contract-API-Go/_build/latest?definitionId=48&branchName=main)
 [![](http://godoc.org/github.com/hyperledger/fabric-contract-api-go?status.svg)](http://godoc.org/github.com/hyperledger/fabric-contract-api-go)
 
 This repository contains the packages for the implementation of the contract API for use in Go chaincode running on Fabric v2.1
@@ -25,7 +25,7 @@ Documentation for all packages within this repo can be found [here](http://godoc
 ## Tutorials
 Tutorials for how to create smart contracts using packages in this repo can be found [here](./tutorials)
 
-A sample chaincode built using packages from this repo can be found in [fabric-samples](https://github.com/hyperledger/fabric-samples/tree/master/chaincode/fabcar/go)
+A sample chaincode built using packages from this repo can be found in [fabric-samples](https://github.com/hyperledger/fabric-samples/tree/main/chaincode/fabcar/go)
 
 ## Raising issues
 Issues for packages in this repository are raised and tracked using [JIRA](https://jira.hyperledger.org) under the project Fabric Contract API Go (FABCAG). You can view the current open issues by visiting [https://jira.hyperledger.org/projects/FABCAG/issues?filter=allopenissues](https://jira.hyperledger.org/projects/FABCAG/issues?filter=allopenissues). Before raising an issue please check existing issues to avoid duplication.
