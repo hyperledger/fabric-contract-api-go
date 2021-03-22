@@ -9,7 +9,7 @@ steps:
       displayName: Install Node
     - script: |
         npm install -g license-check-and-add@3.0.3
-        npm install -g fabric-chaincode-integration@0.5.0-2020921131117
+        npm install -g .azure-pipelines/resources/fabric-chaincode-integration-0.6.0.tgz
       displayName: Install NPM Globals
     - task: GoTool@0
       inputs:
