@@ -505,14 +505,14 @@ func TestReflectMetadata(t *testing.T) {
 			{Name: "param1", Schema: spec.BoolProperty()},
 		},
 		Returns: metadata.ReturnMetadata{Schema: spec.Int64Property()},
-		Tag:     []string{"submit"},
+		Tag:     []string{"submit", "SUBMIT"},
 		Name:    "some tx",
 	}
 	assert.Equal(t, expectedMetadata, txMetadata, "should return metadata for submit transaction")
 
 	testCf.callType = CallTypeEvaluate
 	txMetadata = testCf.ReflectMetadata("some tx", nil)
-	expectedMetadata.Tag = []string{"evaluate"}
+	expectedMetadata.Tag = []string{"evaluate", "EVALUATE"}
 	assert.Equal(t, expectedMetadata, txMetadata, "should return metadata for evaluate transaction")
 }
 

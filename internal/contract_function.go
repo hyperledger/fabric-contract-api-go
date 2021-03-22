@@ -72,12 +72,15 @@ func (cf ContractFunction) ReflectMetadata(name string, existingComponents *meta
 	transactionMetadata.Name = name
 	transactionMetadata.Tag = []string{}
 
-	txType := "submit"
+	txType := "SUBMIT"
+	txTypeDeprecated := "submit"
 
 	if cf.callType == CallTypeEvaluate {
-		txType = "evaluate"
+		txType = "EVALUATE"
+		txTypeDeprecated = "evaluate"
 	}
 
+	transactionMetadata.Tag = append(transactionMetadata.Tag, txTypeDeprecated)
 	transactionMetadata.Tag = append(transactionMetadata.Tag, txType)
 
 	for index, field := range cf.params.fields {
