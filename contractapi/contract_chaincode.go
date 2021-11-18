@@ -97,13 +97,14 @@ func NewChaincode(contracts ...ContractInterface) (*ContractChaincode, error) {
 	return cc, nil
 }
 
-// Start starts the chaincode in the fabric shim
+// Start starts the chaincode in client mode
 func (cc *ContractChaincode) Start() error {
 	return shim.Start(cc)
 }
 
+// StartServer the chaincode in server mode
 func (cc *ContractChaincode) StartServer() error {
-	tlsProps, err := getTlsProps()
+	tlsProps, err := getTLSProps()
 	if err != nil {
 		log.Panicf("Error creating getting TLS properties: %v", err)
 	}
@@ -434,7 +435,7 @@ func getCiMethods() []string {
 	return ciMethods
 }
 
-func getTlsProps() (shim.TLSProperties, error) {
+func getTLSProps() (shim.TLSProperties, error) {
 
 	tlsEnabled, err := strconv.ParseBool(os.Getenv("CORE_PEER_TLS_ENABLED"))
 	if err != nil {
