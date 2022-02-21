@@ -37,7 +37,7 @@ jobs:
       run: ci/scripts/lint.sh
 
     - name: Check Licenses
-      run: license-check-and-add check -f .azure-pipelines/resources/license-config.json
+      run: license-check-and-add check -f ci/license-config.json
 
     - name: Run tests (excluding fv)
       run: go test -race $(go list ./... | grep -v functionaltests)     
@@ -51,4 +51,15 @@ jobs:
     - name: Check tutorial contents                    
       run: ci/scripts/tutorial-checks.sh
       
+    - name: Run the integration tests
+      run: |
+         ci/scripts/setup-integration-chaincode.sh
 
+         curl -sSL https://raw.githubusercontent.com/hyperledger/fabric/main/scripts/install-fabric.sh | bash -s -- samples binary docker
+         export TEST_NETWORK_DIR=$(pwd)/fabric-samples/test-network
+
+         cd ./integrationtest
+         npm ci
+         $(npm bin)/fabric-chaincode-integration run
+         
+      

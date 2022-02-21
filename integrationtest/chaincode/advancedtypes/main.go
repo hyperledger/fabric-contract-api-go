@@ -35,7 +35,7 @@ func (atc *AdvancedTypesContract) GetInt() int {
 
 // CallAndResponseInt returns sent int
 func (atc *AdvancedTypesContract) CallAndResponseInt(sent int) int {
-	return sent
+	return sent + 1
 }
 
 // GetFloat returns 1.1
@@ -55,7 +55,7 @@ func (atc *AdvancedTypesContract) GetBool() bool {
 
 // CallAndResponseBool returns sent bool
 func (atc *AdvancedTypesContract) CallAndResponseBool(sent bool) bool {
-	return sent
+	return !sent
 }
 
 // GetArray returns int array 1,2,3
@@ -64,7 +64,11 @@ func (atc *AdvancedTypesContract) GetArray() []int {
 }
 
 // CallAndResponseArray returns sent bool array
-func (atc *AdvancedTypesContract) CallAndResponseArray(sent []bool) []bool {
+func (atc *AdvancedTypesContract) CallAndResponseArray(sent []string) []string {
+	for i := 0; i < len(sent)/2; i++ {
+		j := len(sent) - i - 1
+		sent[i], sent[j] = sent[j], sent[i]
+	}
 	return sent
 }
 
@@ -80,7 +84,7 @@ func (atc *AdvancedTypesContract) CallAndResponseBasicAsset(sent BasicAsset) Bas
 
 // GetComplexAsset returns a basic asset with id "OBJECT_1" and value 100
 func (atc *AdvancedTypesContract) GetComplexAsset() ComplexAsset {
-	return ComplexAsset{BasicAsset{"OBJECT_2", 100}, Description{"red", []string{"andy", "matthew"}}}
+	return ComplexAsset{BasicAsset{"OBJECT_2", 100}, Description{"Vermillion", []string{"Alice", "Bob"}}}
 }
 
 // CallAndResponseComplexAsset returns sent complex asset

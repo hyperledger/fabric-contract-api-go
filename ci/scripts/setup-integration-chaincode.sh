@@ -8,20 +8,19 @@
 # by the integration tool which doesn't have the local files. Removes the replace to stop the integration tests
 # breaking as the dot path doesn't exist there.
 
-DIR=$(pwd)
-CHAINCODE_DIR=$DIR/.azure-pipelines/resources/chaincode
+# Note the actually committed go.mod files of the conahincode already have the 
+# 'replace github.com/hyperledger/fabric-contract-api-go => ../../..' I
 
-cd $CHAINCODE_DIR
+set -e -u -o pipefail
+ROOTDIR=$(cd "$(dirname "$0")" && pwd)
 
+CHAINCODE_DIR=$ROOTDIR/../../integrationtest/chaincode
+ls -lart $CHAINCODE_DIR
+pushd $CHAINCODE_DIR
 for testCC in */; do
-    cd $testCC
-    cat go.mod > tmp.go.mod
-    echo 'replace github.com/hyperledger/fabric-contract-api-go => ../../../..' >> go.mod
-    go mod vendor
-    
-    cat tmp.go.mod > go.mod
-
-    cd $CHAINCODE_DIR
+    pushd $testCC
+    go mod vendor 
+    popd
 done
+popd
 
-cd $DIR

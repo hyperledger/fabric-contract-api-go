@@ -2,3 +2,4 @@
 *.out
 vendor
 node_modules
+tmp.go.mod

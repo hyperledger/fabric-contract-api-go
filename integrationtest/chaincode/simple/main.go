@@ -4,6 +4,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 )
 
@@ -36,6 +38,16 @@ func (sc *SimpleContract) GetState(ctx contractapi.TransactionContextInterface, 
 	}
 
 	return string(bytes), nil
+}
+
+// ExistsState returns true when asset with given ID exists in world state
+func (sc *SimpleContract) ExistsState(ctx contractapi.TransactionContextInterface, id string) (bool, error) {
+	bytes, err := ctx.GetStub().GetState(id)
+	if err != nil {
+		return false, fmt.Errorf("failed to read from world state: %v", err)
+	}
+
+	return bytes != nil, nil
 }
 
 // DeleteState - Deletes a key from the world state
