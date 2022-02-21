@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "fabric-chaincode-integration": "file:fabric-chaincode-integration-0.5.0.tgz"
+  },
+  "scripts": {
+    "test": "fabric-chaincode-integration"
+  }
+}
