@@ -1,0 +1,24 @@
+# Copyright the Hyperledger Fabric contributors. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+name: fabric-contract-api-go
+
+on:
+  pull_request:
+    branches:
+    - main
+    - release-*
+
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/setup-go@v3
+      with:
+        go-version: 1.18.x
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 1
+        clean: true
+
