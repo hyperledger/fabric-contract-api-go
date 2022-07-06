@@ -31,7 +31,3 @@ fi
 ## go vet
 echo "running go vet..."
 go vet ./...
-
-## golint
-echo "running golint..."
-golint -set_exit_status ./...
