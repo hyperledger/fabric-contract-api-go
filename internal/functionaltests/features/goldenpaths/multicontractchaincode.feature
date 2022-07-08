@@ -6,7 +6,7 @@ Feature: Multiple Contract Chaincode Golden Path
 
     Golden path of chaincode made up of multiple contracts
 
-    Scenario: Initialise
+    Background: Initialise
         Given I have created chaincode from multiple contracts
             | SimpleContract | ComplexContract |
         Then I should be able to initialise the chaincode

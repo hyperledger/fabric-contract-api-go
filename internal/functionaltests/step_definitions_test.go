@@ -1,11 +1,11 @@
 // Copyright the Hyperledger Fabric contributors. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-package functionaltests
+package fvtests
 
 import (
+	"context"
 	"errors"
-	"flag"
 	"fmt"
 	"io/ioutil"
 	"math/rand"
@@ -13,10 +13,9 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"testing"
 
 	"github.com/cucumber/godog"
-	"github.com/cucumber/godog/colors"
-	"github.com/cucumber/godog/gherkin"
 	"github.com/hyperledger/fabric-chaincode-go/shimtest"
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 	"github.com/hyperledger/fabric-contract-api-go/internal/functionaltests/contracts/complexcontract"
@@ -27,16 +26,10 @@ import (
 	"github.com/hyperledger/fabric-protos-go/peer"
 )
 
-var opt = godog.Options{Output: colors.Colored(os.Stdout)}
-
 var contractsMap map[string]contractapi.ContractInterface = map[string]contractapi.ContractInterface{
 	"SimpleContract":         new(simplecontract.SimpleContract),
 	"ExtendedSimpleContract": NewExtendedContract(),
 	"ComplexContract":        NewComplexContract(),
-}
-
-func init() {
-	godog.BindFlags("godog.", flag.CommandLine, &opt)
 }
 
 func NewExtendedContract() *extendedsimplecontract.ExtendedSimpleContract {
@@ -66,46 +59,42 @@ type suiteContext struct {
 	metadataFolder string
 }
 
-func (sc *suiteContext) cleanup() {
+type suiteContextKey struct{}
+
+func cleanup(ctx context.Context) (context.Context, error) {
+	sc, ok := ctx.Value(suiteContextKey{}).(suiteContext)
+	if !ok {
+		return ctx, errors.New("there are no contracts available")
+	}
 	if sc.metadataFolder != "" {
 		os.RemoveAll(sc.metadataFolder)
 	}
+	return ctx, nil
 }
 
-func (sc *suiteContext) createChaincode(name string) error {
-	defer sc.cleanup()
+func iHaveCreatedChaincodeFrom(ctx context.Context, name string) (context.Context, error) {
+	defer cleanup(ctx)
 
 	if _, ok := contractsMap[name]; !ok {
-		return fmt.Errorf("Invalid contract name %s", name)
+		return ctx, fmt.Errorf("Invalid contract name %s", name)
 	}
 
 	chaincode, err := contractapi.NewChaincode(contractsMap[name])
-
 	if err != nil {
-		return fmt.Errorf("expected to get nil for error on create chaincode but got " + err.Error())
+		return ctx, fmt.Errorf("expected to get nil for error on create chaincode but got " + err.Error())
 	}
 
+	sc := suiteContext{}
 	sc.chaincode = chaincode
 	sc.stub = shimtest.NewMockStub(name, sc.chaincode)
 
-	return nil
+	return context.WithValue(ctx, suiteContextKey{}, sc), nil
 }
 
-func (sc *suiteContext) failCreateChaincode(name string) error {
-	err := sc.createChaincode(name)
-
-	if err == nil {
-		return fmt.Errorf("Expected to get an error")
-	}
-
-	return nil
-}
-
-func (sc *suiteContext) createChaincodeMulti(contractsTbl *gherkin.DataTable) error {
-	defer sc.cleanup()
-
+func iHaveCreatedChaincodeFromMultipleContracts(ctx context.Context, contractsTbl *godog.Table) (context.Context, error) {
+	defer cleanup(ctx)
 	if len(contractsTbl.Rows) > 1 {
-		return fmt.Errorf("expected table with one row of contracts")
+		return ctx, fmt.Errorf("expected table with one row of contracts")
 	}
 
 	contracts := []contractapi.ContractInterface{}
@@ -115,7 +104,7 @@ func (sc *suiteContext) createChaincodeMulti(contractsTbl *gherkin.DataTable) er
 			contract, ok := contractsMap[cell.Value]
 
 			if !ok {
-				return fmt.Errorf("Invalid contract name %s", cell.Value)
+				return ctx, fmt.Errorf("Invalid contract name %s", cell.Value)
 			}
 
 			contracts = append(contracts, contract)
@@ -125,56 +114,20 @@ func (sc *suiteContext) createChaincodeMulti(contractsTbl *gherkin.DataTable) er
 	chaincode, err := contractapi.NewChaincode(contracts...)
 
 	if err != nil {
-		return fmt.Errorf("expected to get nil for error on create chaincode but got " + err.Error())
+		return ctx, fmt.Errorf("expected to get nil for error on create chaincode but got " + err.Error())
 	}
-
+	sc := suiteContext{}
 	sc.chaincode = chaincode
 	sc.stub = shimtest.NewMockStub("MultiContract", sc.chaincode)
-
-	return nil
+	return context.WithValue(ctx, suiteContextKey{}, sc), nil
 }
 
-func (sc *suiteContext) createChaincodeAndInit(name string) error {
-	err := sc.createChaincode(name)
-
-	if err != nil {
-		return err
+func iShouldBeAbleToInitialiseTheChaincode(ctx context.Context) (context.Context, error) {
+	sc, ok := ctx.Value(suiteContextKey{}).(suiteContext)
+	if !ok {
+		return ctx, errors.New("there are no contracts available")
 	}
 
-	return sc.testInitialise()
-}
-
-func (sc *suiteContext) setupMetadata(file string) error {
-	ex, execErr := os.Executable()
-	if execErr != nil {
-		return fmt.Errorf("Failed to read metadata from file. Could not find location of executable. %s", execErr.Error())
-	}
-	exPath := filepath.Dir(ex)
-	metadataPath := filepath.Join(exPath, file)
-
-	_, err := os.Stat(metadataPath)
-
-	if os.IsNotExist(err) {
-		return errors.New("Failed to read metadata from file. Metadata file does not exist")
-	}
-
-	metadataBytes, err := ioutil.ReadFile(metadataPath)
-
-	if err != nil {
-		return fmt.Errorf("Failed to read metadata from file. Could not read file %s. %s", metadataPath, err)
-	}
-
-	metadataFolder := filepath.Join(exPath, metadata.MetadataFolder)
-
-	os.MkdirAll(metadataFolder, os.ModePerm)
-	ioutil.WriteFile(filepath.Join(metadataFolder, metadata.MetadataFile), metadataBytes, os.ModePerm)
-
-	sc.metadataFolder = metadataFolder
-
-	return nil
-}
-
-func (sc *suiteContext) testInitialise() error {
 	txID := strconv.Itoa(rand.Int())
 
 	sc.stub.MockTransactionStart(txID)
@@ -182,20 +135,40 @@ func (sc *suiteContext) testInitialise() error {
 	sc.stub.MockTransactionEnd(txID)
 
 	if response.GetStatus() != int32(200) {
-		return fmt.Errorf("expected to get status 200 on init but got " + strconv.Itoa(int(response.GetStatus())))
+		return ctx, fmt.Errorf("expected to get status 200 on init but got " + strconv.Itoa(int(response.GetStatus())))
 	}
 
-	return nil
+	return context.WithValue(ctx, suiteContextKey{}, sc), nil
 }
 
-func (sc *suiteContext) invokeChaincode(function string, argsTbl *gherkin.DataTable) error {
+func iShouldReceiveASuccessfulResponse(ctx context.Context, result string) (context.Context, error) {
+	sc, ok := ctx.Value(suiteContextKey{}).(suiteContext)
+	if !ok {
+		return ctx, errors.New("there are no contracts available")
+	}
+
+	payload := string(sc.lastResponse.GetPayload())
+	if result != "" && payload != result {
+		return ctx, fmt.Errorf("expected to get payload :" + result + ": but got :" + payload + ":")
+	}
+
+	return ctx, nil
+
+}
+
+func iSubmitTheTransaction(ctx context.Context, function string, argsTbl *godog.Table) (context.Context, error) {
+	sc, ok := ctx.Value(suiteContextKey{}).(suiteContext)
+	if !ok {
+		return ctx, errors.New("there are no contracts available")
+	}
+
 	txID := strconv.Itoa(rand.Int())
 
 	argBytes := [][]byte{}
 	argBytes = append(argBytes, []byte(function))
 
 	if len(argsTbl.Rows) > 1 {
-		return fmt.Errorf("expected zero or one table of args")
+		return ctx, fmt.Errorf("expected zero or one table of args")
 	}
 
 	for _, row := range argsTbl.Rows {
@@ -210,47 +183,95 @@ func (sc *suiteContext) invokeChaincode(function string, argsTbl *gherkin.DataTa
 
 	sc.lastResponse = response
 
-	return nil
+	return context.WithValue(ctx, suiteContextKey{}, sc), nil
+
 }
 
-func (sc *suiteContext) checkSuccessResponse(result string) error {
-	if sc.lastResponse.GetStatus() != int32(200) {
-		return fmt.Errorf("expected to get status 200 on invoke %s", sc.lastResponse.GetMessage())
+func iAmUsingMetadataFile(ctx context.Context, file string) (context.Context, error) {
+	ex, execErr := os.Executable()
+	if execErr != nil {
+		return ctx, fmt.Errorf("Failed to read metadata from file. Could not find location of executable. %s", execErr.Error())
+	}
+	exPath := filepath.Dir(ex)
+	metadataPath := filepath.Join(exPath, file)
+
+	_, err := os.Stat(metadataPath)
+
+	if os.IsNotExist(err) {
+		return ctx, errors.New("Failed to read metadata from file. Metadata file does not exist")
 	}
 
-	payload := string(sc.lastResponse.GetPayload())
-	if result != "" && payload != result {
-		return fmt.Errorf("expected to get payload " + result + " but got " + payload)
+	metadataBytes, err := ioutil.ReadFile(metadataPath)
+
+	if err != nil {
+		return ctx, fmt.Errorf("Failed to read metadata from file. Could not read file %s. %s", metadataPath, err)
 	}
 
-	return nil
+	metadataFolder := filepath.Join(exPath, metadata.MetadataFolder)
+
+	os.MkdirAll(metadataFolder, os.ModePerm)
+	ioutil.WriteFile(filepath.Join(metadataFolder, metadata.MetadataFile), metadataBytes, os.ModePerm)
+
+	sc := suiteContext{}
+	sc.metadataFolder = metadataFolder
+
+	return context.WithValue(ctx, suiteContextKey{}, sc), nil
+
 }
 
-func (sc *suiteContext) checkFailedResponse(result string) error {
+func iFailToCreateChaincodeFrom(ctx context.Context, name string) (context.Context, error) {
+	_, err := iHaveCreatedChaincodeFrom(ctx, name)
+
+	if err == nil {
+		return ctx, fmt.Errorf("Expected to get an error")
+	}
+
+	return ctx, nil
+}
+
+func iShouldReceiveAnUnsuccessfulResponse(ctx context.Context, result string) (context.Context, error) {
+
+	sc, ok := ctx.Value(suiteContextKey{}).(suiteContext)
+	if !ok {
+		return ctx, errors.New("there are no contracts available")
+	}
+
 	if sc.lastResponse.GetStatus() == int32(200) {
-		return fmt.Errorf("expected to not get status 200 on invoke")
+		return ctx, fmt.Errorf("expected to not get status 200 on invoke")
 	}
 
-	result = fmt.Sprintf("%s", strings.Join(strings.Split(result, "\\n"), "\n"))
+	result = strings.Join(strings.Split(result, "\\n"), "\n")
 
 	message := sc.lastResponse.GetMessage()
 	if result != "" && message != result {
-		return fmt.Errorf("expected to get message " + result + " but got " + message)
+		return ctx, fmt.Errorf("expected to get message " + result + " but got " + message)
 	}
-
-	return nil
+	return ctx, nil
 }
 
-func FeatureContext(s *godog.Suite) {
-	sc := new(suiteContext)
+func TestFeatures(t *testing.T) {
+	suite := godog.TestSuite{
+		ScenarioInitializer: InitializeScenario,
+		Options: &godog.Options{
+			Format:   "pretty",
+			Paths:    []string{"features"},
+			TestingT: t, // Testing instance that will run subtests.
+		},
+	}
 
-	s.Step(`^I fail to create chaincode from (?:["'](.*?)["'])$`, sc.failCreateChaincode)
-	s.Step(`^I have created chaincode from (?:["'](.*?)["'])$`, sc.createChaincode)
-	s.Step(`^I have created chaincode from multiple contracts$`, sc.createChaincodeMulti)
-	s.Step(`^I have created and initialised chaincode (?:["'](.*?)["'])$`, sc.createChaincodeAndInit)
-	s.Step(`^I am using metadata file (?:["'](.*?)["'])$`, sc.setupMetadata)
-	s.Step(`^I (?:should\s)?be able to initialise the chaincode`, sc.testInitialise)
-	s.Step(`^I submit the (?:"(.*?)") transaction$`, sc.invokeChaincode)
-	s.Step(`^I (?:should\s)?receive a successful response\s?(?:(?:["'](.*?)["'])?)$`, sc.checkSuccessResponse)
-	s.Step(`^I (?:should\s)?receive an unsuccessful response\s?(?:(?:["'](.*?)["'])?)$`, sc.checkFailedResponse)
+	if suite.Run() != 0 {
+		t.Fatal("non-zero status returned, failed to run feature tests")
+	}
+}
+
+func InitializeScenario(ctx *godog.ScenarioContext) {
+	ctx.Step(`^I have created chaincode from "([^"]*)"$`, iHaveCreatedChaincodeFrom)
+	ctx.Step(`^I have created chaincode from multiple contracts$`, iHaveCreatedChaincodeFromMultipleContracts)
+	ctx.Step(`^I should be able to initialise the chaincode$`, iShouldBeAbleToInitialiseTheChaincode)
+	ctx.Step(`^I have initialised the chaincode$`, iShouldBeAbleToInitialiseTheChaincode)
+	ctx.Step(`^I (?:should\s)?receive a successful response\s?(?:(?:["'](.*?)["'])?)$`, iShouldReceiveASuccessfulResponse)
+	ctx.Step(`^I submit the "([^"]*)" transaction$`, iSubmitTheTransaction)
+	ctx.Step(`^I am using metadata file "([^"]*)"$`, iAmUsingMetadataFile)
+	ctx.Step(`^I fail to create chaincode from "([^"]*)"$`, iFailToCreateChaincodeFrom)
+	ctx.Step(`^I should receive an unsuccessful response "([^"]*)"$`, iShouldReceiveAnUnsuccessfulResponse)
 }

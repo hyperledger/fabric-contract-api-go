@@ -29,8 +29,8 @@ jobs:
 
         go install honnef.co/go/tools/cmd/staticcheck@latest
         go install github.com/securego/gosec/v2/cmd/gosec@latest
-        go install github.com/cucumber/godog/cmd/godog@v0.12
-        go install  golang.org/x/tools/cmd/goimports@latest
+        go install github.com/cucumber/godog/cmd/godog@latest
+        go install golang.org/x/tools/cmd/goimports@latest
         npm install -g license-check-and-add@3.0.3 
     
     - name: Vet and lint
@@ -39,8 +39,14 @@ jobs:
     - name: Check Licenses
       run: license-check-and-add check -f .azure-pipelines/resources/license-config.json
 
-    - name: Run tests
-      run: go test -race ./...                   
+    - name: Run tests (excluding fv)
+      run: go test -race $(go list ./... | grep -v functionaltests)     
+
+    - name: Run functional tests
+      run: |
+        pushd internal/functionaltests
+        godog run features/*
+        popd              
      
     - name: Check tutorial contents                    
       run: ci/scripts/tutorial-checks.sh
