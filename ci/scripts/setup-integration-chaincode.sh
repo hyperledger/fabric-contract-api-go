@@ -8,7 +8,7 @@
 # by the integration tool which doesn't have the local files. Removes the replace to stop the integration tests
 # breaking as the dot path doesn't exist there.
 
-# Note the actually committed go.mod files of the conahincode already have the 
+# Note the actually committed go.mod files of the chaincode already have the 
 # 'replace github.com/hyperledger/fabric-contract-api-go => ../../..' I
 
 set -e -u -o pipefail
