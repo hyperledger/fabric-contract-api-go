@@ -40,7 +40,7 @@ let dev = [
 ].join(' ');
 
 // This should be in used in all other circumstances
-const installDir = path.resolve(process.cwd(),'node_modules','fabric-chaincode-integration');
+const installDir = path.resolve(process.cwd(),'node_modules','@hyperledger', 'fabric-chaincode-integration');
 
 let prod = [
   `${installDir}/features/**/*.feature`, // Specify our feature files

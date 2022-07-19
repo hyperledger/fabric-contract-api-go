@@ -1,6 +1,7 @@
 {
   "dependencies": {
-    "fabric-chaincode-integration": "file:fabric-chaincode-integration-0.5.0.tgz"
+    "@hyperledger/fabric-chaincode-integration": "^0.5.0",
+    "@hyperledger/fabric-gateway": "^1.1.0"
   },
   "scripts": {
     "test": "fabric-chaincode-integration"
