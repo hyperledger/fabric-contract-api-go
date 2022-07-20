@@ -1,4 +1,4 @@
-module github.com/hyperledger/fabric-chaincode-integration/simple
+module github.com/hyperledger/fabric-contract-api-go/integrationtest/chaincode/simple
 
 go 1.13
 

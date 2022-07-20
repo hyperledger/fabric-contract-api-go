@@ -14,6 +14,7 @@ const config = {
     rootDir: TEST_NETWORK_DIR,
     chaincodes: {
       simple: { path: path.resolve('./chaincode/simple'), lang: "golang" },
+      ccaas: { path: path.resolve('./chaincode/simple'), lang: "ccaas" },
       advancedtypes: { path: path.resolve('./chaincode/advancedtypes'), lang: "golang"}
     },
     cryptoPath : path.resolve(TEST_NETWORK_DIR, 'organizations', 'peerOrganizations', 'org1.example.com'),

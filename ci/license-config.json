@@ -1,20 +1,15 @@
 {
     "$schema": "https://raw.githubusercontent.com/awjh/license-check-and-add/master/config-schema.json",
-    "ignore": [".git", "**/*.mod", "**/*.sum", "**/*.md", "**/.gitignore", "**/*.yml", "**/*.out", ".azure-pipelines/Dockerfile", "CODEOWNERS"],
+    "ignore": [".git", "**/*.mod", "**/*.sum", "**/*.md", "**/.gitignore", "**/.dockerignore", "**/*.yml", "**/*.out", ".azure-pipelines/Dockerfile", "CODEOWNERS"],
     "license": "ci/license.txt",
     "trailingWhitespace": "TRIM",
     "licenseFormats": {
-        "go": {
+        "js|go": {
             "eachLine": {
                 "prepend": "// "
             }
         },
-        "js":{
-            "eachLine": {
-                "prepend": "// "
-            }
-        },
-        "feature": {
+        "^Dockerfile|feature": {
             "eachLine": {
                 "prepend": "# "
             }
