@@ -32,7 +32,7 @@ jobs:
         go install github.com/securego/gosec/v2/cmd/gosec@latest
         go install github.com/cucumber/godog/cmd/godog@latest
         go install golang.org/x/tools/cmd/goimports@latest
-        npm install -g license-check-and-add@3.0.3 
+        npm install -g license-check-and-add@4.0.5
     
     - name: Vet and lint
       run: ci/scripts/lint.sh
@@ -54,15 +54,16 @@ jobs:
       
     - name: Run the integration tests
       env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-         ci/scripts/setup-integration-chaincode.sh
+        docker build . --file integrationtest/Dockerfile --tag hyperledger/fabric-contract-api-go-integrationtest
 
-         curl -sSL https://raw.githubusercontent.com/hyperledger/fabric/main/scripts/install-fabric.sh | bash -s -- samples binary docker
-         export TEST_NETWORK_DIR=$(pwd)/fabric-samples/test-network
+        ci/scripts/setup-integration-chaincode.sh
 
-         cd ./integrationtest
-         npm ci
-         $(npm bin)/fabric-chaincode-integration run
-         
-      
+        curl -sSL https://raw.githubusercontent.com/hyperledger/fabric/main/scripts/install-fabric.sh | bash -s -- samples binary docker
+        export TEST_NETWORK_DIR=$(pwd)/fabric-samples/test-network
+
+        cd ./integrationtest
+        npm ci
+
+        $(npm bin)/fabric-chaincode-integration run

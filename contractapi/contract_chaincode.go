@@ -6,8 +6,12 @@ package contractapi
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"log"
+	"os"
 	"reflect"
 	"sort"
+	"strconv"
 	"strings"
 	"unicode"
 
@@ -38,8 +42,16 @@ type ContractChaincode struct {
 	TransactionSerializer serializer.TransactionSerializer
 }
 
-// SystemContractName the name of the system smart contract
-const SystemContractName = "org.hyperledger.fabric"
+const (
+	// SystemContractName the name of the system smart contract
+	SystemContractName    = "org.hyperledger.fabric"
+	serverAddressVariable = "CHAINCODE_SERVER_ADDRESS"
+	chaincodeIdVariable   = "CORE_CHAINCODE_ID_NAME"
+	tlsEnabledVariable    = "CORE_PEER_TLS_ENABLED"
+	rootCertVariable      = "CORE_PEER_TLS_ROOTCERT_FILE"
+	clientKeyVariable     = "CORE_TLS_CLIENT_KEY_FILE"
+	clientCertVariable    = "CORE_TLS_CLIENT_CERT_FILE"
+)
 
 // NewChaincode creates a new chaincode using contracts passed. The function parses each
 // of the passed functions and stores details about their make-up to be used by the chaincode.
@@ -94,6 +106,16 @@ func NewChaincode(contracts ...ContractInterface) (*ContractChaincode, error) {
 
 // Start starts the chaincode in the fabric shim
 func (cc *ContractChaincode) Start() error {
+	server, err := loadChaincodeServerConfig()
+	if err != nil {
+		return err
+	}
+
+	if server != nil {
+		server.CC = cc
+		return server.Start()
+	}
+
 	return shim.Start(cc)
 }
 
@@ -407,4 +429,80 @@ func getCiMethods() []string {
 	}
 
 	return ciMethods
+}
+
+func loadChaincodeServerConfig() (*shim.ChaincodeServer, error) {
+	address := getStringEnv(serverAddressVariable, "")
+	ccid := getStringEnv(chaincodeIdVariable, "")
+
+	if address == "" || ccid == "" {
+		return nil, nil
+	}
+
+	tlsProps, err := loadTLSProperties()
+	if err != nil {
+		log.Panicf("Error creating getting TLS properties: %v", err)
+	}
+
+	server := &shim.ChaincodeServer{
+		CCID:     ccid,
+		Address:  address,
+		TLSProps: *tlsProps,
+	}
+
+	return server, nil
+}
+
+func loadTLSProperties() (*shim.TLSProperties, error) {
+	tlsEnabled := getBoolEnv(tlsEnabledVariable, false)
+	if !tlsEnabled {
+		return &shim.TLSProperties{Disabled: true}, nil
+	}
+
+	key := getStringEnv(clientKeyVariable, "")
+	cert := getStringEnv(clientCertVariable, "")
+	root := getStringEnv(rootCertVariable, "")
+
+	var keyBytes, certBytes, rootBytes []byte
+	var err error
+
+	keyBytes, err = ioutil.ReadFile(key)
+	if err != nil {
+		return nil, fmt.Errorf("error while reading the crypto file: %s", err)
+	}
+
+	certBytes, err = ioutil.ReadFile(cert)
+	if err != nil {
+		return nil, fmt.Errorf("error while reading the crypto file: %s", err)
+	}
+
+	if root != "" {
+		rootBytes, err = ioutil.ReadFile(root)
+		if err != nil {
+			return nil, fmt.Errorf("error while reading the crypto file: %s", err)
+		}
+	}
+
+	return &shim.TLSProperties{
+		Disabled:      false,
+		Key:           keyBytes,
+		Cert:          certBytes,
+		ClientCACerts: rootBytes,
+	}, nil
+}
+
+func getStringEnv(key, defaultVal string) string {
+	value, ok := os.LookupEnv(key)
+	if !ok {
+		value = defaultVal
+	}
+	return value
+}
+
+func getBoolEnv(key string, defaultVal bool) bool {
+	value, err := strconv.ParseBool(os.Getenv(key))
+	if err != nil {
+		return defaultVal
+	}
+	return value
 }
