@@ -12,7 +12,7 @@
 ## Prerequisites
 This tutorial will assume you have:
 - A clone of [fabric-samples](https://github.com/hyperledger/fabric-samples)
-- [Go 1.13.x](https://golang.org/doc/install)
+- [Go 1.17.x](https://golang.org/doc/install)
 - [Docker](https://docs.docker.com/install/)
 - [Docker compose](https://docs.docker.com/compose/install/)
 
