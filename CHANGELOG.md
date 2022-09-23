@@ -1,3 +1,26 @@
+## v1.2.0
+Fri 23 Sep 2022 14:22:09 BST
+
+* [58014ca](https://github.com/hyperledger/fabric-contract-api-go/commit/58014ca) Update vulnerability scan Go version (#74)
+* [9f2bbef](https://github.com/hyperledger/fabric-contract-api-go/commit/9f2bbef) Add workflow_dispatch to vulnerability scan build (#73)
+* [d8e9cc4](https://github.com/hyperledger/fabric-contract-api-go/commit/d8e9cc4) Add nightly security vulnerability scan (#72)
+* [9f8f956](https://github.com/hyperledger/fabric-contract-api-go/commit/9f8f956) Update go version to 1.17
+* [7c7666d](https://github.com/hyperledger/fabric-contract-api-go/commit/7c7666d) Simplify CCaaS support
+* [f9dfe07](https://github.com/hyperledger/fabric-contract-api-go/commit/f9dfe07) Use the published tool
+* [8b8c1ad](https://github.com/hyperledger/fabric-contract-api-go/commit/8b8c1ad) Integration test tool usages
+* [c76c375](https://github.com/hyperledger/fabric-contract-api-go/commit/c76c375) Update the functional tests
+* [1fb1f55](https://github.com/hyperledger/fabric-contract-api-go/commit/1fb1f55) Support GHA
+* [4c1c9b7](https://github.com/hyperledger/fabric-contract-api-go/commit/4c1c9b7) Add workflow dispatch
+* [5827b97](https://github.com/hyperledger/fabric-contract-api-go/commit/5827b97) Single simple workflow to enable gha
+* [3a3aad5](https://github.com/hyperledger/fabric-contract-api-go/commit/3a3aad5) Request for maintainer status
+* [f63a393](https://github.com/hyperledger/fabric-contract-api-go/commit/f63a393) Transaction metadata tags updated (#51)
+* [94ed98a](https://github.com/hyperledger/fabric-contract-api-go/commit/94ed98a) Update "master" branch references to "main"
+* [2508693](https://github.com/hyperledger/fabric-contract-api-go/commit/2508693) update maintainers file (#50)
+* [d852efd](https://github.com/hyperledger/fabric-contract-api-go/commit/d852efd) [FABCAG-33](https://jira.hyperledger.org/browse/FABCAG-33) Skip unexported fields in struct validation (#48)
+* [0f7ed09](https://github.com/hyperledger/fabric-contract-api-go/commit/0f7ed09) Metadata issue fixed (#46)
+* [cd120de](https://github.com/hyperledger/fabric-contract-api-go/commit/cd120de) Update Linting Script (#47)
+* [a207079](https://github.com/hyperledger/fabric-contract-api-go/commit/a207079) [FABCAG-29](https://jira.hyperledger.org/browse/FABCAG-29) Added Azure devops pipeline build status badge.
+
 ## v1.1.1
 Wed 21 Oct 2020 16:35:15 BST
 
