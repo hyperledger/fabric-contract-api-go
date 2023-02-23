@@ -7,7 +7,7 @@ require (
 	github.com/go-openapi/spec v0.20.7
 	github.com/gobuffalo/packr v1.30.1
 	github.com/hyperledger/fabric-chaincode-go v0.0.0-20220720122508-9207360bbddd
-	github.com/hyperledger/fabric-protos-go v0.0.0-20220613214546-bf864f01d75e
+	github.com/hyperledger/fabric-protos-go v0.3.0
 	github.com/stretchr/testify v1.8.1
 	github.com/xeipuuv/gojsonschema v1.2.0
 )
@@ -39,7 +39,7 @@ require (
 	golang.org/x/text v0.5.0 // indirect
 	google.golang.org/genproto v0.0.0-20220719170305-83ca9fad585f // indirect
 	google.golang.org/grpc v1.48.0 // indirect
-	google.golang.org/protobuf v1.28.0 // indirect
+	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
