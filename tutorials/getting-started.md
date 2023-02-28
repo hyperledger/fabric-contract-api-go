@@ -12,7 +12,7 @@
 ## Prerequisites
 This tutorial will assume you have:
 - A clone of [fabric-samples](https://github.com/hyperledger/fabric-samples)
-- [Go 1.17.x](https://golang.org/doc/install)
+- [Go 1.19.x](https://golang.org/doc/install)
 - [Docker](https://docs.docker.com/install/)
 - [Docker compose](https://docs.docker.com/compose/install/)
 
@@ -24,7 +24,7 @@ go mod init github.com/hyperledger/fabric-samples/chaincode/contract-tutorial
 ```
 
 to setup go modules. You can then run
- 
+
 ```
 go get -u github.com/hyperledger/fabric-contract-api-go
 ```

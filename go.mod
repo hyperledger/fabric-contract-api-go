@@ -1,6 +1,6 @@
 module github.com/hyperledger/fabric-contract-api-go
 
-go 1.17
+go 1.19
 
 require (
 	github.com/cucumber/godog v0.12.5
