@@ -1,8 +1,8 @@
 # Copyright the Hyperledger Fabric contributors. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-ARG GO_VER=1.17
-ARG ALPINE_VER=3.14
+ARG GO_VER=1.19
+ARG ALPINE_VER=3.16
 
 FROM golang:${GO_VER}-alpine${ALPINE_VER}
 
