@@ -1,3 +1,11 @@
+# fabric-contract-api-go Changelog
+
+fabric-contract-api-go [releases](https://github.com/hyperledger/fabric-contract-api-go/releases) each have a changelog maintained by GitHub.
+
+# Early fabric-contract-api-go release Changelogs
+
+Early fabric-contract-api-go releases prior to v1.2.1 copied commit history into the changelog file below.
+
 ## v1.2.0
 Fri 23 Sep 2022 14:22:09 BST
 
