@@ -14,17 +14,14 @@ jobs:
   build:
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/setup-go@v3
+    - uses: actions/setup-go@v4
       with:
-        go-version: 1.19.x
+        go-version: '1.19'
     - uses: actions/setup-node@v3
       with:
         node-version: 16
         registry-url: 'https://npm.pkg.github.com'
-    - uses: actions/checkout@v2
-      with:
-        fetch-depth: 1
-        clean: true
+    - uses: actions/checkout@v3
     - name: install Tools
       run: |
 
@@ -44,10 +41,8 @@ jobs:
       run: go test -race $(go list ./... | grep -v functionaltests)
 
     - name: Run functional tests
-      run: |
-        pushd internal/functionaltests
-        godog run features/*
-        popd
+      working-directory: internal/functionaltests
+      run: godog run features/*
 
     - name: Check tutorial contents
       run: ci/scripts/tutorial-checks.sh
