@@ -25,7 +25,7 @@ Documentation for all packages within this repo can be found [here](http://godoc
 ## Tutorials
 Tutorials for how to create smart contracts using packages in this repo can be found [here](./tutorials)
 
-A sample chaincode built using packages from this repo can be found in [fabric-samples](https://github.com/hyperledger/fabric-samples/tree/main/chaincode/fabcar/go)
+A sample chaincode built using packages from this repo can be found [here](https://github.com/hyperledger/fabric-contract-api-go/tree/main/integrationtest/chaincode/simple)
 
 ## Raising issues
 Issues for packages in this repository are raised and tracked using [JIRA](https://jira.hyperledger.org) under the project Fabric Contract API Go (FABCAG). You can view the current open issues by visiting [https://jira.hyperledger.org/projects/FABCAG/issues?filter=allopenissues](https://jira.hyperledger.org/projects/FABCAG/issues?filter=allopenissues). Before raising an issue please check existing issues to avoid duplication.
