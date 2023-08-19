@@ -27,7 +27,7 @@ Tutorials for how to create smart contracts using packages in this repo can be f
 
 Some sample chaincodes built using packages from this repo are [simple](https://github.com/hyperledger/fabric-contract-api-go/tree/main/integrationtest/chaincode/simple) and [asset-transfer-basic](https://github.com/hyperledger/fabric-samples/tree/main/asset-transfer-basic/chaincode-go)
 
-Other examples can be found [here](https://github.com/hyperledger/fabric-contract-api-go/tree/main/integrationtest/chaincode) and [here](https://github.com/hyperledger/fabric-samples)
+Other examples can be found in this project's [integration tests](https://github.com/hyperledger/fabric-contract-api-go/tree/main/integrationtest/chaincode), and in the [fabric-samples repository](https://github.com/hyperledger/fabric-samples).
 
 
 
