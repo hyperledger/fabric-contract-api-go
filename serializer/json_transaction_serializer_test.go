@@ -13,6 +13,7 @@ import (
 	"github.com/go-openapi/spec"
 	"github.com/hyperledger/fabric-contract-api-go/internal/types"
 	"github.com/hyperledger/fabric-contract-api-go/metadata"
+	"github.com/hyperledger/fabric-contract-api-go/serializer/internal"
 	"github.com/stretchr/testify/assert"
 	"github.com/xeipuuv/gojsonschema"
 )
@@ -21,7 +22,7 @@ import (
 // HELPERS
 // ================================
 
-type simpleStruct struct {
+type SimpleStruct struct {
 	Prop1 string `json:"prop1"`
 	prop2 string
 }
@@ -36,8 +37,8 @@ type usefulStruct struct {
 	channel  chan string
 	basic    string
 	array    [1]string
-	strct    simpleStruct
-	strctPtr *simpleStruct
+	strct    SimpleStruct
+	strctPtr *SimpleStruct
 }
 
 func (us usefulStruct) DoNothing() string {
@@ -146,9 +147,9 @@ func TestCreateArraySliceMapOrStruct(t *testing.T) {
 	assert.Nil(t, err, "should not error for valid slice JSON")
 	assert.Equal(t, []string{"slice", "slice", "baby"}, val.Interface().([]string), "should produce populated slice")
 
-	val, err = createArraySliceMapOrStruct("{\"Prop1\": \"value\"}", reflect.TypeOf(simpleStruct{}))
+	val, err = createArraySliceMapOrStruct("{\"Prop1\": \"value\"}", reflect.TypeOf(SimpleStruct{}))
 	assert.Nil(t, err, "should not error for valid struct json")
-	assert.Equal(t, simpleStruct{"value", ""}, val.Interface().(simpleStruct), "should produce populated struct")
+	assert.Equal(t, SimpleStruct{"value", ""}, val.Interface().(SimpleStruct), "should produce populated struct")
 
 	val, err = createArraySliceMapOrStruct("{\"key\": 1}", reflect.TypeOf(make(map[string]int)))
 	assert.Nil(t, err, "should not error for valid map JSON")
@@ -188,8 +189,8 @@ func TestConvertArg(t *testing.T) {
 	testConvertArgsComplexType(t, [1]int{}, "[1,2,3]")
 	testConvertArgsComplexType(t, []string{}, "[\"a\",\"string\",\"array\"]")
 	testConvertArgsComplexType(t, make(map[string]bool), "{\"a\": true, \"b\": false}")
-	testConvertArgsComplexType(t, simpleStruct{}, "{\"Prop1\": \"hello\"}")
-	testConvertArgsComplexType(t, &simpleStruct{}, "{\"Prop1\": \"hello\"}")
+	testConvertArgsComplexType(t, SimpleStruct{}, "{\"Prop1\": \"hello\"}")
+	testConvertArgsComplexType(t, &SimpleStruct{}, "{\"Prop1\": \"hello\"}")
 
 	// should handle time
 	actualValue, actualErr = convertArg(types.TimeType, "2002-10-02T15:00:00Z")
@@ -217,13 +218,21 @@ func TestValidateAgainstSchema(t *testing.T) {
 	err = validateAgainstSchema("prop", reflect.TypeOf(10), "10", 10, comparisonSchema)
 	assert.Nil(t, err, "should not error when matches schema")
 
-	expectedStruct := new(simpleStruct)
+	expectedStruct := new(SimpleStruct)
 	expectedStruct.Prop1 = "hello"
 	bytes, _ := json.Marshal(expectedStruct)
 	schema, _ := metadata.GetSchema(reflect.TypeOf(expectedStruct), components)
 	comparisonSchema = createGoJSONSchemaSchema("prop", schema, components)
 	err = validateAgainstSchema("prop", reflect.TypeOf(expectedStruct), string(bytes), expectedStruct, comparisonSchema)
 	assert.Nil(t, err, "should handle struct")
+
+	expectedStruct2 := new(internal.SimpleStruct)
+	expectedStruct2.Prop1 = "world"
+	bytes, _ = json.Marshal(expectedStruct2)
+	schema, _ = metadata.GetSchema(reflect.TypeOf(expectedStruct2), components)
+	comparisonSchema = createGoJSONSchemaSchema("prop", schema, components)
+	err = validateAgainstSchema("prop", reflect.TypeOf(expectedStruct2), string(bytes), expectedStruct2, comparisonSchema)
+	assert.NoError(t, err, "should handle struct with same name in different package")
 }
 
 func TestFromString(t *testing.T) {
@@ -255,7 +264,7 @@ func TestFromString(t *testing.T) {
 	assert.Nil(t, err, "should not error when convert args passes and no schema")
 	assert.Equal(t, reflect.ValueOf(1234).Interface(), value.Interface(), "should reflect value for converted arg")
 
-	expectedStruct := new(simpleStruct)
+	expectedStruct := new(SimpleStruct)
 	expectedStruct.Prop1 = "hello"
 	components := new(metadata.ComponentMetadata)
 	schema, _ = metadata.GetSchema(reflect.TypeOf(expectedStruct), components)
@@ -276,12 +285,12 @@ func TestToString(t *testing.T) {
 
 	serializer := new(JSONSerializer)
 
-	var nilResult *simpleStruct
-	value, err = serializer.ToString(reflect.ValueOf(nilResult), reflect.TypeOf(new(simpleStruct)), nil, nil)
+	var nilResult *SimpleStruct
+	value, err = serializer.ToString(reflect.ValueOf(nilResult), reflect.TypeOf(new(SimpleStruct)), nil, nil)
 	assert.Nil(t, err, "should not error when receives nil")
 	assert.Equal(t, "", value, "should return blank string for nil value")
 
-	result := new(simpleStruct)
+	result := new(SimpleStruct)
 	result.Prop1 = "property 1"
 	value, err = serializer.ToString(reflect.ValueOf(result), reflect.TypeOf(result), nil, nil)
 	assert.Nil(t, err, "should not error when receives non nil nillable type")
@@ -306,7 +315,7 @@ func TestToString(t *testing.T) {
 	assert.EqualError(t, err, expectedErr.Error(), "should error when validateAgainstSchema errors")
 	assert.Equal(t, "", value, "should return an empty string value when it errors due to validateAgainstSchema")
 
-	expectedStruct := new(simpleStruct)
+	expectedStruct := new(SimpleStruct)
 	expectedStruct.Prop1 = "hello"
 	components := new(metadata.ComponentMetadata)
 	schema, _ = metadata.GetSchema(reflect.TypeOf(expectedStruct), components)
