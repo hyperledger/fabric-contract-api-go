@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/cucumber/godog v0.12.6
-	github.com/go-openapi/spec v0.20.9
+	github.com/go-openapi/spec v0.20.11
 	github.com/gobuffalo/packr v1.30.1
 	github.com/hyperledger/fabric-chaincode-go v0.0.0-20230731094759-d626e9ab09b9
 	github.com/hyperledger/fabric-protos-go v0.3.0
