@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/cucumber/godog v0.12.6
-	github.com/go-openapi/spec v0.20.9
+	github.com/go-openapi/spec v0.20.12
 	github.com/gobuffalo/packr v1.30.1
 	github.com/hyperledger/fabric-chaincode-go v0.0.0-20230731094759-d626e9ab09b9
 	github.com/hyperledger/fabric-protos-go v0.3.0
@@ -16,9 +16,9 @@ require (
 	github.com/cucumber/gherkin-go/v19 v19.0.3 // indirect
 	github.com/cucumber/messages-go/v16 v16.0.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/go-openapi/jsonpointer v0.20.0 // indirect
-	github.com/go-openapi/jsonreference v0.20.2 // indirect
-	github.com/go-openapi/swag v0.22.4 // indirect
+	github.com/go-openapi/jsonpointer v0.20.1 // indirect
+	github.com/go-openapi/jsonreference v0.20.3 // indirect
+	github.com/go-openapi/swag v0.22.5 // indirect
 	github.com/gobuffalo/envy v1.10.2 // indirect
 	github.com/gobuffalo/packd v1.0.2 // indirect
 	github.com/gofrs/uuid v4.2.0+incompatible // indirect
