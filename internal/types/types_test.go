@@ -74,7 +74,7 @@ func TestBoolType(t *testing.T) {
 	assert.False(t, val.Interface().(bool), "should have returned the boolean false for blank value")
 
 	val, err = boolTypeVar.Convert("non bool")
-	assert.Error(t, fmt.Errorf(convertError, "non bool"), "should return error for invalid bool value")
+	assert.Error(t, err, fmt.Errorf(convertError, "non bool"), "should return error for invalid bool value")
 	assert.Equal(t, reflect.Value{}, val, "should have returned the blank value for non bool")
 }
 

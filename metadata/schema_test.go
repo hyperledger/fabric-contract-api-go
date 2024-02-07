@@ -45,8 +45,10 @@ var simpleStructPropertiesMap = map[string]spec.Schema{
 	"jsonname2": *spec.StringProperty(),
 }
 
+var simpleStructKey = schemaKey(reflect.TypeOf(simpleStruct{}))
+
 var simpleStructMetadata = ObjectMetadata{
-	ID:                   "simpleStruct",
+	ID:                   simpleStructKey,
 	Properties:           simpleStructPropertiesMap,
 	Required:             []string{"Prop1", "propname", "Prop5", "jsonname2"},
 	AdditionalProperties: false,
@@ -59,15 +61,17 @@ type complexStruct struct {
 	Prop3 *complexStruct `metadata:",optional"`
 }
 
+var complexStructKey = schemaKey(reflect.TypeOf(complexStruct{}))
+
 var complexStructPropertiesMap = map[string]spec.Schema{
 	"Prop0": *spec.StringProperty(),
 	"Prop1": *spec.StringProperty(),
-	"Prop2": *spec.RefSchema("simpleStruct"),
-	"Prop3": *spec.RefSchema("complexStruct"),
+	"Prop2": *spec.RefSchema(simpleStructKey),
+	"Prop3": *spec.RefSchema(complexStructKey),
 }
 
 var complexStructMetadata = ObjectMetadata{
-	ID:                   "complexStruct",
+	ID:                   complexStructKey,
 	Properties:           complexStructPropertiesMap,
 	Required:             []string{"Prop0", "Prop1", "Prop2"},
 	AdditionalProperties: false,
@@ -84,16 +88,18 @@ type superComplexStruct struct {
 var superComplexStructPropertiesMap = map[string]spec.Schema{
 	"Prop0": *spec.StringProperty(),
 	"Prop1": *spec.StringProperty(),
-	"Prop2": *spec.RefSchema("simpleStruct"),
-	"Prop3": *spec.RefSchema("complexStruct"),
-	"Prop4": *spec.ArrayProperty(spec.RefSchema("complexStruct")),
-	"Prop5": *spec.ArrayProperty(spec.RefSchema("simpleStruct")),
-	"Prop6": *spec.MapProperty(spec.RefSchema("complexStruct")),
-	"Prop7": *spec.MapProperty(spec.ArrayProperty(spec.RefSchema("simpleStruct"))),
+	"Prop2": *spec.RefSchema(simpleStructKey),
+	"Prop3": *spec.RefSchema(complexStructKey),
+	"Prop4": *spec.ArrayProperty(spec.RefSchema(complexStructKey)),
+	"Prop5": *spec.ArrayProperty(spec.RefSchema(simpleStructKey)),
+	"Prop6": *spec.MapProperty(spec.RefSchema(complexStructKey)),
+	"Prop7": *spec.MapProperty(spec.ArrayProperty(spec.RefSchema(simpleStructKey))),
 }
 
+var superComplexStructKey = schemaKey(reflect.TypeOf(superComplexStruct{}))
+
 var superComplexStructMetadata = ObjectMetadata{
-	ID:                   "superComplexStruct",
+	ID:                   superComplexStructKey,
 	Properties:           superComplexStructPropertiesMap,
 	Required:             append(complexStructMetadata.Required, "Prop4", "Prop5", "Prop6", "Prop7"),
 	AdditionalProperties: false,
@@ -201,18 +207,18 @@ func TestAddComponentIfNotExists(t *testing.T) {
 
 	components = new(ComponentMetadata)
 	components.Schemas = make(map[string]ObjectMetadata)
-	components.Schemas["simpleStruct"] = someObject
+	components.Schemas[simpleStructKey] = someObject
 
 	err = addComponentIfNotExists(reflect.TypeOf(simpleStruct{}), components)
-	assert.Nil(t, err, "should return nil for error when component of name already exists")
+	assert.NoError(t, err, "should return nil for error when component of name already exists")
 	assert.Equal(t, len(components.Schemas), 1, "should not have added a new component when one already exists")
-	_, ok = components.Schemas["simpleStruct"].Properties["some property"]
+	_, ok = components.Schemas[simpleStructKey].Properties["some property"]
 	assert.True(t, ok, "should not overwrite existing component")
 
 	err = addComponentIfNotExists(reflect.TypeOf(new(simpleStruct)), components)
 	assert.Nil(t, err, "should return nil for error when component of name already exists for pointer")
 	assert.Equal(t, len(components.Schemas), 1, "should not have added a new component when one already exists for pointer")
-	_, ok = components.Schemas["simpleStruct"].Properties["some property"]
+	_, ok = components.Schemas[simpleStructKey].Properties["some property"]
 	assert.True(t, ok, "should not overwrite existing component when already exists and pointer passed")
 
 	err = addComponentIfNotExists(reflect.TypeOf(badStruct{}), components)
@@ -222,13 +228,13 @@ func TestAddComponentIfNotExists(t *testing.T) {
 	components.Schemas = nil
 	err = addComponentIfNotExists(reflect.TypeOf(simpleStruct{}), components)
 	assert.Nil(t, err, "should not error when adding new component when schemas not initialised")
-	assert.Equal(t, components.Schemas["simpleStruct"], simpleStructMetadata, "should set correct metadata for new component when schemas not initialised")
+	assert.Equal(t, components.Schemas[simpleStructKey], simpleStructMetadata, "should set correct metadata for new component when schemas not initialised")
 
-	delete(components.Schemas, "simpleStruct")
+	delete(components.Schemas, simpleStructKey)
 	components.Schemas["otherStruct"] = someObject
 	err = addComponentIfNotExists(reflect.TypeOf(simpleStruct{}), components)
 	assert.Nil(t, err, "should not error when adding new component")
-	assert.Equal(t, components.Schemas["simpleStruct"], simpleStructMetadata, "should set correct metadata for new component")
+	assert.Equal(t, components.Schemas[simpleStructKey], simpleStructMetadata, "should set correct metadata for new component")
 	assert.Equal(t, components.Schemas["otherStruct"], someObject, "should not affect existing components")
 }
 
@@ -247,21 +253,21 @@ func TestBuildStructSchema(t *testing.T) {
 
 	schema, err = buildStructSchema(reflect.TypeOf(simpleStruct{}), components, false)
 	assert.Nil(t, err, "should not return error when struct is good")
-	assert.Equal(t, schema, spec.RefSchema("#/components/schemas/simpleStruct"), "should make schema ref to component")
-	_, ok := components.Schemas["simpleStruct"]
+	assert.Equal(t, spec.RefSchema("#/components/schemas/"+simpleStructKey), schema, "should make schema ref to component")
+	_, ok := components.Schemas[simpleStructKey]
 	assert.True(t, ok, "should have added component")
 
 	schema, err = buildStructSchema(reflect.TypeOf(simpleStruct{}), components, true)
 	assert.Nil(t, err, "should not return error when struct is good")
-	assert.Equal(t, schema, spec.RefSchema("simpleStruct"), "should make schema ref to component for nested ref")
-	_, ok = components.Schemas["simpleStruct"]
+	assert.Equal(t, spec.RefSchema(simpleStructKey), schema, "should make schema ref to component for nested ref")
+	_, ok = components.Schemas[simpleStructKey]
 	assert.True(t, ok, "should have added component for nested ref")
 
 	schema, err = buildStructSchema(reflect.TypeOf(new(simpleStruct)), components, false)
 	assert.Nil(t, err, "should not return error when pointer to struct is good")
-	assert.Equal(t, schema, spec.RefSchema("#/components/schemas/simpleStruct"), "should make schema ref to component")
+	assert.Equal(t, spec.RefSchema("#/components/schemas/"+simpleStructKey), schema, "should make schema ref to component")
 
-	_, ok = components.Schemas["simpleStruct"]
+	_, ok = components.Schemas[simpleStructKey]
 	assert.True(t, ok, "should have use already added component")
 }
 
@@ -444,9 +450,9 @@ func TestGetSchema(t *testing.T) {
 	schema, err = GetSchema(reflect.TypeOf(simpleStruct{}), components)
 
 	assert.Nil(t, err, "should return nil when valid object")
-	assert.Equal(t, len(components.Schemas), 1, "should have added a new component")
-	assert.Equal(t, components.Schemas["simpleStruct"], simpleStructMetadata, "should have added correct metadata to components")
-	assert.Equal(t, schema, spec.RefSchema("#/components/schemas/simpleStruct"))
+	assert.Equal(t, 1, len(components.Schemas), "should have added a new component")
+	assert.Equal(t, simpleStructMetadata, components.Schemas[simpleStructKey], "should have added correct metadata to components")
+	assert.Equal(t, spec.RefSchema("#/components/schemas/"+simpleStructKey), schema)
 
 	// should handle pointer to struct
 	components = new(ComponentMetadata)
@@ -455,9 +461,9 @@ func TestGetSchema(t *testing.T) {
 	schema, err = GetSchema(reflect.TypeOf(new(simpleStruct)), components)
 
 	assert.Nil(t, err, "should return nil when valid object")
-	assert.Equal(t, len(components.Schemas), 1, "should have added a new component")
-	assert.Equal(t, components.Schemas["simpleStruct"], simpleStructMetadata, "should have added correct metadata to components")
-	assert.Equal(t, schema, spec.RefSchema("#/components/schemas/simpleStruct"))
+	assert.Equal(t, 1, len(components.Schemas), "should have added a new component")
+	assert.Equal(t, simpleStructMetadata, components.Schemas[simpleStructKey], "should have added correct metadata to components")
+	assert.Equal(t, spec.RefSchema("#/components/schemas/"+simpleStructKey), schema)
 
 	// Should handle an array of structs
 	components = new(ComponentMetadata)
@@ -466,9 +472,9 @@ func TestGetSchema(t *testing.T) {
 	schema, err = GetSchema(reflect.TypeOf([1]simpleStruct{}), components)
 
 	assert.Nil(t, err, "should return nil when valid object")
-	assert.Equal(t, len(components.Schemas), 1, "should have added a new component")
-	assert.Equal(t, components.Schemas["simpleStruct"], simpleStructMetadata, "should have added correct metadata to components")
-	assert.Equal(t, schema, spec.ArrayProperty(spec.RefSchema("#/components/schemas/simpleStruct")))
+	assert.Equal(t, 1, len(components.Schemas), "should have added a new component")
+	assert.Equal(t, simpleStructMetadata, components.Schemas[simpleStructKey], "should have added correct metadata to components")
+	assert.Equal(t, spec.ArrayProperty(spec.RefSchema("#/components/schemas/"+simpleStructKey)), schema)
 
 	// Should handle a slice of structs
 	components = new(ComponentMetadata)
@@ -477,9 +483,9 @@ func TestGetSchema(t *testing.T) {
 	schema, err = GetSchema(reflect.TypeOf([]simpleStruct{}), components)
 
 	assert.Nil(t, err, "should return nil when valid object")
-	assert.Equal(t, len(components.Schemas), 1, "should have added a new component")
-	assert.Equal(t, components.Schemas["simpleStruct"], simpleStructMetadata, "should have added correct metadata to components")
-	assert.Equal(t, schema, spec.ArrayProperty(spec.RefSchema("#/components/schemas/simpleStruct")))
+	assert.Equal(t, 1, len(components.Schemas), "should have added a new component")
+	assert.Equal(t, simpleStructMetadata, components.Schemas[simpleStructKey], "should have added correct metadata to components")
+	assert.Equal(t, spec.ArrayProperty(spec.RefSchema("#/components/schemas/"+simpleStructKey)), schema)
 
 	// Should handle a valid struct with struct property and add to components
 	components = new(ComponentMetadata)
@@ -488,10 +494,10 @@ func TestGetSchema(t *testing.T) {
 	schema, err = GetSchema(reflect.TypeOf(new(complexStruct)), components)
 
 	assert.Nil(t, err, "should return nil when valid object")
-	assert.Equal(t, len(components.Schemas), 2, "should have added two new components")
-	assert.Equal(t, components.Schemas["simpleStruct"], simpleStructMetadata, "should have added correct metadata to components for sub struct")
-	assert.Equal(t, components.Schemas["complexStruct"], complexStructMetadata, "should have added correct metadata to components for main struct")
-	assert.Equal(t, schema, spec.RefSchema("#/components/schemas/complexStruct"))
+	assert.Equal(t, 2, len(components.Schemas), "should have added two new components")
+	assert.Equal(t, simpleStructMetadata, components.Schemas[simpleStructKey], "should have added correct metadata to components for sub struct")
+	assert.Equal(t, complexStructMetadata, components.Schemas[complexStructKey], "should have added correct metadata to components for main struct")
+	assert.Equal(t, spec.RefSchema("#/components/schemas/"+complexStructKey), schema)
 
 	// Should handle a valid struct with struct properties of array, slice and map types
 	components = new(ComponentMetadata)
@@ -500,11 +506,11 @@ func TestGetSchema(t *testing.T) {
 	schema, err = GetSchema(reflect.TypeOf(new(superComplexStruct)), components)
 
 	assert.Nil(t, err, "should return nil when valid object")
-	assert.Equal(t, len(components.Schemas), 3, "should have added two new components")
-	assert.Equal(t, components.Schemas["simpleStruct"], simpleStructMetadata, "should have added correct metadata to components for sub struct")
-	assert.Equal(t, components.Schemas["complexStruct"], complexStructMetadata, "should have added correct metadata to components for sub struct")
-	assert.Equal(t, components.Schemas["superComplexStruct"], superComplexStructMetadata, "should have added correct metadata to components for main struct")
-	assert.Equal(t, schema, spec.RefSchema("#/components/schemas/superComplexStruct"))
+	assert.Equal(t, 3, len(components.Schemas), "should have added two new components")
+	assert.Equal(t, simpleStructMetadata, components.Schemas[simpleStructKey], "should have added correct metadata to components for sub struct")
+	assert.Equal(t, complexStructMetadata, components.Schemas[complexStructKey], "should have added correct metadata to components for sub struct")
+	assert.Equal(t, superComplexStructMetadata, components.Schemas[superComplexStructKey], "should have added correct metadata to components for main struct")
+	assert.Equal(t, spec.RefSchema("#/components/schemas/"+superComplexStructKey), schema)
 
 	// Should return an error for a bad struct
 	components = new(ComponentMetadata)
