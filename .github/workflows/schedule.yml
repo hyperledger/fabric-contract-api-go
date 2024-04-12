@@ -1,0 +1,9 @@
+name: Scheduled build
+
+on:
+  schedule:
+    - cron: "23 03 * * 0"
+
+jobs:
+  main:
+    uses: ./.github/workflows/build.yml
