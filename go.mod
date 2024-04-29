@@ -3,7 +3,7 @@ module github.com/hyperledger/fabric-contract-api-go
 go 1.20
 
 require (
-	github.com/cucumber/godog v0.14.0
+	github.com/cucumber/godog v0.14.1
 	github.com/go-openapi/spec v0.21.0
 	github.com/gobuffalo/packr v1.30.1
 	github.com/hyperledger/fabric-chaincode-go v0.0.0-20240124143825-7dec3c7e7d45
