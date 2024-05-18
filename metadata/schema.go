@@ -24,32 +24,26 @@ func GetSchema(field reflect.Type, components *ComponentMetadata) (*spec.Schema,
 }
 
 func getSchema(field reflect.Type, components *ComponentMetadata, nested bool) (*spec.Schema, error) {
-	var schema *spec.Schema
-	var err error
-
-	if bt, ok := types.BasicTypes[field.Kind()]; !ok {
-		if field == types.TimeType {
-			schema = spec.DateTimeProperty()
-		} else if field.Kind() == reflect.Array {
-			schema, err = buildArraySchema(reflect.New(field).Elem(), components, nested)
-		} else if field.Kind() == reflect.Slice {
-			schema, err = buildSliceSchema(reflect.MakeSlice(field, 1, 1), components, nested)
-		} else if field.Kind() == reflect.Map {
-			schema, err = buildMapSchema(reflect.MakeMap(field), components, nested)
-		} else if field.Kind() == reflect.Struct || (field.Kind() == reflect.Ptr && field.Elem().Kind() == reflect.Struct) {
-			schema, err = buildStructSchema(field, components, nested)
-		} else {
-			return nil, fmt.Errorf("%s was not a valid type", field.String())
-		}
-	} else {
+	if bt, ok := types.BasicTypes[field.Kind()]; ok {
 		return bt.GetSchema(), nil
 	}
-
-	if err != nil {
-		return nil, err
+	if field == types.TimeType {
+		return spec.DateTimeProperty(), nil
+	}
+	if field.Kind() == reflect.Array {
+		return buildArraySchema(reflect.New(field).Elem(), components, nested)
+	}
+	if field.Kind() == reflect.Slice {
+		return buildSliceSchema(reflect.MakeSlice(field, 1, 1), components, nested)
+	}
+	if field.Kind() == reflect.Map {
+		return buildMapSchema(reflect.MakeMap(field), components, nested)
+	}
+	if field.Kind() == reflect.Struct || (field.Kind() == reflect.Ptr && field.Elem().Kind() == reflect.Struct) {
+		return buildStructSchema(field, components, nested)
 	}
 
-	return schema, nil
+	return nil, fmt.Errorf("%s was not a valid type", field.String())
 }
 
 func buildArraySchema(array reflect.Value, components *ComponentMetadata, nested bool) (*spec.Schema, error) {
@@ -95,12 +89,14 @@ func addComponentIfNotExists(obj reflect.Type, components *ComponentMetadata) er
 		obj = obj.Elem()
 	}
 
-	if _, ok := components.Schemas[obj.Name()]; ok {
+	key := schemaKey(obj)
+
+	if _, ok := components.Schemas[key]; ok {
 		return nil
 	}
 
 	schema := ObjectMetadata{}
-	schema.ID = obj.Name()
+	schema.ID = key
 	schema.Required = []string{}
 	schema.Properties = make(map[string]spec.Schema)
 	schema.AdditionalProperties = false
@@ -109,18 +105,18 @@ func addComponentIfNotExists(obj reflect.Type, components *ComponentMetadata) er
 		components.Schemas = make(map[string]ObjectMetadata)
 	}
 
-	components.Schemas[obj.Name()] = schema // lock up slot for cyclic
+	components.Schemas[key] = schema // lock up slot for cyclic
 
 	for i := 0; i < obj.NumField(); i++ {
 		err := getField(obj.Field(i), &schema, components)
 
 		if err != nil {
-			delete(components.Schemas, obj.Name())
+			delete(components.Schemas, key)
 			return err
 		}
 	}
 
-	components.Schemas[obj.Name()] = schema // include changes
+	components.Schemas[key] = schema // include changes
 
 	return nil
 }
@@ -205,5 +201,10 @@ func buildStructSchema(obj reflect.Type, components *ComponentMetadata, nested b
 		refPath = ""
 	}
 
-	return spec.RefSchema(refPath + obj.Name()), nil
+	return spec.RefSchema(refPath + schemaKey(obj)), nil
+}
+
+func schemaKey(obj reflect.Type) string {
+	return strings.ReplaceAll(obj.PkgPath(), "/", ".") + "." + obj.Name()
+	// return obj.Name()
 }

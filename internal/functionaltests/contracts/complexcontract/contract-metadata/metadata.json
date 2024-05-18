@@ -17,7 +17,7 @@
                         }
                     ],
                     "returns": {
-                        "$ref": "#/components/schemas/BasicObject"
+                        "$ref": "#/components/schemas/github.com.hyperledger.fabric-contract-api-go.internal.functionaltests.contracts.complexcontract.BasicObject"
                     },
                     "tag": [
                         "evaluate",
@@ -59,7 +59,7 @@
                         {
                             "name": "param1",
                             "schema": {
-                                "$ref": "#/components/schemas/BasicOwner"
+                                "$ref": "#/components/schemas/github.com.hyperledger.fabric-contract-api-go.internal.functionaltests.contracts.complexcontract.BasicOwner"
                             }
                         },
                         {
@@ -99,7 +99,7 @@
                         {
                             "name": "param1",
                             "schema": {
-                                "$ref": "#/components/schemas/BasicOwner"
+                                "$ref": "#/components/schemas/github.com.hyperledger.fabric-contract-api-go.internal.functionaltests.contracts.complexcontract.BasicOwner"
                             }
                         }
                     ],
