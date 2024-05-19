@@ -7,6 +7,7 @@ import (
 	"crypto/x509"
 	"testing"
 
+	//lint:ignore SA1019 TODO: needs to be removed
 	"github.com/hyperledger/fabric-chaincode-go/shimtest"
 	"github.com/stretchr/testify/assert"
 )

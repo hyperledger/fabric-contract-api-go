@@ -113,7 +113,7 @@ func (cf *ContractFunction) formatArgs(ctx reflect.Value, supplementaryMetadata 
 
 	if supplementaryMetadata != nil {
 		if len(supplementaryMetadata) != numParams {
-			return nil, fmt.Errorf("Incorrect number of params in supplementary metadata. Expected %d, received %d", numParams, len(supplementaryMetadata))
+			return nil, fmt.Errorf("incorrect number of params in supplementary metadata. Expected %d, received %d", numParams, len(supplementaryMetadata))
 		}
 	}
 
@@ -124,7 +124,7 @@ func (cf *ContractFunction) formatArgs(ctx reflect.Value, supplementaryMetadata 
 	}
 
 	if len(params) < numParams {
-		return nil, fmt.Errorf("Incorrect number of params. Expected %d, received %d", numParams, len(params))
+		return nil, fmt.Errorf("incorrect number of params. Expected %d, received %d", numParams, len(params))
 	}
 
 	channels := []chan formatArgResult{}
@@ -148,7 +148,7 @@ func (cf *ContractFunction) formatArgs(ctx reflect.Value, supplementaryMetadata 
 		for res := range channel {
 
 			if res.err != nil {
-				return nil, fmt.Errorf("Error managing parameter%s. %s", res.paramName, res.err.Error())
+				return nil, fmt.Errorf("error managing parameter%s. %s", res.paramName, res.err.Error())
 			}
 
 			values = append(values, res.converted)
@@ -212,7 +212,7 @@ func (cf *ContractFunction) handleResponse(response []reflect.Value, returnsMeta
 				successString, err = serializer.ToString(successResponse, cf.returns.success, returnsMetadata, components)
 
 				if err != nil {
-					return "", nil, fmt.Errorf("Error handling success response. %s", err.Error())
+					return "", nil, fmt.Errorf("error handling success response. %s", err.Error())
 				}
 			}
 
@@ -245,7 +245,7 @@ func NewContractFunctionFromFunc(fn interface{}, callType CallType, contextHandl
 	fnValue := reflect.ValueOf(fn)
 
 	if fnType.Kind() != reflect.Func {
-		return nil, fmt.Errorf("Cannot create new contract function from %s. Can only use func", fnType.Kind())
+		return nil, fmt.Errorf("cannot create new contract function from %s. Can only use func", fnType.Kind())
 	}
 
 	myMethod := reflect.Method{}
@@ -327,7 +327,7 @@ func methodToContractFunctionParams(typeMethod reflect.Method, contextHandlerTyp
 		if typeError != nil && !isCtx {
 			return contractFunctionParams{}, fmt.Errorf("%s contains invalid parameter type. %s", methodName, typeError.Error())
 		} else if i != startIndex && isCtx {
-			return contractFunctionParams{}, fmt.Errorf("Functions requiring the TransactionContext must require it as the first parameter. %s takes it in as parameter %d", methodName, i-startIndex)
+			return contractFunctionParams{}, fmt.Errorf("functions requiring the TransactionContext must require it as the first parameter. %s takes it in as parameter %d", methodName, i-startIndex)
 		} else if isCtx {
 			usesCtx = contextHandlerType
 		} else {
@@ -349,7 +349,7 @@ func methodToContractFunctionReturns(typeMethod reflect.Method) (contractFunctio
 	}
 
 	if numOut > 2 {
-		return contractFunctionReturns{}, fmt.Errorf("Functions may only return a maximum of two values. %s returns %d", methodName, numOut)
+		return contractFunctionReturns{}, fmt.Errorf("functions may only return a maximum of two values. %s returns %d", methodName, numOut)
 	} else if numOut == 1 {
 		outType := typeMethod.Type.Out(0)
 

@@ -54,7 +54,7 @@ func getSchema(field reflect.Type, components *ComponentMetadata, nested bool) (
 
 func buildArraySchema(array reflect.Value, components *ComponentMetadata, nested bool) (*spec.Schema, error) {
 	if array.Len() < 1 {
-		return nil, fmt.Errorf("Arrays must have length greater than 0")
+		return nil, fmt.Errorf("arrays must have length greater than 0")
 	}
 
 	lowerSchema, err := getSchema(array.Index(0).Type(), components, nested)

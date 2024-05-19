@@ -43,13 +43,13 @@ func GetWorldState(ctx CustomTransactionContextInterface) error {
 	_, params := ctx.GetStub().GetFunctionAndParameters()
 
 	if len(params) < 1 {
-		return errors.New("Missing key for world state")
+		return errors.New("missing key for world state")
 	}
 
 	existing, err := ctx.GetStub().GetState(params[0])
 
 	if err != nil {
-		return errors.New("Unable to interact with world state")
+		return errors.New("unable to interact with world state")
 	}
 
 	ctx.SetCallData(existing)
@@ -61,5 +61,5 @@ func GetWorldState(ctx CustomTransactionContextInterface) error {
 // and returns a shim error
 func UnknownTransactionHandler(ctx CustomTransactionContextInterface) error {
 	fcn, args := ctx.GetStub().GetFunctionAndParameters()
-	return fmt.Errorf("Invalid function %s passed with args [%s]", fcn, strings.Join(args, ", "))
+	return fmt.Errorf("invalid function %s passed with args [%s]", fcn, strings.Join(args, ", "))
 }

@@ -88,7 +88,7 @@ func createArraySliceMapOrStruct(param string, objType reflect.Type) (reflect.Va
 	err := json.Unmarshal([]byte(param), obj.Interface())
 
 	if err != nil {
-		return reflect.Value{}, fmt.Errorf("Value %s was not passed in expected format %s", param, objType.String())
+		return reflect.Value{}, fmt.Errorf("value %s was not passed in expected format %s", param, objType.String())
 	}
 
 	return obj.Elem(), nil
@@ -109,7 +109,7 @@ func convertArg(fieldType reflect.Type, paramValue string) (reflect.Value, error
 	}
 
 	if err != nil {
-		return reflect.Value{}, fmt.Errorf("Conversion error. %s", err.Error())
+		return reflect.Value{}, fmt.Errorf("conversion error. %s", err.Error())
 	}
 
 	return converted, nil
@@ -121,8 +121,11 @@ func validateAgainstSchema(propName string, typ reflect.Type, stringValue string
 	if typ == reflect.TypeOf(time.Time{}) {
 		toValidate[propName] = stringValue
 	} else if typ.Kind() == reflect.Struct || (typ.Kind() == reflect.Ptr && typ.Elem().Kind() == reflect.Struct) {
+		// use a map for structs as schema seems to like that
 		structMap := make(map[string]interface{})
-		json.Unmarshal([]byte(stringValue), &structMap) // use a map for structs as schema seems to like that
+		if err := json.Unmarshal([]byte(stringValue), &structMap); err != nil {
+			return err
+		}
 		toValidate[propName] = structMap
 	} else {
 		toValidate[propName] = obj
@@ -133,7 +136,7 @@ func validateAgainstSchema(propName string, typ reflect.Type, stringValue string
 	result, _ := schema.Validate(toValidateLoader)
 
 	if !result.Valid() {
-		return fmt.Errorf("Value did not match schema:\n%s", utils.ValidateErrorsToString(result.Errors()))
+		return fmt.Errorf("value did not match schema:\n%s", utils.ValidateErrorsToString(result.Errors()))
 	}
 
 	return nil

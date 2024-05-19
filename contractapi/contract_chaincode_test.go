@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	"github.com/hyperledger/fabric-chaincode-go/shim"
+	//lint:ignore SA1019 TODO: needs to be removed
 	"github.com/hyperledger/fabric-chaincode-go/shimtest"
 	"github.com/hyperledger/fabric-contract-api-go/internal"
 	"github.com/hyperledger/fabric-contract-api-go/internal/utils"
@@ -32,6 +33,7 @@ const standardTxID = "1234567890"
 
 type simpleStruct struct {
 	Prop1 string `json:"prop1"`
+	//lint:ignore U1000 unused
 	prop2 string
 }
 
@@ -51,6 +53,7 @@ type privateContract struct {
 	Contract
 }
 
+//lint:ignore U1000 unused
 func (pc *privateContract) privateMethod() int64 {
 	return 1
 }
@@ -165,7 +168,7 @@ func testContractChaincodeContractMatchesContract(t *testing.T, actual contractC
 		assert.Equal(t, expected.afterTransaction.ReflectMetadata("", nil), actual.afterTransaction.ReflectMetadata("", nil), "should have matching before transactions")
 	}
 
-	assert.Equal(t, expected.transactionContextHandler, actual.transactionContextHandler, "should have matching transation contexts")
+	assert.Equal(t, expected.transactionContextHandler, actual.transactionContextHandler, "should have matching transaction contexts")
 
 	for idx, cf := range actual.functions {
 		assert.Equal(t, cf.ReflectMetadata("", nil), expected.functions[idx].ReflectMetadata("", nil), "should have matching functions")
@@ -440,7 +443,8 @@ func TestAugmentMetadata(t *testing.T) {
 		Info: info,
 	}
 
-	cc.augmentMetadata()
+	err := cc.augmentMetadata()
+	assert.NoError(t, err)
 
 	assert.Equal(t, cc.reflectMetadata(), cc.metadata, "should return reflected metadata when none supplied as file")
 }
@@ -472,20 +476,20 @@ func TestAddContract(t *testing.T) {
 	mc = new(myContract)
 	mc.Name = "customname"
 	err = cc.addContract(mc, []string{})
-	assert.EqualError(t, err, "Multiple contracts being merged into chaincode with name customname", "should error when contract already exists with name")
+	assert.EqualError(t, err, "multiple contracts being merged into chaincode with name customname", "should error when contract already exists with name")
 
 	// should error when no public functions
 	cc = new(ContractChaincode)
 	cc.contracts = make(map[string]contractChaincodeContract)
 	ic := new(emptyContract)
 	err = cc.addContract(ic, defaultExcludes)
-	assert.EqualError(t, err, fmt.Sprintf("Contracts are required to have at least 1 (non-ignored) public method. Contract emptyContract has none. Method names that have been ignored: %s", utils.SliceAsCommaSentence(defaultExcludes)), "should error when contract has no public functions")
+	assert.EqualError(t, err, fmt.Sprintf("contracts are required to have at least 1 (non-ignored) public method. Contract emptyContract has none. Method names that have been ignored: %s", utils.SliceAsCommaSentence(defaultExcludes)), "should error when contract has no public functions")
 
 	cc = new(ContractChaincode)
 	cc.contracts = make(map[string]contractChaincodeContract)
 	pc := new(privateContract)
 	err = cc.addContract(pc, defaultExcludes)
-	assert.EqualError(t, err, fmt.Sprintf("Contracts are required to have at least 1 (non-ignored) public method. Contract privateContract has none. Method names that have been ignored: %s", utils.SliceAsCommaSentence(defaultExcludes)), "should error when contract has no public functions but private ones")
+	assert.EqualError(t, err, fmt.Sprintf("contracts are required to have at least 1 (non-ignored) public method. Contract privateContract has none. Method names that have been ignored: %s", utils.SliceAsCommaSentence(defaultExcludes)), "should error when contract has no public functions but private ones")
 
 	// should add by default name
 	existingCCC := contractChaincodeContract{

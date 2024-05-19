@@ -28,6 +28,7 @@ type simpleStruct struct {
 
 type UsefulInterface interface{}
 
+//lint:ignore U1000 unused
 type usefulStruct struct {
 	ptr      *string
 	iface    UsefulInterface
@@ -135,7 +136,7 @@ func TestCreateArraySliceMapOrStruct(t *testing.T) {
 
 	arrType := reflect.TypeOf([1]string{})
 	val, err = createArraySliceMapOrStruct("bad json", arrType)
-	assert.EqualError(t, err, fmt.Sprintf("Value %s was not passed in expected format %s", "bad json", arrType.String()), "should error when JSON marshall fails")
+	assert.EqualError(t, err, fmt.Sprintf("value %s was not passed in expected format %s", "bad json", arrType.String()), "should error when JSON marshall fails")
 	assert.Equal(t, reflect.Value{}, val, "should return an empty value when error found")
 
 	val, err = createArraySliceMapOrStruct("[\"array\"]", arrType)
@@ -163,12 +164,12 @@ func TestConvertArg(t *testing.T) {
 	_, expectedErr = types.BasicTypes[reflect.Int].Convert("NaN")
 	actualValue, actualErr = convertArg(reflect.TypeOf(1), "NaN")
 	assert.Equal(t, reflect.Value{}, actualValue, "should not return a value when basic type conversion fails")
-	assert.EqualError(t, actualErr, fmt.Sprintf("Conversion error. %s", expectedErr.Error()), "should error on basic type conversion error using message")
+	assert.EqualError(t, actualErr, fmt.Sprintf("conversion error. %s", expectedErr.Error()), "should error on basic type conversion error using message")
 
 	_, expectedErr = createArraySliceMapOrStruct("Not an array", reflect.TypeOf([1]string{}))
 	actualValue, actualErr = convertArg(reflect.TypeOf([1]string{}), "Not an array")
 	assert.Equal(t, reflect.Value{}, actualValue, "should not return a value when complex type conversion fails")
-	assert.EqualError(t, actualErr, fmt.Sprintf("Conversion error. %s", expectedErr.Error()), "should error on complex type conversion error using message")
+	assert.EqualError(t, actualErr, fmt.Sprintf("conversion error. %s", expectedErr.Error()), "should error on complex type conversion error using message")
 
 	// should handle basic types
 	testConvertArgsBasicType(t, "some string", "some string")
@@ -206,12 +207,12 @@ func TestValidateAgainstSchema(t *testing.T) {
 
 	comparisonSchema = createGoJSONSchemaSchema("prop", types.BasicTypes[reflect.Uint].GetSchema(), components)
 	err = validateAgainstSchema("prop", reflect.TypeOf(-1), "-1", -1, comparisonSchema)
-	assert.Contains(t, err.Error(), "Value did not match schema", "should error when data doesnt match schema")
+	assert.Contains(t, err.Error(), "value did not match schema", "should error when data doesnt match schema")
 
 	comparisonSchema = createGoJSONSchemaSchema("prop", spec.DateTimeProperty(), nil)
 	timeObj, _ := time.Parse(time.RFC3339, "2002-10-02T15:00:00Z")
 	err = validateAgainstSchema("prop", types.TimeType, "2002/10/02 15:00:00", timeObj, comparisonSchema)
-	assert.Contains(t, err.Error(), "Value did not match schema", "should error for invalid time")
+	assert.Contains(t, err.Error(), "value did not match schema", "should error for invalid time")
 
 	comparisonSchema = createGoJSONSchemaSchema("prop", types.BasicTypes[reflect.Uint].GetSchema(), components)
 	err = validateAgainstSchema("prop", reflect.TypeOf(10), "10", 10, comparisonSchema)

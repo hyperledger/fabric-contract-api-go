@@ -34,6 +34,7 @@ type BadTransactionInterface interface {
 
 type simpleStruct struct {
 	Prop1 string `json:"prop1"`
+	//lint:ignore U1000 unused
 	prop2 string
 }
 
@@ -186,7 +187,7 @@ func TestHandleResponse(t *testing.T) {
 	mockSerializerVal := new(mockSerializer)
 	_, expectedErr := mockSerializerVal.ToString(reflect.ValueOf("NaN"), reflect.TypeOf(1), nil, nil)
 	response = []reflect.Value{reflect.ValueOf("NaN")}
-	testHandleResponse(t, reflect.TypeOf(1), false, response, "", nil, fmt.Errorf("Error handling success response. %s", expectedErr.Error()), mockSerializerVal)
+	testHandleResponse(t, reflect.TypeOf(1), false, response, "", nil, fmt.Errorf("error handling success response. %s", expectedErr.Error()), mockSerializerVal)
 }
 
 func TestFormatArgs(t *testing.T) {
@@ -204,16 +205,16 @@ func TestFormatArgs(t *testing.T) {
 
 	supplementaryMetadata.Parameters = []metadata.ParameterMetadata{}
 	args, err = fn.formatArgs(ctx, supplementaryMetadata.Parameters, nil, []string{}, serializer)
-	assert.EqualError(t, err, "Incorrect number of params in supplementary metadata. Expected 2, received 0", "should return error when metadata is incorrect")
+	assert.EqualError(t, err, "incorrect number of params in supplementary metadata. Expected 2, received 0", "should return error when metadata is incorrect")
 	assert.Nil(t, args, "should not return values when metadata error occurs")
 
 	args, err = fn.formatArgs(ctx, nil, nil, []string{}, serializer)
-	assert.EqualError(t, err, "Incorrect number of params. Expected 2, received 0", "should return error when number of params is incorrect")
+	assert.EqualError(t, err, "incorrect number of params. Expected 2, received 0", "should return error when number of params is incorrect")
 	assert.Nil(t, args, "should not return values when param error occurs")
 
 	_, fromStringErr := serializer.FromString("NaN", reflect.TypeOf(1), nil, nil)
 	args, err = fn.formatArgs(ctx, nil, nil, []string{"1", "NaN"}, serializer)
-	assert.EqualError(t, err, fmt.Sprintf("Error managing parameter. %s", fromStringErr.Error()), "should return error when type of params is incorrect")
+	assert.EqualError(t, err, fmt.Sprintf("error managing parameter. %s", fromStringErr.Error()), "should return error when type of params is incorrect")
 	assert.Nil(t, args, "should not return values when from string error occurs")
 
 	args, err = fn.formatArgs(ctx, nil, nil, []string{"1", "2"}, serializer)
@@ -268,7 +269,7 @@ func TestMethodToContractFunctionParams(t *testing.T) {
 
 	badCtxMethod, _ := getMethodByName(new(simpleStruct), "BadTransactionMethod")
 	params, err = methodToContractFunctionParams(badCtxMethod, ctx)
-	assert.EqualError(t, err, "Functions requiring the TransactionContext must require it as the first parameter. BadTransactionMethod takes it in as parameter 1", "should error when ctx in wrong position")
+	assert.EqualError(t, err, "functions requiring the TransactionContext must require it as the first parameter. BadTransactionMethod takes it in as parameter 1", "should error when ctx in wrong position")
 	assert.Equal(t, params, contractFunctionParams{}, "should return blank params when context in wrong position")
 
 	badMethodGoodTransaction, _ := getMethodByName(new(simpleStruct), "BadMethodGoodTransaction")
@@ -332,7 +333,7 @@ func TestMethodToContractFunctionReturns(t *testing.T) {
 
 	badReturnMethod, _ := getMethodByName(new(simpleStruct), "BadReturnMethod")
 	returns, err = methodToContractFunctionReturns(badReturnMethod)
-	assert.EqualError(t, err, "Functions may only return a maximum of two values. BadReturnMethod returns 3", "should error when more than two return values")
+	assert.EqualError(t, err, "functions may only return a maximum of two values. BadReturnMethod returns 3", "should error when more than two return values")
 	assert.Equal(t, returns, contractFunctionReturns{}, "should return nothing for returns when errors for bad return length")
 
 	badMethod, _ := getMethodByName(new(simpleStruct), "BadMethod")
@@ -441,7 +442,7 @@ func TestNewContractFunctionFromFunc(t *testing.T) {
 	ctx := reflect.TypeOf(new(TransactionContext))
 
 	cf, err = NewContractFunctionFromFunc("", CallTypeSubmit, ctx)
-	assert.EqualError(t, err, "Cannot create new contract function from string. Can only use func", "should return error if interface passed not a func")
+	assert.EqualError(t, err, "cannot create new contract function from string. Can only use func", "should return error if interface passed not a func")
 	assert.Nil(t, cf, "should not return contract function if interface passed not a func")
 
 	method = new(simpleStruct).BadMethod
@@ -486,9 +487,8 @@ func TestNewContractFunctionFromReflect(t *testing.T) {
 
 func TestReflectMetadata(t *testing.T) {
 	var txMetadata metadata.TransactionMetadata
-	var testCf ContractFunction
 
-	testCf = ContractFunction{
+	testCf := ContractFunction{
 		params: contractFunctionParams{
 			nil,
 			[]reflect.Type{reflect.TypeOf(""), reflect.TypeOf(true)},
@@ -549,7 +549,7 @@ func TestCall(t *testing.T) {
 	actualStr, actualIface, actualErr = testCf.Call(ctx, nil, nil, serializer, "hello", "world")
 	assert.Equal(t, actualErr, expectedErr, "should return same error as handle response for good function")
 	assert.Equal(t, expectedStr, actualStr, "should return same string as handle response for good function and params")
-	assert.Equal(t, expectedIface, expectedIface, "should return same interface as handle response for good function and params")
+	assert.Equal(t, expectedIface, actualIface, "should return same interface as handle response for good function and params")
 
 	combined := make(map[string]interface{})
 	combined["components"] = nil
@@ -569,5 +569,5 @@ func TestCall(t *testing.T) {
 	actualStr, actualIface, actualErr = testCf.Call(ctx, &schema, nil, serializer, "hello", "world")
 	assert.Equal(t, actualErr, expectedErr, "should return same error as handle response for good function with schema")
 	assert.Equal(t, expectedStr, actualStr, "should return same string as handle response for good function and params with schema")
-	assert.Equal(t, expectedIface, expectedIface, "should return same interface as handle response for good function and params with schema")
+	assert.Equal(t, expectedIface, actualIface, "should return same interface as handle response for good function and params with schema")
 }

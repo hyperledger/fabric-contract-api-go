@@ -208,7 +208,7 @@ func (ccm *ContractChaincodeMetadata) CompileSchemas() error {
 				gjsSchema, err := compileSchema(param.Name, param.Schema, ccm.Components)
 
 				if err != nil {
-					return fmt.Errorf("Error compiling schema for %s [%s]. %s schema invalid. %s", contractName, tx.Name, param.Name, err.Error())
+					return fmt.Errorf("error compiling schema for %s [%s]. %s schema invalid. %s", contractName, tx.Name, param.Name, err.Error())
 				}
 
 				param.CompiledSchema = gjsSchema
@@ -219,7 +219,7 @@ func (ccm *ContractChaincodeMetadata) CompileSchemas() error {
 				gjsSchema, err := compileSchema("return", tx.Returns.Schema, ccm.Components)
 
 				if err != nil {
-					return fmt.Errorf("Error compiling schema for %s [%s]. Return schema invalid. %s", contractName, tx.Name, err.Error())
+					return fmt.Errorf("error compiling schema for %s [%s]. Return schema invalid. %s", contractName, tx.Name, err.Error())
 				}
 
 				tx.Returns.CompiledSchema = gjsSchema
@@ -240,7 +240,7 @@ func ReadMetadataFile() (ContractChaincodeMetadata, error) {
 
 	ex, execErr := osAbs.Executable()
 	if execErr != nil {
-		return ContractChaincodeMetadata{}, fmt.Errorf("Failed to read metadata from file. Could not find location of executable. %s", execErr.Error())
+		return ContractChaincodeMetadata{}, fmt.Errorf("failed to read metadata from file. Could not find location of executable. %s", execErr.Error())
 	}
 	exPath := filepath.Dir(ex)
 	metadataPath := filepath.Join(exPath, MetadataFolder, MetadataFile)
@@ -251,7 +251,7 @@ func ReadMetadataFile() (ContractChaincodeMetadata, error) {
 		metadataPath = filepath.Join(exPath, MetadataFolderSecondary, MetadataFile)
 		_, err = osAbs.Stat(metadataPath)
 		if osAbs.IsNotExist(err) {
-			return ContractChaincodeMetadata{}, errors.New("Failed to read metadata from file. Metadata file does not exist")
+			return ContractChaincodeMetadata{}, errors.New("failed to read metadata from file. Metadata file does not exist")
 		}
 	}
 
@@ -260,10 +260,13 @@ func ReadMetadataFile() (ContractChaincodeMetadata, error) {
 	metadataBytes, err := ioutilAbs.ReadFile(metadataPath)
 
 	if err != nil {
-		return ContractChaincodeMetadata{}, fmt.Errorf("Failed to read metadata from file. Could not read file %s. %s", metadataPath, err)
+		return ContractChaincodeMetadata{}, fmt.Errorf("failed to read metadata from file. Could not read file %s. %s", metadataPath, err)
 	}
 
-	json.Unmarshal(metadataBytes, &fileMetadata)
+	err = json.Unmarshal(metadataBytes, &fileMetadata)
+	if err != nil {
+		return ContractChaincodeMetadata{}, err
+	}
 
 	return fileMetadata, nil
 }
@@ -275,7 +278,7 @@ func ValidateAgainstSchema(metadata ContractChaincodeMetadata) error {
 	jsonSchema, err := GetJSONSchema()
 
 	if err != nil {
-		return fmt.Errorf("Failed to read JSON schema. %s", err.Error())
+		return fmt.Errorf("failed to read JSON schema. %s", err.Error())
 	}
 
 	metadataBytes, _ := json.Marshal(metadata)
@@ -286,9 +289,12 @@ func ValidateAgainstSchema(metadata ContractChaincodeMetadata) error {
 	schema, _ := gojsonschema.NewSchema(schemaLoader)
 
 	result, err := schema.Validate(metadataLoader)
+	if err != nil {
+		return err
+	}
 
 	if !result.Valid() {
-		return fmt.Errorf("Cannot use metadata. Metadata did not match schema:\n%s", utils.ValidateErrorsToString(result.Errors()))
+		return fmt.Errorf("cannot use metadata. Metadata did not match schema:\n%s", utils.ValidateErrorsToString(result.Errors()))
 	}
 
 	return nil

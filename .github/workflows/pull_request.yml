@@ -1,0 +1,22 @@
+name: Pull request
+
+on:
+  pull_request:
+    branches:
+      - main
+      - release-*
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    uses: ./.github/workflows/build.yml
+
+  pull-request:
+    needs: build
+    name: Pull request success
+    runs-on: ubuntu-latest
+    steps:
+      - run: "true"

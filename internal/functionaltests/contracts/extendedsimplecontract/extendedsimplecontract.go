@@ -21,13 +21,13 @@ func (esc *ExtendedSimpleContract) Create(ctx utils.CustomTransactionContextInte
 	existing := ctx.GetCallData()
 
 	if existing != nil {
-		return fmt.Errorf("Cannot create world state pair with key %s. Already exists", key)
+		return fmt.Errorf("cannot create world state pair with key %s. Already exists", key)
 	}
 
 	err := ctx.GetStub().PutState(key, []byte("Initialised"))
 
 	if err != nil {
-		return errors.New("Unable to interact with world state")
+		return errors.New("unable to interact with world state")
 	}
 
 	return nil
@@ -38,13 +38,13 @@ func (esc *ExtendedSimpleContract) Update(ctx utils.CustomTransactionContextInte
 	existing := ctx.GetCallData()
 
 	if existing == nil {
-		return fmt.Errorf("Cannot update world state pair with key %s. Does not exist", key)
+		return fmt.Errorf("cannot update world state pair with key %s. Does not exist", key)
 	}
 
 	err := ctx.GetStub().PutState(key, []byte(value))
 
 	if err != nil {
-		return errors.New("Unable to interact with world state")
+		return errors.New("unable to interact with world state")
 	}
 
 	return nil
@@ -55,7 +55,7 @@ func (esc *ExtendedSimpleContract) Read(ctx utils.CustomTransactionContextInterf
 	existing := ctx.GetCallData()
 
 	if existing == nil {
-		return "", fmt.Errorf("Cannot read world state pair with key %s. Does not exist", key)
+		return "", fmt.Errorf("cannot read world state pair with key %s. Does not exist", key)
 	}
 
 	return string(existing), nil

@@ -37,7 +37,7 @@ func (bt *boolType) Convert(value string) (reflect.Value, error) {
 		boolVal, err = strconv.ParseBool(value)
 
 		if err != nil {
-			return reflect.Value{}, fmt.Errorf("Cannot convert passed value %s to bool", value)
+			return reflect.Value{}, fmt.Errorf("cannot convert passed value %s to bool", value)
 		}
 	}
 
@@ -57,7 +57,7 @@ func (it *intType) Convert(value string) (reflect.Value, error) {
 		intVal, err = strconv.Atoi(value)
 
 		if err != nil {
-			return reflect.Value{}, fmt.Errorf("Cannot convert passed value %s to int", value)
+			return reflect.Value{}, fmt.Errorf("cannot convert passed value %s to int", value)
 		}
 	}
 
@@ -76,7 +76,7 @@ func (it *int8Type) Convert(value string) (reflect.Value, error) {
 		int64val, err := strconv.ParseInt(value, 10, 8)
 
 		if err != nil {
-			return reflect.Value{}, fmt.Errorf("Cannot convert passed value %s to int8", value)
+			return reflect.Value{}, fmt.Errorf("cannot convert passed value %s to int8", value)
 		}
 
 		intVal = int8(int64val)
@@ -97,7 +97,7 @@ func (it *int16Type) Convert(value string) (reflect.Value, error) {
 		int64val, err := strconv.ParseInt(value, 10, 16)
 
 		if err != nil {
-			return reflect.Value{}, fmt.Errorf("Cannot convert passed value %s to int16", value)
+			return reflect.Value{}, fmt.Errorf("cannot convert passed value %s to int16", value)
 		}
 
 		intVal = int16(int64val)
@@ -118,7 +118,7 @@ func (it *int32Type) Convert(value string) (reflect.Value, error) {
 		int64val, err := strconv.ParseInt(value, 10, 32)
 
 		if err != nil {
-			return reflect.Value{}, fmt.Errorf("Cannot convert passed value %s to int32", value)
+			return reflect.Value{}, fmt.Errorf("cannot convert passed value %s to int32", value)
 		}
 
 		intVal = int32(int64val)
@@ -140,7 +140,7 @@ func (it *int64Type) Convert(value string) (reflect.Value, error) {
 		intVal, err = strconv.ParseInt(value, 10, 64)
 
 		if err != nil {
-			return reflect.Value{}, fmt.Errorf("Cannot convert passed value %s to int64", value)
+			return reflect.Value{}, fmt.Errorf("cannot convert passed value %s to int64", value)
 		}
 	}
 
@@ -159,7 +159,7 @@ func (ut *uintType) Convert(value string) (reflect.Value, error) {
 		uint64Val, err := strconv.ParseUint(value, 10, 64)
 
 		if err != nil {
-			return reflect.Value{}, fmt.Errorf("Cannot convert passed value %s to uint", value)
+			return reflect.Value{}, fmt.Errorf("cannot convert passed value %s to uint", value)
 		}
 
 		uintVal = uint(uint64Val)
@@ -188,7 +188,7 @@ func (ut *uint8Type) Convert(value string) (reflect.Value, error) {
 		uint64Val, err := strconv.ParseUint(value, 10, 8)
 
 		if err != nil {
-			return reflect.Value{}, fmt.Errorf("Cannot convert passed value %s to uint8", value)
+			return reflect.Value{}, fmt.Errorf("cannot convert passed value %s to uint8", value)
 		}
 
 		uintVal = uint8(uint64Val)
@@ -214,7 +214,7 @@ func (ut *uint16Type) Convert(value string) (reflect.Value, error) {
 		uint64Val, err := strconv.ParseUint(value, 10, 16)
 
 		if err != nil {
-			return reflect.Value{}, fmt.Errorf("Cannot convert passed value %s to uint16", value)
+			return reflect.Value{}, fmt.Errorf("cannot convert passed value %s to uint16", value)
 		}
 
 		uintVal = uint16(uint64Val)
@@ -240,7 +240,7 @@ func (ut *uint32Type) Convert(value string) (reflect.Value, error) {
 		uint64Val, err := strconv.ParseUint(value, 10, 32)
 
 		if err != nil {
-			return reflect.Value{}, fmt.Errorf("Cannot convert passed value %s to uint32", value)
+			return reflect.Value{}, fmt.Errorf("cannot convert passed value %s to uint32", value)
 		}
 
 		uintVal = uint32(uint64Val)
@@ -267,7 +267,7 @@ func (ut *uint64Type) Convert(value string) (reflect.Value, error) {
 		uintVal, err = strconv.ParseUint(value, 10, 64)
 
 		if err != nil {
-			return reflect.Value{}, fmt.Errorf("Cannot convert passed value %s to uint64", value)
+			return reflect.Value{}, fmt.Errorf("cannot convert passed value %s to uint64", value)
 		}
 	}
 
@@ -293,7 +293,7 @@ func (ft *float32Type) Convert(value string) (reflect.Value, error) {
 		float64Val, err := strconv.ParseFloat(value, 32)
 
 		if err != nil {
-			return reflect.Value{}, fmt.Errorf("Cannot convert passed value %s to float32", value)
+			return reflect.Value{}, fmt.Errorf("cannot convert passed value %s to float32", value)
 		}
 
 		floatVal = float32(float64Val)
@@ -315,7 +315,7 @@ func (ft *float64Type) Convert(value string) (reflect.Value, error) {
 		floatVal, err = strconv.ParseFloat(value, 64)
 
 		if err != nil {
-			return reflect.Value{}, fmt.Errorf("Cannot convert passed value %s to float64", value)
+			return reflect.Value{}, fmt.Errorf("cannot convert passed value %s to float64", value)
 		}
 	}
 

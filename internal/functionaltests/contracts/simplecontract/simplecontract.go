@@ -20,17 +20,17 @@ func (sc *SimpleContract) Create(ctx contractapi.TransactionContextInterface, ke
 	existing, err := ctx.GetStub().GetState(key)
 
 	if err != nil {
-		return errors.New("Unable to interact with world state")
+		return errors.New("unable to interact with world state")
 	}
 
 	if existing != nil {
-		return fmt.Errorf("Cannot create key. Key with id %s already exists", key)
+		return fmt.Errorf("cannot create key. Key with id %s already exists", key)
 	}
 
 	err = ctx.GetStub().PutState(key, []byte("Initialised"))
 
 	if err != nil {
-		return errors.New("Unable to interact with world state")
+		return errors.New("unable to interact with world state")
 	}
 
 	return nil
@@ -41,17 +41,17 @@ func (sc *SimpleContract) Update(ctx contractapi.TransactionContextInterface, ke
 	existing, err := ctx.GetStub().GetState(key)
 
 	if err != nil {
-		return errors.New("Unable to interact with world state")
+		return errors.New("unable to interact with world state")
 	}
 
 	if existing == nil {
-		return fmt.Errorf("Cannot update key. Key with id %s does not exist", key)
+		return fmt.Errorf("cannot update key. Key with id %s does not exist", key)
 	}
 
 	err = ctx.GetStub().PutState(key, []byte(value))
 
 	if err != nil {
-		return errors.New("Unable to interact with world state")
+		return errors.New("unable to interact with world state")
 	}
 
 	return nil
@@ -62,11 +62,11 @@ func (sc *SimpleContract) Read(ctx contractapi.TransactionContextInterface, key 
 	existing, err := ctx.GetStub().GetState(key)
 
 	if err != nil {
-		return "", errors.New("Unable to interact with world state")
+		return "", errors.New("unable to interact with world state")
 	}
 
 	if existing == nil {
-		return "", fmt.Errorf("Cannot read key. Key with id %s does not exist", key)
+		return "", fmt.Errorf("cannot read key. Key with id %s does not exist", key)
 	}
 
 	return string(existing), nil

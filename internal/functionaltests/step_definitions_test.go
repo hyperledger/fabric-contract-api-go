@@ -7,7 +7,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -16,6 +15,7 @@ import (
 	"testing"
 
 	"github.com/cucumber/godog"
+	//lint:ignore SA1019 TODO: needs to be removed
 	"github.com/hyperledger/fabric-chaincode-go/shimtest"
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 	"github.com/hyperledger/fabric-contract-api-go/internal/functionaltests/contracts/complexcontract"
@@ -61,15 +61,10 @@ type suiteContext struct {
 
 type suiteContextKey struct{}
 
-func cleanup(ctx context.Context) (context.Context, error) {
-	sc, ok := ctx.Value(suiteContextKey{}).(suiteContext)
-	if !ok {
-		return ctx, errors.New("there are no contracts available")
-	}
-	if sc.metadataFolder != "" {
+func cleanup(ctx context.Context) {
+	if sc, ok := ctx.Value(suiteContextKey{}).(suiteContext); ok && sc.metadataFolder != "" {
 		os.RemoveAll(sc.metadataFolder)
 	}
-	return ctx, nil
 }
 
 func iHaveCreatedChaincodeFrom(ctx context.Context, name string) (context.Context, error) {
@@ -128,7 +123,7 @@ func iShouldBeAbleToInitialiseTheChaincode(ctx context.Context) (context.Context
 		return ctx, errors.New("there are no contracts available")
 	}
 
-	txID := strconv.Itoa(rand.Int())
+	txID := strconv.Itoa(rand.Int()) //nolint:gosec
 
 	sc.stub.MockTransactionStart(txID)
 	response := sc.stub.MockInit(txID, [][]byte{})
@@ -162,7 +157,7 @@ func iSubmitTheTransaction(ctx context.Context, function string, argsTbl *godog.
 		return ctx, errors.New("there are no contracts available")
 	}
 
-	txID := strconv.Itoa(rand.Int())
+	txID := strconv.Itoa(rand.Int()) //nolint:gosec
 
 	argBytes := [][]byte{}
 	argBytes = append(argBytes, []byte(function))
@@ -190,27 +185,25 @@ func iSubmitTheTransaction(ctx context.Context, function string, argsTbl *godog.
 func iAmUsingMetadataFile(ctx context.Context, file string) (context.Context, error) {
 	ex, execErr := os.Executable()
 	if execErr != nil {
-		return ctx, fmt.Errorf("Failed to read metadata from file. Could not find location of executable. %s", execErr.Error())
+		return ctx, fmt.Errorf("failed to read metadata from file. Could not find location of executable. %s", execErr.Error())
 	}
 	exPath := filepath.Dir(ex)
 	metadataPath := filepath.Join(exPath, file)
 
-	_, err := os.Stat(metadataPath)
-
-	if os.IsNotExist(err) {
-		return ctx, errors.New("Failed to read metadata from file. Metadata file does not exist")
-	}
-
-	metadataBytes, err := ioutil.ReadFile(metadataPath)
-
+	metadataBytes, err := os.ReadFile(metadataPath)
 	if err != nil {
-		return ctx, fmt.Errorf("Failed to read metadata from file. Could not read file %s. %s", metadataPath, err)
+		return ctx, fmt.Errorf("failed to read metadata from file. Could not read file %s. %s", metadataPath, err)
 	}
 
 	metadataFolder := filepath.Join(exPath, metadata.MetadataFolder)
 
-	os.MkdirAll(metadataFolder, os.ModePerm)
-	ioutil.WriteFile(filepath.Join(metadataFolder, metadata.MetadataFile), metadataBytes, os.ModePerm)
+	if err := os.MkdirAll(metadataFolder, os.ModePerm); err != nil {
+		return ctx, err
+	}
+
+	if err := os.WriteFile(filepath.Join(metadataFolder, metadata.MetadataFile), metadataBytes, os.ModePerm); err != nil { //nolint:gosec
+		return ctx, err
+	}
 
 	sc := suiteContext{}
 	sc.metadataFolder = metadataFolder

@@ -1,0 +1,23 @@
+# See https://golangci-lint.run/usage/configuration/
+
+run:
+  timeout: 5m
+
+linters:
+  disable-all: true
+  enable:
+    - errcheck
+    - gocyclo
+    - gofmt
+    - goimports
+    - gosec
+    - gosimple
+    - govet
+    - ineffassign
+    - misspell
+    - typecheck
+    - unused
+
+linters-settings:
+  gocyclo:
+    min-complexity: 18
