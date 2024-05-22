@@ -4,61 +4,97 @@
 name: fabric-contract-api-go
 
 on:
-  pull_request:
-    branches:
-    - main
-    - release-*
   workflow_dispatch:
   workflow_call:
 
 jobs:
-  build:
+  license_check:
+    name: License check
     runs-on: ubuntu-22.04
     steps:
-    - uses: actions/setup-go@v5
-      with:
-        go-version: '1.20'
-    - uses: actions/setup-node@v4
-      with:
-        node-version: 16
-        registry-url: 'https://npm.pkg.github.com'
-    - uses: actions/checkout@v4
-    - name: install Tools
-      run: |
-        go install honnef.co/go/tools/cmd/staticcheck@latest
-        go install github.com/securego/gosec/v2/cmd/gosec@latest
-        go install github.com/cucumber/godog/cmd/godog@latest
-        go install golang.org/x/tools/cmd/goimports@latest
-        npm install -g license-check-and-add@4.0.5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 16
+          registry-url: "https://npm.pkg.github.com"
+      - name: install Tools
+        run: |
+          npm install -g license-check-and-add@4.0.5
+      - name: Check Licenses
+        run: license-check-and-add check -f ci/license-config.json
 
-    - name: Vet and lint
-      run: ci/scripts/lint.sh
+  tutorial:
+    name: Check tutorial
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.21"
+      - name: Check tutorial contents
+        run: ci/scripts/tutorial-checks.sh
 
-    - name: Check Licenses
-      run: license-check-and-add check -f ci/license-config.json
+  lint:
+    name: Lint
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.21"
+      - name: Staticcheck
+        run: make staticcheck
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
 
-    - name: Run tests (excluding fv)
-      run: go test -race $(go list ./... | grep -v functionaltests)
+  unit_test:
+    name: Unit test
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.21"
+      - name: Run tests (excluding fv)
+        run: make unit-test
 
-    - name: Run functional tests
-      working-directory: internal/functionaltests
-      run: godog run features/*
-
-    - name: Check tutorial contents
-      run: ci/scripts/tutorial-checks.sh
-
-    - name: Run the integration tests
-      env:
+  functional_test:
+    name: Functional test
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.21"
+      - name: Run functional tests
+        run: make functional-test
+      
+  integration_test:
+    name: Integration test
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.21"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 16
+          registry-url: "https://npm.pkg.github.com"
+      - name: Run the integration tests
+        env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        docker build . --file integrationtest/Dockerfile --tag hyperledger/fabric-contract-api-go-integrationtest
+        run: |
+          docker build . --file integrationtest/Dockerfile --tag hyperledger/fabric-contract-api-go-integrationtest
 
-        ci/scripts/setup-integration-chaincode.sh
+          ci/scripts/setup-integration-chaincode.sh
 
-        curl -sSL https://raw.githubusercontent.com/hyperledger/fabric/main/scripts/install-fabric.sh | bash -s -- samples binary docker
-        export TEST_NETWORK_DIR=$(pwd)/fabric-samples/test-network
+          curl -sSL https://raw.githubusercontent.com/hyperledger/fabric/main/scripts/install-fabric.sh | bash -s -- samples binary docker
+          export TEST_NETWORK_DIR=$(pwd)/fabric-samples/test-network
 
-        cd ./integrationtest
-        npm ci
+          cd ./integrationtest
+          npm ci
 
-        npx fabric-chaincode-integration run
+          npx fabric-chaincode-integration run

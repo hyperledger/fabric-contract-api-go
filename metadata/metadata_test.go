@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
 	"testing"
@@ -33,7 +32,7 @@ type ioUtilWorkTestStr struct{}
 
 func (io ioUtilWorkTestStr) ReadFile(filename string) ([]byte, error) {
 	if strings.Contains(filename, "schema.json") {
-		return ioutil.ReadFile(filename)
+		return os.ReadFile(filename)
 	}
 
 	return []byte("{\"info\":{\"title\":\"my contract\",\"version\":\"0.0.1\"},\"contracts\":{},\"components\":{}}"), nil
@@ -249,12 +248,12 @@ func TestCompileSchemas(t *testing.T) {
 	var err error
 
 	badReturn := ReturnMetadata{
-		Schema: spec.RefProperty("non-existant"),
+		Schema: spec.RefProperty("non-existent"),
 	}
 
 	badParameter := ParameterMetadata{
 		Name:   "badParam",
-		Schema: spec.RefProperty("non-existant"),
+		Schema: spec.RefProperty("non-existent"),
 	}
 
 	goodReturn := ReturnMetadata{
@@ -297,13 +296,13 @@ func TestCompileSchemas(t *testing.T) {
 	someContract.Transactions[0] = someTransaction
 	ccm.Contracts["someContract"] = someContract
 	err = ccm.CompileSchemas()
-	assert.Contains(t, err.Error(), "Error compiling schema for someContract [someTransaction]. Return schema invalid.", "should error on bad schema for return value")
+	assert.Contains(t, err.Error(), "error compiling schema for someContract [someTransaction]. Return schema invalid.", "should error on bad schema for return value")
 
 	someTransaction.Parameters = []ParameterMetadata{badParameter}
 	someContract.Transactions[0] = someTransaction
 	ccm.Contracts["someContract"] = someContract
 	err = ccm.CompileSchemas()
-	assert.Contains(t, err.Error(), "Error compiling schema for someContract [someTransaction]. badParam schema invalid.", "should error on bad schema for param value")
+	assert.Contains(t, err.Error(), "error compiling schema for someContract [someTransaction]. badParam schema invalid.", "should error on bad schema for param value")
 
 	someTransaction.Returns = goodReturn
 	someTransaction.Parameters = []ParameterMetadata{goodParameter1, goodParameter2}
@@ -348,18 +347,18 @@ func TestReadMetadataFile(t *testing.T) {
 
 	osAbs = osExcTestStr{}
 	metadata, err = ReadMetadataFile()
-	assert.EqualError(t, err, "Failed to read metadata from file. Could not find location of executable. some error", "should error when cannot read file due to exec error")
+	assert.EqualError(t, err, "failed to read metadata from file. Could not find location of executable. some error", "should error when cannot read file due to exec error")
 	assert.Equal(t, ContractChaincodeMetadata{}, metadata, "should return blank metadata when cannot read file due to exec error")
 
 	osAbs = osStatTestStr{}
 	metadata, err = ReadMetadataFile()
-	assert.EqualError(t, err, "Failed to read metadata from file. Metadata file does not exist", "should error when cannot read file due to stat error")
+	assert.EqualError(t, err, "failed to read metadata from file. Metadata file does not exist", "should error when cannot read file due to stat error")
 	assert.Equal(t, ContractChaincodeMetadata{}, metadata, "should return blank metadata when cannot read file due to stat error")
 
 	osAbs = osStatTestStrContractMeta{}
 	metadata, err = ReadMetadataFile()
 	assert.Equal(t, ContractMetaNumberOfCalls, 2, "Should check contract-metadata directory if META-INF doesn't contain metadata.json file")
-	assert.Contains(t, err.Error(), "Failed to read metadata from file. Could not read file", "should error when cannot read file due to read error")
+	assert.Contains(t, err.Error(), "failed to read metadata from file. Could not read file", "should error when cannot read file due to read error")
 	assert.Equal(t, ContractChaincodeMetadata{}, metadata, "should return blank metadata when cannot read file due to read error")
 	ContractMetaNumberOfCalls = 0
 
@@ -368,15 +367,16 @@ func TestReadMetadataFile(t *testing.T) {
 
 	ioutilAbs = ioUtilReadFileTestStr{}
 	metadata, err = ReadMetadataFile()
-	assert.Contains(t, err.Error(), "Failed to read metadata from file. Could not read file", "should error when cannot read file due to read error")
+	assert.Contains(t, err.Error(), "failed to read metadata from file. Could not read file", "should error when cannot read file due to read error")
 	assert.Equal(t, ContractChaincodeMetadata{}, metadata, "should return blank metadata when cannot read file due to read error")
 
 	ioutilAbs = ioUtilWorkTestStr{}
 	metadata, err = ReadMetadataFile()
+	assert.NoError(t, err, "should not return error when can read file")
 	metadataBytes := []byte("{\"info\":{\"title\":\"my contract\",\"version\":\"0.0.1\"},\"contracts\":{},\"components\":{}}")
 	expectedContractChaincodeMetadata := ContractChaincodeMetadata{}
-	json.Unmarshal(metadataBytes, &expectedContractChaincodeMetadata)
-	assert.Nil(t, err, "should not return error when can read file")
+	err = json.Unmarshal(metadataBytes, &expectedContractChaincodeMetadata)
+	assert.NoError(t, err, "json unmarshal")
 	assert.Equal(t, expectedContractChaincodeMetadata, metadata, "should return contract metadata that was in the file")
 
 	osAbs = osWorkTestStrContractMeta{}
@@ -402,7 +402,7 @@ func TestValidateAgainstSchema(t *testing.T) {
 	ioutilAbs = ioUtilWorkTestStr{}
 
 	err = ValidateAgainstSchema(metadata)
-	assert.EqualError(t, err, "Cannot use metadata. Metadata did not match schema:\n1. (root): info is required\n2. contracts: Invalid type. Expected: object, given: null", "should error when metadata given does not match schema")
+	assert.EqualError(t, err, "cannot use metadata. Metadata did not match schema:\n1. (root): info is required\n2. contracts: Invalid type. Expected: object, given: null", "should error when metadata given does not match schema")
 
 	metadata, _ = ReadMetadataFile()
 	err = ValidateAgainstSchema(metadata)

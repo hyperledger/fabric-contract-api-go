@@ -127,13 +127,13 @@ func GetWorldState(ctx CustomTransactionContextInterface) error {
 	_, params := ctx.GetStub().GetFunctionAndParameters()
 
 	if len(params) < 1 {
-		return errors.New("Missing key for world state")
+		return errors.New("missing key for world state")
 	}
 
 	existing, err := ctx.GetStub().GetState(params[0])
 
 	if err != nil {
-		return errors.New("Unable to interact with world state")
+		return errors.New("unable to interact with world state")
 	}
 
 	ctx.SetData(existing)
@@ -156,7 +156,7 @@ As the `GetWorldState` function is now set to be called before each transaction 
 existing, err := ctx.GetStub().GetState(key)
 
 if err != nil {
-    return errors.New("Unable to interact with world state")
+    return errors.New("unable to interact with world state")
 }
 ```
 
@@ -188,7 +188,7 @@ Define your own function for handling unknown function names in transactions. In
 // with details of a bad transaction request
 func UnknownTransactionHandler(ctx CustomTransactionContextInterface) error {
 	fcn, args := ctx.GetStub().GetFunctionAndParameters()
-	return fmt.Errorf("Invalid function %s passed with args %v", fcn, args)
+	return fmt.Errorf("invalid function %s passed with args %v", fcn, args)
 }
 ```
 

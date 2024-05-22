@@ -5,6 +5,7 @@ package contractapi
 
 type myContract struct {
 	Contract
+	//lint:ignore U1000 unused
 	called []string
 }
 

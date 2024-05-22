@@ -9,7 +9,7 @@
                 "prepend": "// "
             }
         },
-        "^Dockerfile|feature": {
+        "^Dockerfile|feature|^Makefile": {
             "eachLine": {
                 "prepend": "# "
             }

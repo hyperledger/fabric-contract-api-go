@@ -6,7 +6,6 @@ package contractapi
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"reflect"
@@ -87,11 +86,11 @@ func NewChaincode(contracts ...ContractInterface) (*ContractChaincode, error) {
 	sysC := new(SystemContract)
 	sysC.Name = SystemContractName
 
-	cc.addContract(sysC, ciMethods) // should never error as system contract is good
+	if err := cc.addContract(sysC, ciMethods); err != nil {
+		return nil, err
+	}
 
-	err := cc.augmentMetadata()
-
-	if err != nil {
+	if err := cc.augmentMetadata(); err != nil {
 		return nil, err
 	}
 
@@ -219,9 +218,9 @@ func (cc *ContractChaincode) Invoke(stub shim.ChaincodeStubInterface) peer.Respo
 	} else {
 		var transactionSchema *metadata.TransactionMetadata
 
-		for _, v := range cc.metadata.Contracts[ns].Transactions {
+		for i, v := range cc.metadata.Contracts[ns].Transactions {
 			if v.Name == fn {
-				transactionSchema = &v
+				transactionSchema = &cc.metadata.Contracts[ns].Transactions[i]
 				break
 			}
 		}
@@ -254,7 +253,7 @@ func (cc *ContractChaincode) addContract(contract ContractInterface, excludeFunc
 	}
 
 	if _, ok := cc.contracts[ns]; ok {
-		return fmt.Errorf("Multiple contracts being merged into chaincode with name %s", ns)
+		return fmt.Errorf("multiple contracts being merged into chaincode with name %s", ns)
 	}
 
 	ccn := contractChaincodeContract{}
@@ -335,7 +334,7 @@ func (cc *ContractChaincode) addContract(contract ContractInterface, excludeFunc
 	}
 
 	if len(ccn.functions) == 0 {
-		return fmt.Errorf("Contracts are required to have at least 1 (non-ignored) public method. Contract %s has none. Method names that have been ignored: %s", ns, utils.SliceAsCommaSentence(excludeFuncs))
+		return fmt.Errorf("contracts are required to have at least 1 (non-ignored) public method. Contract %s has none. Method names that have been ignored: %s", ns, utils.SliceAsCommaSentence(excludeFuncs))
 	}
 
 	cc.contracts[ns] = ccn
@@ -390,7 +389,7 @@ func (cc *ContractChaincode) reflectMetadata() metadata.ContractChaincodeMetadat
 func (cc *ContractChaincode) augmentMetadata() error {
 	fileMetadata, err := metadata.ReadMetadataFile()
 
-	if err != nil && !strings.Contains(err.Error(), "Failed to read metadata from file") {
+	if err != nil && !strings.Contains(err.Error(), "failed to read metadata from file") {
 		return err
 	}
 
@@ -398,19 +397,16 @@ func (cc *ContractChaincode) augmentMetadata() error {
 
 	fileMetadata.Append(reflectedMetadata)
 	err = fileMetadata.CompileSchemas()
-
 	if err != nil {
 		return err
 	}
 
 	err = metadata.ValidateAgainstSchema(fileMetadata)
-
 	if err != nil {
 		return err
 	}
 
 	cc.metadata = fileMetadata
-
 	return nil
 }
 
@@ -441,7 +437,7 @@ func loadChaincodeServerConfig() (*shim.ChaincodeServer, error) {
 
 	tlsProps, err := loadTLSProperties()
 	if err != nil {
-		log.Panicf("Error creating getting TLS properties: %v", err)
+		log.Panicf("error creating getting TLS properties: %v", err)
 	}
 
 	server := &shim.ChaincodeServer{
@@ -466,18 +462,18 @@ func loadTLSProperties() (*shim.TLSProperties, error) {
 	var keyBytes, certBytes, rootBytes []byte
 	var err error
 
-	keyBytes, err = ioutil.ReadFile(key)
+	keyBytes, err = os.ReadFile(key)
 	if err != nil {
 		return nil, fmt.Errorf("error while reading the crypto file: %s", err)
 	}
 
-	certBytes, err = ioutil.ReadFile(cert)
+	certBytes, err = os.ReadFile(cert)
 	if err != nil {
 		return nil, fmt.Errorf("error while reading the crypto file: %s", err)
 	}
 
 	if root != "" {
-		rootBytes, err = ioutil.ReadFile(root)
+		rootBytes, err = os.ReadFile(root)
 		if err != nil {
 			return nil, fmt.Errorf("error while reading the crypto file: %s", err)
 		}

@@ -4,7 +4,7 @@
 package metadata
 
 import (
-	"io/ioutil"
+	os "os"
 	"path"
 	"runtime"
 )
@@ -17,7 +17,7 @@ type ioutilInterface interface {
 type ioutilFront struct{}
 
 func (i ioutilFront) ReadFile(filename string) ([]byte, error) {
-	return ioutil.ReadFile(filename)
+	return os.ReadFile(filename)
 }
 
 var ioutilAbs ioutilInterface = ioutilFront{}

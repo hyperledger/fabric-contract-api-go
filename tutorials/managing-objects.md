@@ -92,7 +92,7 @@ func (s *ComplexContract) NewAsset(ctx CustomTransactionContextInterface, id str
 	err := ctx.GetStub().PutState(id, []byte(baBytes))
 
 	if err != nil {
-		return errors.New("Unable to interact with world state")
+		return errors.New("unable to interact with world state")
 	}
 
 	return nil
@@ -115,7 +115,7 @@ func (cc *ComplexContract) UpdateOwner(ctx CustomTransactionContextInterface, id
 	err := json.Unmarshal(existing, ba)
 
 	if err != nil {
-		return fmt.Errorf("Data retrieved from world state for key %s was not of type BasicAsset", id)
+		return fmt.Errorf("data retrieved from world state for key %s was not of type BasicAsset", id)
 	}
 
 	ba.Owner = newOwner
@@ -126,7 +126,7 @@ func (cc *ComplexContract) UpdateOwner(ctx CustomTransactionContextInterface, id
 	err = ctx.GetStub().PutState(id, []byte(baBytes))
 
 	if err != nil {
-		return errors.New("Unable to interact with world state")
+		return errors.New("unable to interact with world state")
 	}
 
 	return nil
@@ -145,7 +145,7 @@ func (cc *ComplexContract) UpdateValue(ctx CustomTransactionContextInterface, id
 	err := json.Unmarshal(existing, ba)
 
 	if err != nil {
-		return fmt.Errorf("Data retrieved from world state for key %s was not of type BasicAsset", id)
+		return fmt.Errorf("data retrieved from world state for key %s was not of type BasicAsset", id)
 	}
 
 	ba.Value += valueAdd
@@ -155,7 +155,7 @@ func (cc *ComplexContract) UpdateValue(ctx CustomTransactionContextInterface, id
 	err = ctx.GetStub().PutState(id, []byte(baBytes))
 
 	if err != nil {
-		return errors.New("Unable to interact with world state")
+		return errors.New("unable to interact with world state")
 	}
 
 	return nil
@@ -170,7 +170,7 @@ func (cc *ComplexContract) GetAsset(ctx CustomTransactionContextInterface, id st
 	existing := ctx.GetData()
 
 	if existing == nil {
-		return nil, fmt.Errorf("Cannot read world state pair with key %s. Does not exist", id)
+		return nil, fmt.Errorf("cannot read world state pair with key %s. Does not exist", id)
 	}
 
 	ba := new(BasicAsset)
@@ -178,7 +178,7 @@ func (cc *ComplexContract) GetAsset(ctx CustomTransactionContextInterface, id st
 	err := json.Unmarshal(existing, ba)
 
 	if err != nil {
-		return nil, fmt.Errorf("Data retrieved from world state for key %s was not of type BasicAsset", id)
+		return nil, fmt.Errorf("data retrieved from world state for key %s was not of type BasicAsset", id)
 	}
 
 	return ba, nil

@@ -18,35 +18,35 @@ Feature: Error paths
         And   I should be able to initialise the chaincode
         When I submit the "FakeFunction" transaction
             | Some | Args |
-        Then I should receive an unsuccessful response "Invalid function FakeFunction passed with args [Some, Args]"
+        Then I should receive an unsuccessful response "invalid function FakeFunction passed with args [Some, Args]"
 
     Scenario: Contract function returns error
         Given I have created chaincode from "SimpleContract"
         And   I should be able to initialise the chaincode
         When I submit the "Read" transaction
             | MISSING_KEY |
-        Then I should receive an unsuccessful response "Cannot read key. Key with id MISSING_KEY does not exist"
+        Then I should receive an unsuccessful response "cannot read key. Key with id MISSING_KEY does not exist"
 
     Scenario: User sends bad basic data type
         Given I have created chaincode from "ComplexContract"
         And   I should be able to initialise the chaincode
         When I submit the "NewObject" transaction
             | OBJECT_1 | {"name": "Andy", "contact": "Leave well alone"} | -10 | ["red", "white", "blue"] |
-        Then I should receive an unsuccessful response "Error managing parameter param2. Conversion error. Cannot convert passed value -10 to uint"
+        Then I should receive an unsuccessful response "error managing parameter param2. conversion error. cannot convert passed value -10 to uint"
 
     Scenario: Users sends bad object data type
         Given I have created chaincode from "ComplexContract"
         And   I should be able to initialise the chaincode
         When I submit the "NewObject" transaction
             | OBJECT_1 | {"firstname": "Andy", "contact": "Leave well alone"} | 1000 | ["red", "white", "blue"] |
-        Then I should receive an unsuccessful response "Error managing parameter param1. Value did not match schema:\n1. param1: Additional property firstname is not allowed\n2. param1: name is required"
+        Then I should receive an unsuccessful response "error managing parameter param1. value did not match schema:\n1. param1: Additional property firstname is not allowed\n2. param1: name is required"
 
     Scenario: User sends data that does not match custom metadata
         Given I am using metadata file "contracts/complexcontract/contract-metadata/metadata.json"
         And I have created chaincode from "ComplexContract"
         When I submit the "NewObject" transaction
             | OBJECT_A | {"name": "Andy", "contact": "Leave well alone"} | 1000 | ["red", "white", "blue"] |
-        Then I should receive an unsuccessful response "Error managing parameter param0. Value did not match schema:\n1. param0: Does not match pattern '^OBJECT_\d$'"
+        Then I should receive an unsuccessful response "error managing parameter param0. value did not match schema:\n1. param0: Does not match pattern '^OBJECT_\d$'"
 
     Scenario: Contract returns data that does not match custom metadata
         Given I am using metadata file "contracts/complexcontract/contract-metadata/metadata.json"
@@ -56,7 +56,7 @@ Feature: Error paths
         And I receive a successful response
         When I submit the "GetValue" transaction
             | OBJECT_1 |
-        Then I should receive an unsuccessful response "Error handling success response. Value did not match schema:\n1. return: Must be less than or equal to 10"
+        Then I should receive an unsuccessful response "error handling success response. value did not match schema:\n1. return: Must be less than or equal to 10"
 
     Scenario: User configures bad metadata file
         Given I am using metadata file "utils/bad_metadata.json"

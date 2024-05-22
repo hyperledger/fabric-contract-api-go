@@ -33,7 +33,7 @@ func (tht TransactionHandlerType) String() (string, error) {
 	case TransactionHandlerTypeUnknown:
 		return "Unknown", nil
 	default:
-		return "", errors.New("Invalid transaction handler type")
+		return "", errors.New("invalid transaction handler type")
 	}
 }
 
@@ -71,14 +71,14 @@ func NewTransactionHandler(fn interface{}, contextHandlerType reflect.Type, hand
 
 	if err != nil {
 		str, _ := handlesType.String()
-		return nil, fmt.Errorf("Error creating %s. %s", str, err.Error())
+		return nil, fmt.Errorf("error creating %s. %s", str, err.Error())
 	} else if handlesType != TransactionHandlerTypeAfter && len(cf.params.fields) > 0 {
 		str, _ := handlesType.String()
 		return nil, fmt.Errorf("%s transactions may not take any params other than the transaction context", str)
 	} else if handlesType == TransactionHandlerTypeAfter && len(cf.params.fields) > 1 {
-		return nil, fmt.Errorf("After transactions must take at most one non-context param")
+		return nil, fmt.Errorf("after transactions must take at most one non-context param")
 	} else if handlesType == TransactionHandlerTypeAfter && len(cf.params.fields) == 1 && cf.params.fields[0].Kind() != reflect.Interface {
-		return nil, fmt.Errorf("After transaction must take type interface{} as their only non-context param")
+		return nil, fmt.Errorf("after transaction must take type interface{} as their only non-context param")
 	}
 
 	th := TransactionHandler{

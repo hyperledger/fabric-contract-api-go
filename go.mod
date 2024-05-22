@@ -1,12 +1,12 @@
 module github.com/hyperledger/fabric-contract-api-go
 
-go 1.20
+go 1.21
 
 require (
 	github.com/cucumber/godog v0.14.1
 	github.com/go-openapi/spec v0.21.0
 	github.com/gobuffalo/packr v1.30.1
-	github.com/hyperledger/fabric-chaincode-go v0.0.0-20240124143825-7dec3c7e7d45
+	github.com/hyperledger/fabric-chaincode-go v0.0.0-20240425200701-0431f709af2c
 	github.com/hyperledger/fabric-protos-go v0.3.3
 	github.com/stretchr/testify v1.9.0
 	github.com/xeipuuv/gojsonschema v1.2.0
@@ -38,7 +38,7 @@ require (
 	golang.org/x/net v0.24.0 // indirect
 	golang.org/x/sys v0.19.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240401170217-c3f982113cda // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240415180920-8c6c420018be // indirect
 	google.golang.org/grpc v1.63.2 // indirect
 	google.golang.org/protobuf v1.33.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect

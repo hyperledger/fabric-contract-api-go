@@ -25,7 +25,9 @@ type EmbededType struct {
 
 type simpleStruct struct {
 	Prop1 string
+	//lint:ignore U1000 unused
 	prop2 string
+	//lint:ignore U1000 unused
 	prop3 string `metadata:"propname"`
 	Prop4 string `json:"jsonname" metadata:",optional"`
 	Prop5 string `json:"-"`
@@ -107,7 +109,6 @@ var badType = reflect.TypeOf(complex64(1))
 var badArrayType = reflect.TypeOf([1]complex64{})
 var badSliceType = reflect.TypeOf([]complex64{})
 var badMapItemType = reflect.TypeOf(map[string]complex64{})
-var badMapKeyType = reflect.TypeOf(map[complex64]string{})
 
 var boolRefType = reflect.TypeOf(true)
 var stringRefType = reflect.TypeOf("")
@@ -146,7 +147,7 @@ func TestBuildArraySchema(t *testing.T) {
 
 	zeroArr := [0]int{}
 	schema, err = buildArraySchema(reflect.ValueOf(zeroArr), nil, false)
-	assert.Equal(t, errors.New("Arrays must have length greater than 0"), err, "should throw error when 0 length array passed")
+	assert.Equal(t, errors.New("arrays must have length greater than 0"), err, "should throw error when 0 length array passed")
 	assert.Nil(t, schema, "should not have returned a schema for zero array")
 
 	schema, err = buildArraySchema(reflect.ValueOf([1]complex128{}), nil, false)
@@ -380,7 +381,7 @@ func TestGetSchema(t *testing.T) {
 	zeroSubArrInSlice := [][0]int{}
 	schema, err = GetSchema(reflect.TypeOf(zeroSubArrInSlice), nil)
 
-	assert.Equal(t, errors.New("Arrays must have length greater than 0"), err, "should throw error when 0 length array passed")
+	assert.Equal(t, errors.New("arrays must have length greater than 0"), err, "should throw error when 0 length array passed")
 	assert.Nil(t, schema, "should not have returned a schema for zero array")
 
 	// should build schema for slices of original types
@@ -434,7 +435,7 @@ func TestGetSchema(t *testing.T) {
 	badMixedArr := [1][][0]string{}
 	schema, err = GetSchema(reflect.TypeOf(badMixedArr), nil)
 
-	assert.EqualError(t, err, "Arrays must have length greater than 0", "should throw error when 0 length array passed")
+	assert.EqualError(t, err, "arrays must have length greater than 0", "should throw error when 0 length array passed")
 	assert.Nil(t, schema, "schema should be nil when sub array bad type")
 
 	// Should handle a valid struct and add to components

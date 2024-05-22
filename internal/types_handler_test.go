@@ -18,7 +18,7 @@ import (
 // ================================
 // HELPERS
 // ================================
-const basicErr = "Type %s is not valid. Expected a struct or one of the basic types %s or an array/slice of these"
+const basicErr = "type %s is not valid. Expected a struct or one of the basic types %s or an array/slice of these"
 
 type goodStruct struct {
 	Prop1 string
@@ -31,12 +31,14 @@ type BadStruct struct {
 }
 
 type goodStructWithBadPrivateFields struct {
+	//lint:ignore U1000 unused
 	unexported complex64
 	Valid      int `json:"Valid"`
 }
 
 type badStructWithMetadataPrivateFields struct {
-	Prop  string    `json:"prop"`
+	Prop string `json:"prop"`
+	//lint:ignore U1000 unused
 	class complex64 `metadata:"class"`
 }
 
@@ -114,7 +116,7 @@ func TestArrayOfValidType(t *testing.T) {
 
 	zeroArr := [0]int{}
 	err = arrayOfValidType(reflect.ValueOf(zeroArr), []reflect.Type{})
-	assert.Equal(t, errors.New("Arrays must have length greater than 0"), err, "should throw error when 0 length array passed")
+	assert.Equal(t, errors.New("arrays must have length greater than 0"), err, "should throw error when 0 length array passed")
 
 	badArr := [1]complex128{}
 	err = arrayOfValidType(reflect.ValueOf(badArr), []reflect.Type{})
@@ -305,11 +307,11 @@ func TestTypeIsValid(t *testing.T) {
 
 	assert.EqualError(t, typeIsValid(badMapItemType, []reflect.Type{}, false), fmt.Sprintf(basicErr, badType.String(), listBasicTypes()), "should have returned error for invalid map item type")
 
-	assert.EqualError(t, typeIsValid(badMapKeyType, []reflect.Type{}, false), "Map key type complex64 is not valid. Expected string", "should have returned error for invalid map key type")
+	assert.EqualError(t, typeIsValid(badMapKeyType, []reflect.Type{}, false), "map key type complex64 is not valid. Expected string", "should have returned error for invalid map key type")
 
 	zeroMultiArr := [1][0]int{}
 	err := typeIsValid(reflect.TypeOf(zeroMultiArr), []reflect.Type{}, false)
-	assert.Equal(t, errors.New("Arrays must have length greater than 0"), err, "should throw error when 0 length array passed in multi level array")
+	assert.Equal(t, errors.New("arrays must have length greater than 0"), err, "should throw error when 0 length array passed in multi level array")
 
 	err = typeIsValid(types.ErrorType, []reflect.Type{}, false)
 	assert.EqualError(t, err, fmt.Sprintf(basicErr, types.ErrorType.String(), listBasicTypes()), "should throw error when error passed and allowError false")
@@ -345,22 +347,22 @@ func TestTypeMatchesInterface(t *testing.T) {
 	interfaceType := reflect.TypeOf((*myInterface)(nil)).Elem()
 
 	err = typeMatchesInterface(reflect.TypeOf(new(BadStruct)), reflect.TypeOf(""))
-	assert.EqualError(t, err, "Type passed for interface is not an interface", "should error when type passed is not an interface")
+	assert.EqualError(t, err, "type passed for interface is not an interface", "should error when type passed is not an interface")
 
 	err = typeMatchesInterface(reflect.TypeOf(new(BadStruct)), interfaceType)
-	assert.EqualError(t, err, "Missing function SomeFunction", "should error when type passed is missing required method in interface")
+	assert.EqualError(t, err, "missing function SomeFunction", "should error when type passed is missing required method in interface")
 
 	err = typeMatchesInterface(reflect.TypeOf(new(structFailsParamLength)), interfaceType)
-	assert.EqualError(t, err, "Parameter mismatch in method SomeFunction. Expected 2, got 1", "should error when type passed has method but different number of parameters")
+	assert.EqualError(t, err, "parameter mismatch in method SomeFunction. Expected 2, got 1", "should error when type passed has method but different number of parameters")
 
 	err = typeMatchesInterface(reflect.TypeOf(new(structFailsParamType)), interfaceType)
-	assert.EqualError(t, err, "Parameter mismatch in method SomeFunction at parameter 1. Expected int, got float32", "should error when type passed has method but different parameter types")
+	assert.EqualError(t, err, "parameter mismatch in method SomeFunction at parameter 1. Expected int, got float32", "should error when type passed has method but different parameter types")
 
 	err = typeMatchesInterface(reflect.TypeOf(new(structFailsReturnLength)), interfaceType)
-	assert.EqualError(t, err, "Return mismatch in method SomeFunction. Expected 2, got 1", "should error when type passed has method but different number of returns")
+	assert.EqualError(t, err, "return mismatch in method SomeFunction. Expected 2, got 1", "should error when type passed has method but different number of returns")
 
 	err = typeMatchesInterface(reflect.TypeOf(new(structFailsReturnType)), interfaceType)
-	assert.EqualError(t, err, "Return mismatch in method SomeFunction at return 1. Expected error, got int", "should error when type passed has method but different return types")
+	assert.EqualError(t, err, "return mismatch in method SomeFunction at return 1. Expected error, got int", "should error when type passed has method but different return types")
 
 	err = typeMatchesInterface(reflect.TypeOf(new(structMeetsInterface)), interfaceType)
 	assert.Nil(t, err, "should not error when struct meets interface")

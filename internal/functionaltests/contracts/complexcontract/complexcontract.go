@@ -22,7 +22,7 @@ func (c *ComplexContract) NewObject(ctx utils.CustomTransactionContextInterface,
 	existing := ctx.GetCallData()
 
 	if existing != nil {
-		return fmt.Errorf("Cannot create new object in world state as key %s already exists", id)
+		return fmt.Errorf("cannot create new object in world state as key %s already exists", id)
 	}
 
 	ba := BasicObject{}
@@ -37,7 +37,7 @@ func (c *ComplexContract) NewObject(ctx utils.CustomTransactionContextInterface,
 	err := ctx.GetStub().PutState(id, []byte(baBytes))
 
 	if err != nil {
-		return errors.New("Unable to interact with world state")
+		return errors.New("unable to interact with world state")
 	}
 
 	return nil
@@ -48,7 +48,7 @@ func (c *ComplexContract) UpdateOwner(ctx utils.CustomTransactionContextInterfac
 	existing := ctx.GetCallData()
 
 	if existing == nil {
-		return fmt.Errorf("Cannot update object in world state as key %s does not exist", id)
+		return fmt.Errorf("cannot update object in world state as key %s does not exist", id)
 	}
 
 	ba := BasicObject{}
@@ -56,7 +56,7 @@ func (c *ComplexContract) UpdateOwner(ctx utils.CustomTransactionContextInterfac
 	err := json.Unmarshal(existing, &ba)
 
 	if err != nil {
-		return fmt.Errorf("Data retrieved from world state for key %s was not of type BasicObject", id)
+		return fmt.Errorf("data retrieved from world state for key %s was not of type BasicObject", id)
 	}
 
 	ba.Owner = newOwner
@@ -67,7 +67,7 @@ func (c *ComplexContract) UpdateOwner(ctx utils.CustomTransactionContextInterfac
 	err = ctx.GetStub().PutState(id, []byte(baBytes))
 
 	if err != nil {
-		return errors.New("Unable to interact with world state")
+		return errors.New("unable to interact with world state")
 	}
 
 	return nil
@@ -78,7 +78,7 @@ func (c *ComplexContract) UpdateValue(ctx utils.CustomTransactionContextInterfac
 	existing := ctx.GetCallData()
 
 	if existing == nil {
-		return fmt.Errorf("Cannot update object in world state as key %s does not exist", id)
+		return fmt.Errorf("cannot update object in world state as key %s does not exist", id)
 	}
 
 	ba := BasicObject{}
@@ -86,7 +86,7 @@ func (c *ComplexContract) UpdateValue(ctx utils.CustomTransactionContextInterfac
 	err := json.Unmarshal(existing, &ba)
 
 	if err != nil {
-		return fmt.Errorf("Data retrieved from world state for key %s was not of type BasicObject", id)
+		return fmt.Errorf("data retrieved from world state for key %s was not of type BasicObject", id)
 	}
 
 	newValue := int(ba.Value) + valueAdd
@@ -102,7 +102,7 @@ func (c *ComplexContract) UpdateValue(ctx utils.CustomTransactionContextInterfac
 	err = ctx.GetStub().PutState(id, []byte(baBytes))
 
 	if err != nil {
-		return errors.New("Unable to interact with world state")
+		return errors.New("unable to interact with world state")
 	}
 
 	return nil
@@ -113,7 +113,7 @@ func (c *ComplexContract) GetObject(ctx utils.CustomTransactionContextInterface,
 	existing := ctx.GetCallData()
 
 	if existing == nil {
-		return nil, fmt.Errorf("Cannot read world state pair with key %s. Does not exist", id)
+		return nil, fmt.Errorf("cannot read world state pair with key %s. Does not exist", id)
 	}
 
 	ba := new(BasicObject)
@@ -121,7 +121,7 @@ func (c *ComplexContract) GetObject(ctx utils.CustomTransactionContextInterface,
 	err := json.Unmarshal(existing, ba)
 
 	if err != nil {
-		return nil, fmt.Errorf("Data retrieved from world state for key %s was not of type BasicObject", id)
+		return nil, fmt.Errorf("data retrieved from world state for key %s was not of type BasicObject", id)
 	}
 
 	return ba, nil
@@ -132,7 +132,7 @@ func (c *ComplexContract) GetValue(ctx utils.CustomTransactionContextInterface, 
 	existing := ctx.GetCallData()
 
 	if existing == nil {
-		return 0, fmt.Errorf("Cannot read world state pair with key %s. Does not exist", id)
+		return 0, fmt.Errorf("cannot read world state pair with key %s. Does not exist", id)
 	}
 
 	ba := new(BasicObject)
@@ -140,7 +140,7 @@ func (c *ComplexContract) GetValue(ctx utils.CustomTransactionContextInterface, 
 	err := json.Unmarshal(existing, ba)
 
 	if err != nil {
-		return 0, fmt.Errorf("Data retrieved from world state for key %s was not of type BasicObject", id)
+		return 0, fmt.Errorf("data retrieved from world state for key %s was not of type BasicObject", id)
 	}
 
 	return ba.Value, nil

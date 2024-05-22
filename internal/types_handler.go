@@ -30,7 +30,7 @@ func listBasicTypes() string {
 
 func arrayOfValidType(array reflect.Value, additionalTypes []reflect.Type) error {
 	if array.Len() < 1 {
-		return fmt.Errorf("Arrays must have length greater than 0")
+		return fmt.Errorf("arrays must have length greater than 0")
 	}
 
 	return typeIsValid(array.Index(0).Type(), additionalTypes, false)
@@ -69,37 +69,39 @@ func typeInSlice(a reflect.Type, list []reflect.Type) bool {
 }
 
 func typeIsValid(t reflect.Type, additionalTypes []reflect.Type, allowError bool) error {
-	if t.Kind() == reflect.Array {
+	kind := t.Kind()
+	if kind == reflect.Array {
 		array := reflect.New(t).Elem()
 		return arrayOfValidType(array, additionalTypes)
-	} else if t.Kind() == reflect.Slice {
+	} else if kind == reflect.Slice {
 		slice := reflect.MakeSlice(t, 1, 1)
 		return typeIsValid(slice.Index(0).Type(), additionalTypes, false)
-	} else if t.Kind() == reflect.Map {
+	} else if kind == reflect.Map {
 		if t.Key().Kind() != reflect.String {
-			return fmt.Errorf("Map key type %s is not valid. Expected string", t.Key().String())
+			return fmt.Errorf("map key type %s is not valid. Expected string", t.Key().String())
 		}
 
 		return typeIsValid(t.Elem(), additionalTypes, false)
-	} else if (t.Kind() == reflect.Struct || (t.Kind() == reflect.Ptr && t.Elem().Kind() == reflect.Struct)) && !typeInSlice(t, additionalTypes) {
-		additionalTypes = append(additionalTypes, t)
-
-		if t.Kind() != reflect.Ptr {
-			additionalTypes = append(additionalTypes, reflect.PtrTo(t))
-		} else {
+	} else if !typeInSlice(t, additionalTypes) {
+		if kind == reflect.Struct {
+			additionalTypes = append(additionalTypes, t)
+			additionalTypes = append(additionalTypes, reflect.PointerTo(t))
+			// add self for cyclic
+			return structOfValidType(t, additionalTypes)
+		} else if kind == reflect.Ptr && t.Elem().Kind() == reflect.Struct {
+			additionalTypes = append(additionalTypes, t)
 			additionalTypes = append(additionalTypes, t.Elem())
+			// add self for cyclic
+			return structOfValidType(t, additionalTypes)
+		} else if _, ok := types.BasicTypes[t.Kind()]; !ok || (!allowError && t == types.ErrorType) || (t.Kind() == reflect.Interface && t.String() != "interface {}" && t.String() != "error") {
+			errStr := ""
+
+			if allowError {
+				errStr = " error,"
+			}
+
+			return fmt.Errorf("type %s is not valid. Expected a struct or one of the basic types%s %s or an array/slice of these", t.String(), errStr, listBasicTypes())
 		}
-		// add self for cyclic
-
-		return structOfValidType(t, additionalTypes)
-	} else if _, ok := types.BasicTypes[t.Kind()]; (!ok || (!allowError && t == types.ErrorType) || (t.Kind() == reflect.Interface && t.String() != "interface {}" && t.String() != "error")) && !typeInSlice(t, additionalTypes) {
-		errStr := ""
-
-		if allowError {
-			errStr = " error,"
-		}
-
-		return fmt.Errorf("Type %s is not valid. Expected a struct or one of the basic types%s %s or an array/slice of these", t.String(), errStr, listBasicTypes())
 	}
 
 	return nil
@@ -107,7 +109,7 @@ func typeIsValid(t reflect.Type, additionalTypes []reflect.Type, allowError bool
 
 func typeMatchesInterface(toMatch reflect.Type, iface reflect.Type) error {
 	if iface.Kind() != reflect.Interface {
-		return fmt.Errorf("Type passed for interface is not an interface")
+		return fmt.Errorf("type passed for interface is not an interface")
 	}
 
 	for i := 0; i < iface.NumMethod(); i++ {
@@ -115,14 +117,14 @@ func typeMatchesInterface(toMatch reflect.Type, iface reflect.Type) error {
 		matchMethod, exists := toMatch.MethodByName(ifaceMethod.Name)
 
 		if !exists {
-			return fmt.Errorf("Missing function %s", ifaceMethod.Name)
+			return fmt.Errorf("missing function %s", ifaceMethod.Name)
 		}
 
 		ifaceNumIn := ifaceMethod.Type.NumIn()
 		matchNumIn := matchMethod.Type.NumIn() - 1 // skip over which the function is acting on
 
 		if ifaceNumIn != matchNumIn {
-			return fmt.Errorf("Parameter mismatch in method %s. Expected %d, got %d", ifaceMethod.Name, ifaceNumIn, matchNumIn)
+			return fmt.Errorf("parameter mismatch in method %s. Expected %d, got %d", ifaceMethod.Name, ifaceNumIn, matchNumIn)
 		}
 
 		for j := 0; j < ifaceNumIn; j++ {
@@ -130,14 +132,14 @@ func typeMatchesInterface(toMatch reflect.Type, iface reflect.Type) error {
 			matchIn := matchMethod.Type.In(j + 1)
 
 			if ifaceIn.Kind() != matchIn.Kind() {
-				return fmt.Errorf("Parameter mismatch in method %s at parameter %d. Expected %s, got %s", ifaceMethod.Name, j, ifaceIn.Name(), matchIn.Name())
+				return fmt.Errorf("parameter mismatch in method %s at parameter %d. Expected %s, got %s", ifaceMethod.Name, j, ifaceIn.Name(), matchIn.Name())
 			}
 		}
 
 		ifaceNumOut := ifaceMethod.Type.NumOut()
 		matchNumOut := matchMethod.Type.NumOut()
 		if ifaceNumOut != matchNumOut {
-			return fmt.Errorf("Return mismatch in method %s. Expected %d, got %d", ifaceMethod.Name, ifaceNumOut, matchNumOut)
+			return fmt.Errorf("return mismatch in method %s. Expected %d, got %d", ifaceMethod.Name, ifaceNumOut, matchNumOut)
 		}
 
 		for j := 0; j < ifaceNumOut; j++ {
@@ -145,7 +147,7 @@ func typeMatchesInterface(toMatch reflect.Type, iface reflect.Type) error {
 			matchOut := matchMethod.Type.Out(j)
 
 			if ifaceOut.Kind() != matchOut.Kind() {
-				return fmt.Errorf("Return mismatch in method %s at return %d. Expected %s, got %s", ifaceMethod.Name, j, ifaceOut.Name(), matchOut.Name())
+				return fmt.Errorf("return mismatch in method %s at return %d. Expected %s, got %s", ifaceMethod.Name, j, ifaceOut.Name(), matchOut.Name())
 			}
 		}
 	}

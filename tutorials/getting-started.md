@@ -86,17 +86,17 @@ func (sc *SimpleContract) Create(ctx contractapi.TransactionContextInterface, ke
     existing, err := ctx.GetStub().GetState(key)
 
     if err != nil {
-        return errors.New("Unable to interact with world state")
+        return errors.New("unable to interact with world state")
     }
 
     if existing != nil {
-        return fmt.Errorf("Cannot create world state pair with key %s. Already exists", key)
+        return fmt.Errorf("cannot create world state pair with key %s. Already exists", key)
     }
 
     err = ctx.GetStub().PutState(key, []byte(value))
 
     if err != nil {
-        return errors.New("Unable to interact with world state")
+        return errors.New("unable to interact with world state")
     }
 
     return nil
@@ -113,17 +113,17 @@ func (sc *SimpleContract) Update(ctx contractapi.TransactionContextInterface, ke
     existing, err := ctx.GetStub().GetState(key)
 
     if err != nil {
-        return errors.New("Unable to interact with world state")
+        return errors.New("unable to interact with world state")
     }
 
     if existing == nil {
-        return fmt.Errorf("Cannot update world state pair with key %s. Does not exist", key)
+        return fmt.Errorf("cannot update world state pair with key %s. Does not exist", key)
     }
 
     err = ctx.GetStub().PutState(key, []byte(value))
 
     if err != nil {
-        return errors.New("Unable to interact with world state")
+        return errors.New("unable to interact with world state")
     }
 
     return nil
@@ -138,11 +138,11 @@ func (sc *SimpleContract) Read(ctx contractapi.TransactionContextInterface, key 
     existing, err := ctx.GetStub().GetState(key)
 
     if err != nil {
-        return "", errors.New("Unable to interact with world state")
+        return "", errors.New("unable to interact with world state")
     }
 
     if existing == nil {
-        return "", fmt.Errorf("Cannot read world state pair with key %s. Does not exist", key)
+        return "", fmt.Errorf("cannot read world state pair with key %s. Does not exist", key)
     }
 
     return string(existing), nil
@@ -171,17 +171,17 @@ func (sc *SimpleContract) Create(ctx contractapi.TransactionContextInterface, ke
     existing, err := ctx.GetStub().GetState(key)
 
     if err != nil {
-        return errors.New("Unable to interact with world state")
+        return errors.New("unable to interact with world state")
     }
 
     if existing != nil {
-        return fmt.Errorf("Cannot create world state pair with key %s. Already exists", key)
+        return fmt.Errorf("cannot create world state pair with key %s. Already exists", key)
     }
 
     err = ctx.GetStub().PutState(key, []byte(value))
 
     if err != nil {
-        return errors.New("Unable to interact with world state")
+        return errors.New("unable to interact with world state")
     }
 
     return nil
@@ -192,17 +192,17 @@ func (sc *SimpleContract) Update(ctx contractapi.TransactionContextInterface, ke
     existing, err := ctx.GetStub().GetState(key)
 
     if err != nil {
-        return errors.New("Unable to interact with world state")
+        return errors.New("unable to interact with world state")
     }
 
     if existing == nil {
-        return fmt.Errorf("Cannot update world state pair with key %s. Does not exist", key)
+        return fmt.Errorf("cannot update world state pair with key %s. Does not exist", key)
     }
 
     err = ctx.GetStub().PutState(key, []byte(value))
 
     if err != nil {
-        return errors.New("Unable to interact with world state")
+        return errors.New("unable to interact with world state")
     }
 
     return nil
@@ -213,11 +213,11 @@ func (sc *SimpleContract) Read(ctx contractapi.TransactionContextInterface, key 
     existing, err := ctx.GetStub().GetState(key)
 
     if err != nil {
-        return "", errors.New("Unable to interact with world state")
+        return "", errors.New("unable to interact with world state")
     }
 
     if existing == nil {
-        return "", fmt.Errorf("Cannot read world state pair with key %s. Does not exist", key)
+        return "", fmt.Errorf("cannot read world state pair with key %s. Does not exist", key)
     }
 
     return string(existing), nil
