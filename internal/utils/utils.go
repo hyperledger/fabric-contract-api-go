@@ -11,6 +11,7 @@ import (
 	"github.com/xeipuuv/gojsonschema"
 )
 
+// bad comment format for the linter
 // ValidateErrorsToString converts errors from JSON schema output into readable string
 func ValidateErrorsToString(resErrors []gojsonschema.ResultError) string {
 	toReturn := ""

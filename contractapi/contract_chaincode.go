@@ -86,9 +86,7 @@ func NewChaincode(contracts ...ContractInterface) (*ContractChaincode, error) {
 	sysC := new(SystemContract)
 	sysC.Name = SystemContractName
 
-	if err := cc.addContract(sysC, ciMethods); err != nil {
-		return nil, err
-	}
+	cc.addContract(sysC, ciMethods)
 
 	if err := cc.augmentMetadata(); err != nil {
 		return nil, err
@@ -253,7 +251,7 @@ func (cc *ContractChaincode) addContract(contract ContractInterface, excludeFunc
 	}
 
 	if _, ok := cc.contracts[ns]; ok {
-		return fmt.Errorf("multiple contracts being merged into chaincode with name %s", ns)
+		return fmt.Errorf("Multiple contracts being merged into chaincode with name %s", ns)
 	}
 
 	ccn := contractChaincodeContract{}
