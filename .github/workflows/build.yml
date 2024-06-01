@@ -8,93 +8,11 @@ on:
   workflow_call:
 
 jobs:
-  license_check:
-    name: License check
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 16
-          registry-url: "https://npm.pkg.github.com"
-      - name: install Tools
-        run: |
-          npm install -g license-check-and-add@4.0.5
-      - name: Check Licenses
-        run: license-check-and-add check -f ci/license-config.json
+  checks:
+    uses: ./.github/workflows/check.yml
 
-  tutorial:
-    name: Check tutorial
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version: "1.21"
-      - name: Check tutorial contents
-        run: ci/scripts/tutorial-checks.sh
+  test-v1:
+    uses: ./.github/workflows/test-v1.yml
 
-  lint:
-    name: Lint
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version: "1.21"
-      - name: Staticcheck
-        run: make staticcheck
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v6
-        with:
-          version: latest
-
-  unit_test:
-    name: Unit test
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version: "1.21"
-      - name: Run tests (excluding fv)
-        run: make unit-test
-
-  functional_test:
-    name: Functional test
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version: "1.21"
-      - name: Run functional tests
-        run: make functional-test
-      
-  integration_test:
-    name: Integration test
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version: "1.21"
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 16
-          registry-url: "https://npm.pkg.github.com"
-      - name: Run the integration tests
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          docker build . --file integrationtest/Dockerfile --tag hyperledger/fabric-contract-api-go-integrationtest
-
-          ci/scripts/setup-integration-chaincode.sh
-
-          curl -sSL https://raw.githubusercontent.com/hyperledger/fabric/main/scripts/install-fabric.sh | bash -s -- samples binary docker
-          export TEST_NETWORK_DIR=$(pwd)/fabric-samples/test-network
-
-          cd ./integrationtest
-          npm ci
-
-          npx fabric-chaincode-integration run
+  test-v2:
+    uses: ./.github/workflows/test-v2.yml
