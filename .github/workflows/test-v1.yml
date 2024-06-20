@@ -1,0 +1,73 @@
+# Copyright the Hyperledger Fabric contributors. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+name: Test (v1)
+
+on:
+  workflow_call:
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.21"
+      - name: Staticcheck
+        run: make -f Makefile.v1 staticcheck
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
+
+  unit_test:
+    name: Unit test
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.21"
+      - name: Run tests (excluding fv)
+        run: make -f Makefile.v1 unit-test
+
+  functional_test:
+    name: Functional test
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.21"
+      - name: Run functional tests
+        run: make -f Makefile.v1 functional-test
+      
+  integration_test:
+    name: Integration test
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.21"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 16
+          registry-url: "https://npm.pkg.github.com"
+      - name: Run the integration tests
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          docker build . --file integrationtest/Dockerfile --tag hyperledger/fabric-contract-api-go-integrationtest
+
+          ci/scripts/setup-integration-chaincode.sh
+
+          curl -sSL https://raw.githubusercontent.com/hyperledger/fabric/main/scripts/install-fabric.sh | bash -s -- samples binary docker
+          export TEST_NETWORK_DIR=$(pwd)/fabric-samples/test-network
+
+          cd ./integrationtest
+          npm ci
+
+          npx fabric-chaincode-integration run

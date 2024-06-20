@@ -1,0 +1,19 @@
+# Copyright the Hyperledger Fabric contributors. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+name: Checks
+
+on:
+  workflow_call:
+
+jobs:
+  tutorial:
+    name: Check tutorial
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.21"
+      - name: Check tutorial contents
+        run: ci/scripts/tutorial-checks.sh

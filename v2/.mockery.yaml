@@ -1,0 +1,11 @@
+with-expecter: true
+inpackage: true
+exported: true
+filename: "mock_{{.InterfaceName}}_test.go"
+mockname: "Mock{{.InterfaceName | firstUpper}}"
+packages:
+  github.com/hyperledger/fabric-contract-api-go/v2/contractapi:
+    config:
+      dir: "contractapi"
+    interfaces:
+      chaincodeStubInterface:

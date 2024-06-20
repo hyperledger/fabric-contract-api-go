@@ -9,6 +9,7 @@ linters:
     - errcheck
     - gocyclo
     - gofmt
+    - goheader
     - goimports
     - gosec
     - gosimple
@@ -21,3 +22,7 @@ linters:
 linters-settings:
   gocyclo:
     min-complexity: 18
+  goheader:
+    template: |-
+      Copyright the Hyperledger Fabric contributors. All rights reserved.
+      SPDX-License-Identifier: Apache-2.0
