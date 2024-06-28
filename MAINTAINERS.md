@@ -3,7 +3,7 @@ Maintainers
 
 | Name                      | GitHub           | Chat            | email                               |
 |---------------------------|------------------|-----------------|-------------------------------------|
-| Mark Lewis                | bestbeforetoday  | bestbeforetoday | mark_lewis@uk.ibm.com               |
+| Mark Lewis                | bestbeforetoday  | bestbeforetoday | Mark.S.Lewis@outlook.com               |
 | Matthew White             | mbwhite          |                 | whitemat@uk.ibm.com                 |
 
 Retired Maintainers
