@@ -1,6 +1,6 @@
 module github.com/hyperledger/fabric-contract-api-go/integrationtest/chaincode/simple
 
-go 1.21
+go 1.21.0
 
 require github.com/hyperledger/fabric-contract-api-go v0.0.0
 
