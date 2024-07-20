@@ -11,8 +11,5 @@ jobs:
   checks:
     uses: ./.github/workflows/check.yml
 
-  test-v1:
-    uses: ./.github/workflows/test-v1.yml
-
-  test-v2:
-    uses: ./.github/workflows/test-v2.yml
+  test:
+    uses: ./.github/workflows/test.yml

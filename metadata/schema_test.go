@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/go-openapi/spec"
-	"github.com/hyperledger/fabric-contract-api-go/internal/types"
+	"github.com/hyperledger/fabric-contract-api-go/v2/internal/types"
 
 	"github.com/stretchr/testify/assert"
 )

@@ -7,8 +7,6 @@ import (
 	"crypto/x509"
 	"testing"
 
-	//lint:ignore SA1019 TODO: needs to be removed
-	"github.com/hyperledger/fabric-chaincode-go/shimtest"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -43,9 +41,7 @@ func (mci *mockClientIdentity) GetX509Certificate() (*x509.Certificate, error) {
 // ================================
 
 func TestSetStub(t *testing.T) {
-	stub := new(shimtest.MockStub)
-	stub.TxID = "some ID"
-
+	stub := NewMockChaincodeStubInterface(t)
 	ctx := TransactionContext{}
 
 	ctx.SetStub(stub)
@@ -54,13 +50,13 @@ func TestSetStub(t *testing.T) {
 }
 
 func TestGetStub(t *testing.T) {
-	stub := new(shimtest.MockStub)
-	stub.TxID = "some ID"
-
+	stub := NewMockChaincodeStubInterface(t)
 	ctx := TransactionContext{}
 	ctx.stub = stub
 
-	assert.Equal(t, stub, ctx.GetStub(), "should have returned same stub as set")
+	actual := ctx.GetStub()
+
+	assert.Equal(t, stub, actual, "should have returned same stub as set")
 }
 
 func TestSetClientIdentity(t *testing.T) {

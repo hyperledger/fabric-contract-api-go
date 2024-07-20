@@ -11,15 +11,14 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hyperledger/fabric-chaincode-go/shim"
-	//lint:ignore SA1019 TODO: needs to be removed
-	"github.com/hyperledger/fabric-chaincode-go/shimtest"
-	"github.com/hyperledger/fabric-contract-api-go/internal"
-	"github.com/hyperledger/fabric-contract-api-go/internal/utils"
-	"github.com/hyperledger/fabric-contract-api-go/metadata"
-	"github.com/hyperledger/fabric-contract-api-go/serializer"
-	"github.com/hyperledger/fabric-protos-go/peer"
-	"github.com/stretchr/testify/assert"
+	"github.com/hyperledger/fabric-chaincode-go/v2/shim"
+	"github.com/hyperledger/fabric-contract-api-go/v2/internal"
+	"github.com/hyperledger/fabric-contract-api-go/v2/internal/utils"
+	"github.com/hyperledger/fabric-contract-api-go/v2/metadata"
+	"github.com/hyperledger/fabric-contract-api-go/v2/serializer"
+	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
+	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/proto"
 )
 
 // ================================
@@ -27,9 +26,20 @@ import (
 // ================================
 
 const standardValue = "100"
-const invokeType = "INVOKE"
-const initType = "INIT"
 const standardTxID = "1234567890"
+
+type CallType int
+
+const (
+	initType CallType = iota
+	invokeType
+)
+
+// AssertProtoEqual ensures an expected protobuf message matches an actual message
+func AssertProtoEqual(t *testing.T, expected proto.Message, actual proto.Message) {
+	t.Helper()
+	require.True(t, proto.Equal(expected, actual), "Expected %v, got %v", expected, actual)
+}
 
 type simpleStruct struct {
 	Prop1 string `json:"prop1"`
@@ -154,58 +164,53 @@ func (tx *txHandler) Handler() {
 func testContractChaincodeContractMatchesContract(t *testing.T, actual contractChaincodeContract, expected contractChaincodeContract) {
 	t.Helper()
 
-	assert.Equal(t, expected.info, actual.info, "should have matching info")
+	require.Equal(t, expected.info, actual.info, "should have matching info")
 
 	if actual.beforeTransaction != nil {
-		assert.Equal(t, expected.beforeTransaction.ReflectMetadata("", nil), actual.beforeTransaction.ReflectMetadata("", nil), "should have matching before transactions")
+		require.Equal(t, expected.beforeTransaction.ReflectMetadata("", nil), actual.beforeTransaction.ReflectMetadata("", nil), "should have matching before transactions")
 	}
 
 	if actual.unknownTransaction != nil {
-		assert.Equal(t, expected.unknownTransaction.ReflectMetadata("", nil), actual.unknownTransaction.ReflectMetadata("", nil), "should have matching before transactions")
+		require.Equal(t, expected.unknownTransaction.ReflectMetadata("", nil), actual.unknownTransaction.ReflectMetadata("", nil), "should have matching before transactions")
 	}
 
 	if actual.afterTransaction != nil {
-		assert.Equal(t, expected.afterTransaction.ReflectMetadata("", nil), actual.afterTransaction.ReflectMetadata("", nil), "should have matching before transactions")
+		require.Equal(t, expected.afterTransaction.ReflectMetadata("", nil), actual.afterTransaction.ReflectMetadata("", nil), "should have matching before transactions")
 	}
 
-	assert.Equal(t, expected.transactionContextHandler, actual.transactionContextHandler, "should have matching transaction contexts")
+	require.Equal(t, expected.transactionContextHandler, actual.transactionContextHandler, "should have matching transaction contexts")
 
 	for idx, cf := range actual.functions {
-		assert.Equal(t, cf.ReflectMetadata("", nil), expected.functions[idx].ReflectMetadata("", nil), "should have matching functions")
+		require.Equal(t, cf.ReflectMetadata("", nil), expected.functions[idx].ReflectMetadata("", nil), "should have matching functions")
 	}
 }
 
-func callContractFunctionAndCheckError(t *testing.T, cc *ContractChaincode, arguments []string, callType string, expectedMessage string) {
+func callContractFunctionAndCheckError(t *testing.T, cc *ContractChaincode, arguments []string, callType CallType, expectedMessage string) {
 	t.Helper()
 
 	callContractFunctionAndCheckResponse(t, cc, arguments, callType, expectedMessage, "error")
 }
 
-func callContractFunctionAndCheckSuccess(t *testing.T, cc *ContractChaincode, arguments []string, callType string, expectedMessage string) {
+func callContractFunctionAndCheckSuccess(t *testing.T, cc *ContractChaincode, arguments []string, callType CallType, expectedMessage string) {
 	t.Helper()
 
 	callContractFunctionAndCheckResponse(t, cc, arguments, callType, expectedMessage, "success")
 }
 
-func callContractFunctionAndCheckResponse(t *testing.T, cc *ContractChaincode, arguments []string, callType string, expectedMessage string, expectedType string) {
+func callContractFunctionAndCheckResponse(t *testing.T, cc *ContractChaincode, arguments []string, callType CallType, expectedMessage string, expectedType string) {
 	t.Helper()
 
-	args := [][]byte{}
-	for _, str := range arguments {
-		arg := []byte(str)
-		args = append(args, arg)
-	}
+	mockStub := NewMockChaincodeStubInterface(t)
+	mockStub.EXPECT().GetTxID().Maybe().Return(standardTxID)
+	mockStub.EXPECT().GetFunctionAndParameters().Maybe().Return(arguments[0], arguments[1:])
+	mockStub.EXPECT().GetCreator().Maybe().Return([]byte{}, nil)
 
-	mockStub := shimtest.NewMockStub("smartContractTest", cc)
-
-	var response peer.Response
+	var response *peer.Response
 
 	if callType == initType {
-		response = mockStub.MockInit(standardTxID, args)
+		response = cc.Init(mockStub)
 	} else if callType == invokeType {
-		response = mockStub.MockInvoke(standardTxID, args)
-	} else {
-		panic(fmt.Sprintf("Call type passed should be %s or %s. Value passed was %s", initType, invokeType, callType))
+		response = cc.Invoke(mockStub)
 	}
 
 	expectedResponse := shim.Success([]byte(expectedMessage))
@@ -214,12 +219,10 @@ func callContractFunctionAndCheckResponse(t *testing.T, cc *ContractChaincode, a
 		expectedResponse = shim.Error(expectedMessage)
 	}
 
-	assert.Equal(t, expectedResponse, response)
+	AssertProtoEqual(t, expectedResponse, response)
 }
 
-func testCallingContractFunctions(t *testing.T, callType string) {
-	t.Helper()
-
+func testCallingContractFunctions(t *testing.T, callType CallType) {
 	var cc *ContractChaincode
 
 	gc := goodContract{}
@@ -295,7 +298,7 @@ func testCallingContractFunctions(t *testing.T, callType string) {
 	gc.AfterTransaction = gc.logAfter
 	cc, _ = NewChaincode(&gc)
 	callContractFunctionAndCheckSuccess(t, cc, []string{"goodContract:LogNamed"}, callType, "named response")
-	assert.Equal(t, []string{"Before function called", "Named function called", "After function called with named response"}, gc.called, "Expected called field of goodContract to have logged in order before, named then after")
+	require.Equal(t, []string{"Before function called", "Named function called", "After function called with named response"}, gc.called, "Expected called field of goodContract to have logged in order before, named then after")
 	gc = goodContract{}
 
 	// Should call before, unknown then after functions in order and pass unknown response
@@ -304,7 +307,7 @@ func testCallingContractFunctions(t *testing.T, callType string) {
 	gc.UnknownTransaction = gc.logUnknown
 	cc, _ = NewChaincode(&gc)
 	callContractFunctionAndCheckSuccess(t, cc, []string{"goodContract:somebadfunctionname"}, callType, "")
-	assert.Equal(t, []string{"Before function called", "Unknown function called", "After function called with <nil>"}, gc.called, "Expected called field of goodContract to have logged in order before, named then after")
+	require.Equal(t, []string{"Before function called", "Unknown function called", "After function called with <nil>"}, gc.called, "Expected called field of goodContract to have logged in order before, named then after")
 	gc = goodContract{}
 
 	// Should pass
@@ -352,12 +355,12 @@ func jsonCompare(t *testing.T, s1, s2 string) {
 
 	var err error
 	err = json.Unmarshal([]byte(s1), &o1)
-	assert.Nil(t, err, "invalid json supplied for string 1")
+	require.Nil(t, err, "invalid json supplied for string 1")
 
 	err = json.Unmarshal([]byte(s2), &o2)
-	assert.Nil(t, err, "invalid json supplied for string 2")
+	require.Nil(t, err, "invalid json supplied for string 2")
 
-	assert.True(t, reflect.DeepEqual(o1, o2), "JSON should be equal")
+	require.True(t, reflect.DeepEqual(o1, o2), "JSON should be equal")
 }
 
 // ================================
@@ -417,20 +420,20 @@ func TestReflectMetadata(t *testing.T) {
 	// TESTS
 
 	reflectedMetadata = cc.reflectMetadata()
-	assert.Equal(t, expectedMetadata, reflectedMetadata, "should return contract chaincode metadata")
+	require.Equal(t, expectedMetadata, reflectedMetadata, "should return contract chaincode metadata")
 
 	expectedMetadata.Info.Version = "latest"
 	cc.Info.Version = ""
 	expectedMetadata.Info.Title = "undefined"
 	cc.Info.Title = ""
 	reflectedMetadata = cc.reflectMetadata()
-	assert.Equal(t, expectedMetadata, reflectedMetadata, "should sub in value for title and version when not set")
+	require.Equal(t, expectedMetadata, reflectedMetadata, "should sub in value for title and version when not set")
 
 	cc.DefaultContract = "MyContract"
 	reflectedMetadata = cc.reflectMetadata()
 	contractMetadata.Default = true
 	expectedMetadata.Contracts["MyContract"] = contractMetadata
-	assert.Equal(t, expectedMetadata, reflectedMetadata, "should return contract chaincode metadata when default")
+	require.Equal(t, expectedMetadata, reflectedMetadata, "should return contract chaincode metadata when default")
 }
 
 func TestAugmentMetadata(t *testing.T) {
@@ -444,9 +447,9 @@ func TestAugmentMetadata(t *testing.T) {
 	}
 
 	err := cc.augmentMetadata()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
-	assert.Equal(t, cc.reflectMetadata(), cc.metadata, "should return reflected metadata when none supplied as file")
+	require.Equal(t, cc.reflectMetadata(), cc.metadata, "should return reflected metadata when none supplied as file")
 }
 
 func TestAddContract(t *testing.T) {
@@ -476,20 +479,20 @@ func TestAddContract(t *testing.T) {
 	mc = new(myContract)
 	mc.Name = "customname"
 	err = cc.addContract(mc, []string{})
-	assert.EqualError(t, err, "multiple contracts being merged into chaincode with name customname", "should error when contract already exists with name")
+	require.EqualError(t, err, "multiple contracts being merged into chaincode with name customname", "should error when contract already exists with name")
 
 	// should error when no public functions
 	cc = new(ContractChaincode)
 	cc.contracts = make(map[string]contractChaincodeContract)
 	ic := new(emptyContract)
 	err = cc.addContract(ic, defaultExcludes)
-	assert.EqualError(t, err, fmt.Sprintf("contracts are required to have at least 1 (non-ignored) public method. Contract emptyContract has none. Method names that have been ignored: %s", utils.SliceAsCommaSentence(defaultExcludes)), "should error when contract has no public functions")
+	require.EqualError(t, err, fmt.Sprintf("contracts are required to have at least 1 (non-ignored) public method. Contract emptyContract has none. Method names that have been ignored: %s", utils.SliceAsCommaSentence(defaultExcludes)), "should error when contract has no public functions")
 
 	cc = new(ContractChaincode)
 	cc.contracts = make(map[string]contractChaincodeContract)
 	pc := new(privateContract)
 	err = cc.addContract(pc, defaultExcludes)
-	assert.EqualError(t, err, fmt.Sprintf("contracts are required to have at least 1 (non-ignored) public method. Contract privateContract has none. Method names that have been ignored: %s", utils.SliceAsCommaSentence(defaultExcludes)), "should error when contract has no public functions but private ones")
+	require.EqualError(t, err, fmt.Sprintf("contracts are required to have at least 1 (non-ignored) public method. Contract privateContract has none. Method names that have been ignored: %s", utils.SliceAsCommaSentence(defaultExcludes)), "should error when contract has no public functions but private ones")
 
 	// should add by default name
 	existingCCC := contractChaincodeContract{
@@ -502,8 +505,8 @@ func TestAddContract(t *testing.T) {
 	cc.contracts["anotherContract"] = existingCCC
 	mc = new(myContract)
 	err = cc.addContract(mc, defaultExcludes)
-	assert.Nil(t, err, "should not error when adding contract using default name")
-	assert.Equal(t, existingCCC, cc.contracts["anotherContract"], "should not affect existing contract in map")
+	require.Nil(t, err, "should not error when adding contract using default name")
+	require.Equal(t, existingCCC, cc.contracts["anotherContract"], "should not affect existing contract in map")
 	testContractChaincodeContractMatchesContract(t, cc.contracts["myContract"], expectedCCC)
 
 	// should add by custom name
@@ -513,7 +516,7 @@ func TestAddContract(t *testing.T) {
 	mc.Name = "customname"
 	expectedCCC.info.Title = "customname"
 	err = cc.addContract(mc, defaultExcludes)
-	assert.Nil(t, err, "should not error when adding contract using custom name")
+	require.Nil(t, err, "should not error when adding contract using custom name")
 	testContractChaincodeContractMatchesContract(t, cc.contracts["customname"], expectedCCC)
 	expectedCCC.info.Title = "myContract"
 
@@ -528,7 +531,7 @@ func TestAddContract(t *testing.T) {
 		Title:   "some title",
 	}
 	err = cc.addContract(mc, defaultExcludes)
-	assert.Nil(t, err, "should not error when adding contract using version")
+	require.Nil(t, err, "should not error when adding contract using version")
 	testContractChaincodeContractMatchesContract(t, cc.contracts["myContract"], expectedCCC)
 	expectedCCC.info = metadata.InfoMetadata{
 		Version: "latest",
@@ -543,7 +546,7 @@ func TestAddContract(t *testing.T) {
 	expectedCCC.info.Title = "evaluateContract"
 	ec := new(evaluateContract)
 	err = cc.addContract(ec, defaultExcludes)
-	assert.Nil(t, err, "should not error when adding contract using version")
+	require.Nil(t, err, "should not error when adding contract using version")
 	testContractChaincodeContractMatchesContract(t, cc.contracts["evaluateContract"], expectedCCC)
 	expectedCCC.functions["ReturnsString"] = oldFunc
 	expectedCCC.info.Title = "myContract"
@@ -555,7 +558,7 @@ func TestAddContract(t *testing.T) {
 	mc.BeforeTransaction = tx.Handler
 	expectedCCC.beforeTransaction, _ = internal.NewTransactionHandler(tx.Handler, transactionContextPtrHandler, internal.TransactionHandlerTypeBefore)
 	err = cc.addContract(mc, defaultExcludes)
-	assert.Nil(t, err, "should not error when adding contract using before tx")
+	require.Nil(t, err, "should not error when adding contract using before tx")
 	testContractChaincodeContractMatchesContract(t, cc.contracts["myContract"], expectedCCC)
 
 	// should use after transaction
@@ -565,7 +568,7 @@ func TestAddContract(t *testing.T) {
 	mc.AfterTransaction = tx.Handler
 	expectedCCC.afterTransaction, _ = internal.NewTransactionHandler(tx.Handler, transactionContextPtrHandler, internal.TransactionHandlerTypeBefore)
 	err = cc.addContract(mc, defaultExcludes)
-	assert.Nil(t, err, "should not error when adding contract using after tx")
+	require.Nil(t, err, "should not error when adding contract using after tx")
 	testContractChaincodeContractMatchesContract(t, cc.contracts["myContract"], expectedCCC)
 
 	// should use unknown transaction
@@ -575,7 +578,7 @@ func TestAddContract(t *testing.T) {
 	mc.UnknownTransaction = tx.Handler
 	expectedCCC.unknownTransaction, _ = internal.NewTransactionHandler(tx.Handler, transactionContextPtrHandler, internal.TransactionHandlerTypeBefore)
 	err = cc.addContract(mc, defaultExcludes)
-	assert.Nil(t, err, "should not error when adding contract using unknown tx")
+	require.Nil(t, err, "should not error when adding contract using unknown tx")
 	testContractChaincodeContractMatchesContract(t, cc.contracts["myContract"], expectedCCC)
 
 	// should error on bad function
@@ -585,7 +588,7 @@ func TestAddContract(t *testing.T) {
 	err = cc.addContract(bc, defaultExcludes)
 	_, expectedErr := internal.NewContractFunctionFromFunc(bc.BadMethod, internal.CallTypeSubmit, transactionContextPtrHandler)
 	expectedErrStr := strings.Replace(expectedErr.Error(), "Function", "BadMethod", -1)
-	assert.EqualError(t, err, expectedErrStr, "should error when contract has bad method")
+	require.EqualError(t, err, expectedErrStr, "should error when contract has bad method")
 
 	// should error on bad before transaction
 	cc = new(ContractChaincode)
@@ -594,7 +597,7 @@ func TestAddContract(t *testing.T) {
 	mc.BeforeTransaction = bc.BadMethod
 	_, expectedErr = internal.NewTransactionHandler(bc.BadMethod, transactionContextPtrHandler, internal.TransactionHandlerTypeBefore)
 	err = cc.addContract(mc, defaultExcludes)
-	assert.EqualError(t, err, expectedErr.Error(), "should error when before transaction is bad method")
+	require.EqualError(t, err, expectedErr.Error(), "should error when before transaction is bad method")
 
 	// should error on bad after transaction
 	cc = new(ContractChaincode)
@@ -603,7 +606,7 @@ func TestAddContract(t *testing.T) {
 	mc.AfterTransaction = bc.BadMethod
 	_, expectedErr = internal.NewTransactionHandler(bc.BadMethod, transactionContextPtrHandler, internal.TransactionHandlerTypeAfter)
 	err = cc.addContract(mc, defaultExcludes)
-	assert.EqualError(t, err, expectedErr.Error(), "should error when after transaction is bad method")
+	require.EqualError(t, err, expectedErr.Error(), "should error when after transaction is bad method")
 
 	// should error on bad unknown transaction
 	cc = new(ContractChaincode)
@@ -612,7 +615,7 @@ func TestAddContract(t *testing.T) {
 	mc.UnknownTransaction = bc.BadMethod
 	_, expectedErr = internal.NewTransactionHandler(bc.BadMethod, transactionContextPtrHandler, internal.TransactionHandlerTypeUnknown)
 	err = cc.addContract(mc, defaultExcludes)
-	assert.EqualError(t, err, expectedErr.Error(), "should error when unknown transaction is bad method")
+	require.EqualError(t, err, expectedErr.Error(), "should error when unknown transaction is bad method")
 }
 
 func TestNewChaincode(t *testing.T) {
@@ -625,20 +628,20 @@ func TestNewChaincode(t *testing.T) {
 
 	contractChaincode, err = NewChaincode(new(badContract))
 	expectedErr = cc.addContract(new(badContract), []string{})
-	assert.EqualError(t, err, expectedErr.Error(), "should error when bad contract to be added")
-	assert.Nil(t, contractChaincode, "should return blank contract chaincode on error")
+	require.EqualError(t, err, expectedErr.Error(), "should error when bad contract to be added")
+	require.Nil(t, contractChaincode, "should return blank contract chaincode on error")
 
 	contractChaincode, err = NewChaincode(new(myContract), new(evaluateContract))
-	assert.Nil(t, err, "should not error when passed valid contracts")
-	assert.Equal(t, 3, len(contractChaincode.contracts), "should add both passed contracts and system contract")
-	assert.Equal(t, reflect.TypeOf(new(serializer.JSONSerializer)), reflect.TypeOf(contractChaincode.TransactionSerializer), "should have set the transaction serializer")
+	require.Nil(t, err, "should not error when passed valid contracts")
+	require.Equal(t, 3, len(contractChaincode.contracts), "should add both passed contracts and system contract")
+	require.Equal(t, reflect.TypeOf(new(serializer.JSONSerializer)), reflect.TypeOf(contractChaincode.TransactionSerializer), "should have set the transaction serializer")
 	setMetadata, _, _ := contractChaincode.contracts[SystemContractName].functions["GetMetadata"].Call(reflect.ValueOf(nil), nil, nil, new(serializer.JSONSerializer))
 	jsonCompare(t, "{\"info\":{\"title\":\"undefined\",\"version\":\"latest\"},\"contracts\":{\"evaluateContract\":{\"info\":{\"title\":\"evaluateContract\",\"version\":\"latest\"},\"name\":\"evaluateContract\",\"transactions\":[{\"returns\":{\"type\":\"string\"},\"tag\":[\"evaluate\", \"EVALUATE\"],\"name\":\"ReturnsString\"}],\"default\": false},\"myContract\":{\"info\":{\"title\":\"myContract\",\"version\":\"latest\"},\"name\":\"myContract\",\"transactions\":[{\"returns\":{\"type\":\"string\"},\"tag\":[\"submit\", \"SUBMIT\"],\"name\":\"ReturnsString\"}], \"default\": true},\"org.hyperledger.fabric\":{\"info\":{\"title\":\"org.hyperledger.fabric\",\"version\":\"latest\"},\"name\":\"org.hyperledger.fabric\",\"transactions\":[{\"returns\":{\"type\":\"string\"},\"tag\":[\"evaluate\", \"EVALUATE\"],\"name\":\"GetMetadata\"}], \"default\": false}},\"components\":{}}", setMetadata)
 
 	contractChaincode, err = NewChaincode(new(ignorableFuncContract))
 	_, ok := contractChaincode.contracts["ignorableFuncContract"].functions["IgnoreMe"]
-	assert.Nil(t, err, "should not return error for valid contract with ignores")
-	assert.False(t, ok, "should not include ignored function")
+	require.Nil(t, err, "should not return error for valid contract with ignores")
+	require.False(t, ok, "should not include ignored function")
 }
 
 func TestStart(t *testing.T) {
@@ -646,13 +649,14 @@ func TestStart(t *testing.T) {
 
 	cc, _ := NewChaincode(mc)
 
-	assert.EqualError(t, cc.Start(), shim.Start(cc).Error(), "should call shim.Start()")
+	require.EqualError(t, cc.Start(), shim.Start(cc).Error(), "should call shim.Start()")
 }
 
 func TestInit(t *testing.T) {
 	cc, _ := NewChaincode(new(myContract))
-	mockStub := shimtest.NewMockStub("blank fcn", cc)
-	assert.Equal(t, shim.Success([]byte("Default initiator successful.")), cc.Init(mockStub), "should just return success on init with no function passed")
+	mockStub := NewMockChaincodeStubInterface(t)
+	mockStub.EXPECT().GetFunctionAndParameters().Maybe().Return("", nil)
+	AssertProtoEqual(t, shim.Success([]byte("Default initiator successful.")), cc.Init(mockStub))
 
 	testCallingContractFunctions(t, initType)
 }

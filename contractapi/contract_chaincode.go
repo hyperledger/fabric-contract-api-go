@@ -14,14 +14,19 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/hyperledger/fabric-chaincode-go/pkg/cid"
-	"github.com/hyperledger/fabric-chaincode-go/shim"
-	"github.com/hyperledger/fabric-contract-api-go/internal"
-	"github.com/hyperledger/fabric-contract-api-go/internal/utils"
-	"github.com/hyperledger/fabric-contract-api-go/metadata"
-	"github.com/hyperledger/fabric-contract-api-go/serializer"
-	"github.com/hyperledger/fabric-protos-go/peer"
+	"github.com/hyperledger/fabric-chaincode-go/v2/pkg/cid"
+	"github.com/hyperledger/fabric-chaincode-go/v2/shim"
+	"github.com/hyperledger/fabric-contract-api-go/v2/internal"
+	"github.com/hyperledger/fabric-contract-api-go/v2/internal/utils"
+	"github.com/hyperledger/fabric-contract-api-go/v2/metadata"
+	"github.com/hyperledger/fabric-contract-api-go/v2/serializer"
+	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
 )
+
+//lint:ignore U1000 used for testing
+type chaincodeStubInterface interface {
+	shim.ChaincodeStubInterface
+}
 
 type contractChaincodeContract struct {
 	info                      metadata.InfoMetadata
@@ -121,7 +126,7 @@ func (cc *ContractChaincode) Start() error {
 // Init is called during Instantiate transaction after the chaincode container
 // has been established for the first time, passes off details of the request to Invoke
 // for handling the request if a function name is passed, otherwise returns shim.Success
-func (cc *ContractChaincode) Init(stub shim.ChaincodeStubInterface) peer.Response {
+func (cc *ContractChaincode) Init(stub shim.ChaincodeStubInterface) *peer.Response {
 	nsFcn, _ := stub.GetFunctionAndParameters()
 	if nsFcn == "" {
 		return shim.Success([]byte("Default initiator successful."))
@@ -149,7 +154,7 @@ func (cc *ContractChaincode) Init(stub shim.ChaincodeStubInterface) peer.Respons
 // function handler returns a non-error type then then the after transaction is sent this value. The same
 // transaction context is passed as a pointer to before, after, named and unknown functions on each Invoke.
 // If no contract name is passed then the default contract is used.
-func (cc *ContractChaincode) Invoke(stub shim.ChaincodeStubInterface) peer.Response {
+func (cc *ContractChaincode) Invoke(stub shim.ChaincodeStubInterface) *peer.Response {
 
 	nsFcn, params := stub.GetFunctionAndParameters()
 

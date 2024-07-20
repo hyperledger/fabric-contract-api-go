@@ -15,15 +15,13 @@ import (
 	"testing"
 
 	"github.com/cucumber/godog"
-	//lint:ignore SA1019 TODO: needs to be removed
-	"github.com/hyperledger/fabric-chaincode-go/shimtest"
-	"github.com/hyperledger/fabric-contract-api-go/contractapi"
-	"github.com/hyperledger/fabric-contract-api-go/internal/functionaltests/contracts/complexcontract"
-	"github.com/hyperledger/fabric-contract-api-go/internal/functionaltests/contracts/extendedsimplecontract"
-	"github.com/hyperledger/fabric-contract-api-go/internal/functionaltests/contracts/simplecontract"
-	"github.com/hyperledger/fabric-contract-api-go/internal/functionaltests/contracts/utils"
-	"github.com/hyperledger/fabric-contract-api-go/metadata"
-	"github.com/hyperledger/fabric-protos-go/peer"
+	"github.com/hyperledger/fabric-contract-api-go/v2/contractapi"
+	"github.com/hyperledger/fabric-contract-api-go/v2/internal/functionaltests/contracts/complexcontract"
+	"github.com/hyperledger/fabric-contract-api-go/v2/internal/functionaltests/contracts/extendedsimplecontract"
+	"github.com/hyperledger/fabric-contract-api-go/v2/internal/functionaltests/contracts/simplecontract"
+	"github.com/hyperledger/fabric-contract-api-go/v2/internal/functionaltests/contracts/utils"
+	"github.com/hyperledger/fabric-contract-api-go/v2/metadata"
+	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
 )
 
 var contractsMap map[string]contractapi.ContractInterface = map[string]contractapi.ContractInterface{
@@ -53,8 +51,8 @@ func NewComplexContract() *complexcontract.ComplexContract {
 }
 
 type suiteContext struct {
-	lastResponse   peer.Response
-	stub           *shimtest.MockStub
+	lastResponse   *peer.Response
+	stub           *MockStub
 	chaincode      *contractapi.ContractChaincode
 	metadataFolder string
 }
@@ -81,7 +79,7 @@ func iHaveCreatedChaincodeFrom(ctx context.Context, name string) (context.Contex
 
 	sc := suiteContext{}
 	sc.chaincode = chaincode
-	sc.stub = shimtest.NewMockStub(name, sc.chaincode)
+	sc.stub = NewMockStub(sc.chaincode)
 
 	return context.WithValue(ctx, suiteContextKey{}, sc), nil
 }
@@ -113,7 +111,7 @@ func iHaveCreatedChaincodeFromMultipleContracts(ctx context.Context, contractsTb
 	}
 	sc := suiteContext{}
 	sc.chaincode = chaincode
-	sc.stub = shimtest.NewMockStub("MultiContract", sc.chaincode)
+	sc.stub = NewMockStub(sc.chaincode)
 	return context.WithValue(ctx, suiteContextKey{}, sc), nil
 }
 

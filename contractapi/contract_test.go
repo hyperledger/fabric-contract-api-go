@@ -6,7 +6,7 @@ package contractapi
 import (
 	"testing"
 
-	"github.com/hyperledger/fabric-contract-api-go/metadata"
+	"github.com/hyperledger/fabric-contract-api-go/v2/metadata"
 	"github.com/stretchr/testify/assert"
 )
 
