@@ -6,8 +6,8 @@ package main
 import (
 	"errors"
 
-	"github.com/hyperledger/fabric-contract-api-go/contractapi"
-	utils "github.com/hyperledger/fabric-contract-api-go/contractapi/utils"
+	"github.com/hyperledger/fabric-contract-api-go/v2/contractapi"
+	"github.com/hyperledger/fabric-contract-api-go/v2/contractapi/utils"
 )
 
 // TransactionContext a custom transaction context

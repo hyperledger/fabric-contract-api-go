@@ -1,7 +1,7 @@
 # Copyright the Hyperledger Fabric contributors. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-base_dir := $(patsubst %/,%,$(dir $(realpath $(lastword $(MAKEFILE_LIST)))))/v2
+base_dir := $(patsubst %/,%,$(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
 functional_dir := $(base_dir)/internal/functionaltests
 go_bin_dir := $(shell go env GOPATH)/bin
 
