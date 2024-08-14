@@ -74,7 +74,7 @@ func iHaveCreatedChaincodeFrom(ctx context.Context, name string) (context.Contex
 
 	chaincode, err := contractapi.NewChaincode(contractsMap[name])
 	if err != nil {
-		return ctx, fmt.Errorf("expected to get nil for error on create chaincode but got " + err.Error())
+		return ctx, fmt.Errorf("expected to get nil for error on create chaincode but got %s", err.Error())
 	}
 
 	sc := suiteContext{}
@@ -107,7 +107,7 @@ func iHaveCreatedChaincodeFromMultipleContracts(ctx context.Context, contractsTb
 	chaincode, err := contractapi.NewChaincode(contracts...)
 
 	if err != nil {
-		return ctx, fmt.Errorf("expected to get nil for error on create chaincode but got " + err.Error())
+		return ctx, fmt.Errorf("expected to get nil for error on create chaincode but got %s", err.Error())
 	}
 	sc := suiteContext{}
 	sc.chaincode = chaincode
@@ -128,7 +128,7 @@ func iShouldBeAbleToInitialiseTheChaincode(ctx context.Context) (context.Context
 	sc.stub.MockTransactionEnd(txID)
 
 	if response.GetStatus() != int32(200) {
-		return ctx, fmt.Errorf("expected to get status 200 on init but got " + strconv.Itoa(int(response.GetStatus())))
+		return ctx, fmt.Errorf("expected to get status 200 on init but got %s", strconv.Itoa(int(response.GetStatus())))
 	}
 
 	return context.WithValue(ctx, suiteContextKey{}, sc), nil
@@ -142,7 +142,7 @@ func iShouldReceiveASuccessfulResponse(ctx context.Context, result string) (cont
 
 	payload := string(sc.lastResponse.GetPayload())
 	if result != "" && payload != result {
-		return ctx, fmt.Errorf("expected to get payload :" + result + ": but got :" + payload + ":")
+		return ctx, fmt.Errorf(`expected to get payload "%s" but got "%s"`, result, payload)
 	}
 
 	return ctx, nil
@@ -235,7 +235,7 @@ func iShouldReceiveAnUnsuccessfulResponse(ctx context.Context, result string) (c
 
 	message := sc.lastResponse.GetMessage()
 	if result != "" && message != result {
-		return ctx, fmt.Errorf("expected to get message " + result + " but got " + message)
+		return ctx, fmt.Errorf(`expected to get message "%s" but got "%s"`, result, message)
 	}
 	return ctx, nil
 }
