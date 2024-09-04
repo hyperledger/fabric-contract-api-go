@@ -182,51 +182,49 @@ func (cf *ContractFunction) handleResponse(response []reflect.Value, returnsMeta
 
 	returnsSuccess := cf.returns.success != nil
 
-	if returnsSuccess && cf.returns.error {
-		expectedLength = 2
-	} else if returnsSuccess || cf.returns.error {
-		expectedLength = 1
+	if returnsSuccess {
+		expectedLength++
+	}
+	if cf.returns.error {
+		expectedLength++
 	}
 
-	if len(response) == expectedLength {
+	if len(response) != expectedLength {
+		return "", nil, errors.New("response does not match expected return for given function")
+	}
 
-		var successResponse reflect.Value
-		var errorResponse reflect.Value
+	var successResponse reflect.Value
+	var errorResponse reflect.Value
 
-		if returnsSuccess && cf.returns.error {
-			successResponse = response[0]
-			errorResponse = response[1]
-		} else if returnsSuccess {
-			successResponse = response[0]
-		} else if cf.returns.error {
-			errorResponse = response[0]
-		}
+	if returnsSuccess {
+		successResponse = response[0]
+	}
+	if cf.returns.error {
+		errorResponse = response[len(response)-1]
+	}
 
-		var successString string
-		var errorError error
-		var iface interface{}
+	var successString string
+	var errorError error
+	var iface interface{}
 
-		if successResponse.IsValid() {
-			if serializer != nil {
-				var err error
-				successString, err = serializer.ToString(successResponse, cf.returns.success, returnsMetadata, components)
+	if successResponse.IsValid() {
+		if serializer != nil {
+			var err error
+			successString, err = serializer.ToString(successResponse, cf.returns.success, returnsMetadata, components)
 
-				if err != nil {
-					return "", nil, fmt.Errorf("error handling success response. %s", err.Error())
-				}
+			if err != nil {
+				return "", nil, fmt.Errorf("error handling success response. %s", err.Error())
 			}
-
-			iface = successResponse.Interface()
 		}
 
-		if errorResponse.IsValid() && !errorResponse.IsNil() {
-			errorError = errorResponse.Interface().(error)
-		}
-
-		return successString, iface, errorError
+		iface = successResponse.Interface()
 	}
 
-	return "", nil, errors.New("response does not match expected return for given function")
+	if errorResponse.IsValid() && !errorResponse.IsNil() {
+		errorError = errorResponse.Interface().(error)
+	}
+
+	return successString, iface, errorError
 }
 
 func newContractFunction(fnValue reflect.Value, callType CallType, paramDetails contractFunctionParams, returnDetails contractFunctionReturns) *ContractFunction {

@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 
 	"github.com/hyperledger/fabric-contract-api-go/v2/contractapi"
 	"github.com/hyperledger/fabric-contract-api-go/v2/internal/functionaltests/contracts/utils"
@@ -89,7 +90,10 @@ func (c *ComplexContract) UpdateValue(ctx utils.CustomTransactionContextInterfac
 		return fmt.Errorf("data retrieved from world state for key %s was not of type BasicObject", id)
 	}
 
-	newValue := int(ba.Value) + valueAdd
+	if ba.Value > math.MaxInt {
+		return errors.New("%d overflows an int")
+	}
+	newValue := int(ba.Value) + valueAdd // #nosec G115
 
 	if newValue < 0 {
 		newValue = 0
