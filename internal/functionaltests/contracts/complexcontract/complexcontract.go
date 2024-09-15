@@ -90,16 +90,14 @@ func (c *ComplexContract) UpdateValue(ctx utils.CustomTransactionContextInterfac
 		return fmt.Errorf("data retrieved from world state for key %s was not of type BasicObject", id)
 	}
 
-	if ba.Value > math.MaxInt {
-		return errors.New("%d overflows an int")
+	newValue := float64(ba.Value) + float64(valueAdd)
+	if newValue > math.MaxUint {
+		return fmt.Errorf("%f overflows an unsigned int", newValue)
+	} else if newValue <= 0 {
+		ba.Value = 0
+	} else {
+		ba.Value = uint(newValue)
 	}
-	newValue := int(ba.Value) + valueAdd // #nosec G115
-
-	if newValue < 0 {
-		newValue = 0
-	}
-
-	ba.Value = uint(newValue)
 
 	baBytes, _ := json.Marshal(ba)
 

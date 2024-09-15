@@ -79,7 +79,7 @@ func (it *int8Type) Convert(value string) (reflect.Value, error) {
 			return reflect.Value{}, fmt.Errorf("cannot convert passed value %s to int8", value)
 		}
 
-		intVal = int8(int64val) // #nosec G115
+		intVal = int8(int64val)
 	}
 
 	return reflect.ValueOf(intVal), nil
@@ -100,7 +100,7 @@ func (it *int16Type) Convert(value string) (reflect.Value, error) {
 			return reflect.Value{}, fmt.Errorf("cannot convert passed value %s to int16", value)
 		}
 
-		intVal = int16(int64val) // #nosec G115
+		intVal = int16(int64val)
 	}
 
 	return reflect.ValueOf(intVal), nil
@@ -121,7 +121,7 @@ func (it *int32Type) Convert(value string) (reflect.Value, error) {
 			return reflect.Value{}, fmt.Errorf("cannot convert passed value %s to int32", value)
 		}
 
-		intVal = int32(int64val) // #nosec G115
+		intVal = int32(int64val)
 	}
 
 	return reflect.ValueOf(intVal), nil
@@ -191,7 +191,7 @@ func (ut *uint8Type) Convert(value string) (reflect.Value, error) {
 			return reflect.Value{}, fmt.Errorf("cannot convert passed value %s to uint8", value)
 		}
 
-		uintVal = uint8(uint64Val) // #nosec G115
+		uintVal = uint8(uint64Val)
 	}
 
 	return reflect.ValueOf(uintVal), nil
@@ -217,7 +217,7 @@ func (ut *uint16Type) Convert(value string) (reflect.Value, error) {
 			return reflect.Value{}, fmt.Errorf("cannot convert passed value %s to uint16", value)
 		}
 
-		uintVal = uint16(uint64Val) // #nosec G115
+		uintVal = uint16(uint64Val)
 	}
 
 	return reflect.ValueOf(uintVal), nil
@@ -243,7 +243,7 @@ func (ut *uint32Type) Convert(value string) (reflect.Value, error) {
 			return reflect.Value{}, fmt.Errorf("cannot convert passed value %s to uint32", value)
 		}
 
-		uintVal = uint32(uint64Val) // #nosec G115
+		uintVal = uint32(uint64Val)
 	}
 
 	return reflect.ValueOf(uintVal), nil
