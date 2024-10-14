@@ -1,0 +1,25 @@
+name: "Security vulnerability scan"
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: Branch, tag or SHA to scan.
+        type: string
+        required: false
+        default: ""
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: stable
+          check-latest: true
+      - name: Scan
+        run: make scan
