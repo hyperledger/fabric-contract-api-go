@@ -174,3 +174,83 @@ func TestTHCall(t *testing.T) {
 	assert.Equal(t, expectedIFace.(bool), actualIFace.(bool), "should produce same interface as handle response on real function for after with undefined interface")
 	assert.Equal(t, expectedErr, actualErr, "should produce same error as handle response on real function for after with undefined interface")
 }
+
+func TestValidateTransactionHandler(t *testing.T) {
+	testCases := []struct {
+		name        string
+		cf          *ContractFunction
+		handlesType TransactionHandlerType
+		expectError bool
+		errorMsg    string
+	}{
+		{
+			name: "Valid Before Transaction",
+			cf: &ContractFunction{
+				params: params{
+					context: reflect.TypeOf((*TransactionContext)(nil)),
+				},
+			},
+			handlesType: TransactionHandlerTypeBefore,
+			expectError: false,
+		},
+		{
+			name: "Valid After Transaction",
+			cf: &ContractFunction{
+				params: params{
+					context: reflect.TypeOf((*TransactionContext)(nil)),
+					fields:  []reflect.Type{reflect.TypeOf((*interface{})(nil)).Elem()},
+				},
+			},
+			handlesType: TransactionHandlerTypeAfter,
+			expectError: false,
+		},
+		{
+			name: "Invalid Before Transaction with Params",
+			cf: &ContractFunction{
+				params: params{
+					context: reflect.TypeOf((*TransactionContext)(nil)),
+					fields:  []reflect.Type{reflect.TypeOf("")},
+				},
+			},
+			handlesType: TransactionHandlerTypeBefore,
+			expectError: true,
+			errorMsg:    "Before transactions may not take any params other than the transaction context",
+		},
+		{
+			name: "Invalid After Transaction with Multiple Params",
+			cf: &ContractFunction{
+				params: params{
+					context: reflect.TypeOf((*TransactionContext)(nil)),
+					fields:  []reflect.Type{reflect.TypeOf(""), reflect.TypeOf(0)},
+				},
+			},
+			handlesType: TransactionHandlerTypeAfter,
+			expectError: true,
+			errorMsg:    "after transactions must take at most one non-context param",
+		},
+		{
+			name: "Invalid After Transaction with Non-Interface Param",
+			cf: &ContractFunction{
+				params: params{
+					context: reflect.TypeOf((*TransactionContext)(nil)),
+					fields:  []reflect.Type{reflect.TypeOf("")},
+				},
+			},
+			handlesType: TransactionHandlerTypeAfter,
+			expectError: true,
+			errorMsg:    "after transaction must take type interface{} as their only non-context param",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := validateTransactionHandler(tc.cf, tc.handlesType)
+			if tc.expectError {
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), tc.errorMsg)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
