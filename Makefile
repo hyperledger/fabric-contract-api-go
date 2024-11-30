@@ -5,9 +5,12 @@ base_dir := $(patsubst %/,%,$(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
 functional_dir := $(base_dir)/internal/functionaltests
 go_bin_dir := $(shell go env GOPATH)/bin
 
-mockery_version := 2.43.2
+mockery_version := 2.49.1
 kernel_name := $(shell uname -s)
 machine_hardware := $(shell uname -m)
+ifeq ($(machine_hardware), aarch64)
+	machine_hardware := arm64
+endif
 
 .PHONY: test
 test: generate lint unit-test functional-test
