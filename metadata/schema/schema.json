@@ -1,5 +1,5 @@
 {
-    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$schema": "http://json-schema.org/draft-07/schema",
     "type": "object",
     "title": "Hyperledger Fabric Contract Definition JSON Schema",
     "required": [
@@ -133,7 +133,7 @@
                     }
                 },
                 "required": {
-                    "$ref": "http://json-schema.org/draft-04/schema#/definitions/stringArray"
+                    "$ref": "http://json-schema.org/draft-07/schema#/definitions/stringArray"
                 }
             }
         },
@@ -228,58 +228,58 @@
                     "type": "string"
                 },
                 "title": {
-                    "$ref": "http://json-schema.org/draft-04/schema#/properties/title"
+                    "$ref": "http://json-schema.org/draft-07/schema#/properties/title"
                 },
                 "description": {
-                    "$ref": "http://json-schema.org/draft-04/schema#/properties/description"
+                    "$ref": "http://json-schema.org/draft-07/schema#/properties/description"
                 },
                 "default": {
-                    "$ref": "http://json-schema.org/draft-04/schema#/properties/default"
+                    "$ref": "http://json-schema.org/draft-07/schema#/properties/default"
                 },
                 "multipleOf": {
-                    "$ref": "http://json-schema.org/draft-04/schema#/properties/multipleOf"
+                    "$ref": "http://json-schema.org/draft-07/schema#/properties/multipleOf"
                 },
                 "maximum": {
-                    "$ref": "http://json-schema.org/draft-04/schema#/properties/maximum"
+                    "$ref": "http://json-schema.org/draft-07/schema#/properties/maximum"
                 },
                 "exclusiveMaximum": {
-                    "$ref": "http://json-schema.org/draft-04/schema#/properties/exclusiveMaximum"
+                    "$ref": "http://json-schema.org/draft-07/schema#/properties/exclusiveMaximum"
                 },
                 "minimum": {
-                    "$ref": "http://json-schema.org/draft-04/schema#/properties/minimum"
+                    "$ref": "http://json-schema.org/draft-07/schema#/properties/minimum"
                 },
                 "exclusiveMinimum": {
-                    "$ref": "http://json-schema.org/draft-04/schema#/properties/exclusiveMinimum"
+                    "$ref": "http://json-schema.org/draft-07/schema#/properties/exclusiveMinimum"
                 },
                 "maxLength": {
-                    "$ref": "http://json-schema.org/draft-04/schema#/definitions/positiveInteger"
+                    "$ref": "http://json-schema.org/draft-07/schema#/definitions/nonNegativeInteger"
                 },
                 "minLength": {
-                    "$ref": "http://json-schema.org/draft-04/schema#/definitions/positiveIntegerDefault0"
+                    "$ref": "http://json-schema.org/draft-07/schema#/definitions/nonNegativeIntegerDefault0"
                 },
                 "pattern": {
-                    "$ref": "http://json-schema.org/draft-04/schema#/properties/pattern"
+                    "$ref": "http://json-schema.org/draft-07/schema#/properties/pattern"
                 },
                 "maxItems": {
-                    "$ref": "http://json-schema.org/draft-04/schema#/definitions/positiveInteger"
+                    "$ref": "http://json-schema.org/draft-07/schema#/definitions/nonNegativeInteger"
                 },
                 "minItems": {
-                    "$ref": "http://json-schema.org/draft-04/schema#/definitions/positiveIntegerDefault0"
+                    "$ref": "http://json-schema.org/draft-07/schema#/definitions/nonNegativeIntegerDefault0"
                 },
                 "uniqueItems": {
-                    "$ref": "http://json-schema.org/draft-04/schema#/properties/uniqueItems"
+                    "$ref": "http://json-schema.org/draft-07/schema#/properties/uniqueItems"
                 },
                 "maxProperties": {
-                    "$ref": "http://json-schema.org/draft-04/schema#/definitions/positiveInteger"
+                    "$ref": "http://json-schema.org/draft-07/schema#/definitions/nonNegativeInteger"
                 },
                 "minProperties": {
-                    "$ref": "http://json-schema.org/draft-04/schema#/definitions/positiveIntegerDefault0"
+                    "$ref": "http://json-schema.org/draft-07/schema#/definitions/nonNegativeIntegerDefault0"
                 },
                 "required": {
-                    "$ref": "http://json-schema.org/draft-04/schema#/definitions/stringArray"
+                    "$ref": "http://json-schema.org/draft-07/schema#/definitions/stringArray"
                 },
                 "enum": {
-                    "$ref": "http://json-schema.org/draft-04/schema#/properties/enum"
+                    "$ref": "http://json-schema.org/draft-07/schema#/properties/enum"
                 },
                 "additionalProperties": {
                     "anyOf": [
@@ -293,7 +293,7 @@
                     "default": {}
                 },
                 "type": {
-                    "$ref": "http://json-schema.org/draft-04/schema#/properties/type"
+                    "$ref": "http://json-schema.org/draft-07/schema#/properties/type"
                 },
                 "items": {
                     "anyOf": [
