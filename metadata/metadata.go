@@ -146,7 +146,7 @@ type ContractMetadata struct {
 type ObjectMetadata struct {
 	ID                   string                 `json:"$id"`
 	Properties           map[string]spec.Schema `json:"properties"`
-	Required             []string               `json:"required"`
+	Required             []string               `json:"required,omitempty"`
 	AdditionalProperties bool                   `json:"additionalProperties"`
 }
 

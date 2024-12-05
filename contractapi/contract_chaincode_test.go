@@ -161,6 +161,19 @@ func (tx *txHandler) Handler() {
 	// do nothing
 }
 
+type optionalFieldArg struct {
+	OptionalOne string `json:"optionalOne" metadata:",optional"`
+	OptionalTwo string `json:"optionalTwo" metadata:",optional"`
+}
+
+type optionalFieldsContract struct {
+	Contract
+}
+
+func (oc *optionalFieldsContract) TxFunction(arg *optionalFieldArg) (*optionalFieldArg, error) {
+	return arg, nil
+}
+
 func testContractChaincodeContractMatchesContract(t *testing.T, actual contractChaincodeContract, expected contractChaincodeContract) {
 	t.Helper()
 
@@ -642,6 +655,11 @@ func TestNewChaincode(t *testing.T) {
 	_, ok := contractChaincode.contracts["ignorableFuncContract"].functions["IgnoreMe"]
 	require.Nil(t, err, "should not return error for valid contract with ignores")
 	require.False(t, ok, "should not include ignored function")
+}
+
+func TestNewChaincodeOptionalFields(t *testing.T) {
+	_, err := NewChaincode(new(optionalFieldsContract))
+	require.NoError(t, err)
 }
 
 func TestStart(t *testing.T) {

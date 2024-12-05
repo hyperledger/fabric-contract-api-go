@@ -13,6 +13,7 @@ import (
 
 	"github.com/go-openapi/spec"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/xeipuuv/gojsonschema"
 )
 
@@ -339,75 +340,97 @@ func validateCompiledSchema(t *testing.T, propName string, propValue interface{}
 }
 
 func TestReadMetadataFile(t *testing.T) {
-	ContractMetaNumberOfCalls = 0
-	var metadata ContractChaincodeMetadata
-	var err error
-
-	oldOsHelper := osAbs
-
-	osAbs = osExcTestStr{}
-	metadata, err = ReadMetadataFile()
-	assert.EqualError(t, err, "failed to read metadata from file. Could not find location of executable. some error", "should error when cannot read file due to exec error")
-	assert.Equal(t, ContractChaincodeMetadata{}, metadata, "should return blank metadata when cannot read file due to exec error")
-
-	osAbs = osStatTestStr{}
-	metadata, err = ReadMetadataFile()
-	assert.EqualError(t, err, "failed to read metadata from file. Metadata file does not exist", "should error when cannot read file due to stat error")
-	assert.Equal(t, ContractChaincodeMetadata{}, metadata, "should return blank metadata when cannot read file due to stat error")
-
-	osAbs = osStatTestStrContractMeta{}
-	metadata, err = ReadMetadataFile()
-	assert.Equal(t, ContractMetaNumberOfCalls, 2, "Should check contract-metadata directory if META-INF doesn't contain metadata.json file")
-	assert.Contains(t, err.Error(), "failed to read metadata from file. Could not read file", "should error when cannot read file due to read error")
-	assert.Equal(t, ContractChaincodeMetadata{}, metadata, "should return blank metadata when cannot read file due to read error")
-	ContractMetaNumberOfCalls = 0
-
-	oldIoUtilHelper := ioutilAbs
-	osAbs = osWorkTestStr{}
-
-	ioutilAbs = ioUtilReadFileTestStr{}
-	metadata, err = ReadMetadataFile()
-	assert.Contains(t, err.Error(), "failed to read metadata from file. Could not read file", "should error when cannot read file due to read error")
-	assert.Equal(t, ContractChaincodeMetadata{}, metadata, "should return blank metadata when cannot read file due to read error")
-
-	ioutilAbs = ioUtilWorkTestStr{}
-	metadata, err = ReadMetadataFile()
-	assert.NoError(t, err, "should not return error when can read file")
-	metadataBytes := []byte("{\"info\":{\"title\":\"my contract\",\"version\":\"0.0.1\"},\"contracts\":{},\"components\":{}}")
 	expectedContractChaincodeMetadata := ContractChaincodeMetadata{}
-	err = json.Unmarshal(metadataBytes, &expectedContractChaincodeMetadata)
-	assert.NoError(t, err, "json unmarshal")
-	assert.Equal(t, expectedContractChaincodeMetadata, metadata, "should return contract metadata that was in the file")
+	metadataBytes := []byte("{\"info\":{\"title\":\"my contract\",\"version\":\"0.0.1\"},\"contracts\":{},\"components\":{}}")
+	require.NoError(t, json.Unmarshal(metadataBytes, &expectedContractChaincodeMetadata))
 
-	osAbs = osWorkTestStrContractMeta{}
-	metadata, err = ReadMetadataFile()
-	assert.Equal(t, ContractMetaNumberOfCalls, 2, "Should check contract-metadata directory if META-INF doesn't contain metadata.json file")
-	assert.Nil(t, err, "should not return error when can read file")
-	assert.Equal(t, expectedContractChaincodeMetadata, metadata, "should return contract metadata that was in the file")
-	ContractMetaNumberOfCalls = 0
+	t.Run("Exec error reading metadata file", func(t *testing.T) {
+		fakeOS(t, osExcTestStr{})
 
-	ioutilAbs = oldIoUtilHelper
-	osAbs = oldOsHelper
+		metadata, err := ReadMetadataFile()
+		assert.EqualError(t, err, "failed to read metadata from file. Could not find location of executable. some error", "should error when cannot read file due to exec error")
+		assert.Equal(t, ContractChaincodeMetadata{}, metadata, "should return blank metadata when cannot read file due to exec error")
+	})
+
+	t.Run("Stat error reading metadata file", func(t *testing.T) {
+		fakeOS(t, osStatTestStr{})
+
+		metadata, err := ReadMetadataFile()
+		assert.EqualError(t, err, "failed to read metadata from file. Metadata file does not exist", "should error when cannot read file due to stat error")
+		assert.Equal(t, ContractChaincodeMetadata{}, metadata, "should return blank metadata when cannot read file due to stat error")
+	})
+
+	t.Run("Error reading metadata file from contract-metadata directory", func(t *testing.T) {
+		fakeOS(t, osStatTestStrContractMeta{})
+		ContractMetaNumberOfCalls = 0
+
+		metadata, err := ReadMetadataFile()
+		assert.Equal(t, ContractMetaNumberOfCalls, 2, "Should check contract-metadata directory if META-INF doesn't contain metadata.json file")
+		assert.Contains(t, err.Error(), "failed to read metadata from file. Could not read file", "should error when cannot read file due to read error")
+		assert.Equal(t, ContractChaincodeMetadata{}, metadata, "should return blank metadata when cannot read file due to read error")
+	})
+
+	t.Run("Returns blank metadata on file read error", func(t *testing.T) {
+		fakeOS(t, osWorkTestStr{})
+		fakeIOUtil(t, ioUtilReadFileTestStr{})
+
+		metadata, err := ReadMetadataFile()
+		assert.Contains(t, err.Error(), "failed to read metadata from file. Could not read file", "should error when cannot read file due to read error")
+		assert.Equal(t, ContractChaincodeMetadata{}, metadata, "should return blank metadata when cannot read file due to read error")
+	})
+
+	t.Run("Returns contract metadata from META-INF", func(t *testing.T) {
+		fakeOS(t, osWorkTestStr{})
+		fakeIOUtil(t, ioUtilWorkTestStr{})
+
+		metadata, err := ReadMetadataFile()
+		assert.NoError(t, err, "should not return error when can read file")
+
+		assert.Equal(t, expectedContractChaincodeMetadata, metadata, "should return contract metadata that was in the file")
+	})
+
+	t.Run("Returns contract metadata from contract-metadata", func(t *testing.T) {
+		fakeOS(t, osWorkTestStrContractMeta{})
+		fakeIOUtil(t, ioUtilWorkTestStr{})
+		ContractMetaNumberOfCalls = 0
+
+		metadata, err := ReadMetadataFile()
+		assert.Equal(t, ContractMetaNumberOfCalls, 2, "Should check contract-metadata directory if META-INF doesn't contain metadata.json file")
+		assert.Nil(t, err, "should not return error when can read file")
+		assert.Equal(t, expectedContractChaincodeMetadata, metadata, "should return contract metadata that was in the file")
+	})
 }
 
 func TestValidateAgainstSchema(t *testing.T) {
-	var err error
+	fakeOS(t, osWorkTestStr{})
+	fakeIOUtil(t, ioUtilWorkTestStr{})
 
-	oldIoUtilHelper := ioutilAbs
-	oldOsHelper := osAbs
-	osAbs = osWorkTestStr{}
+	t.Run("Error on empty metadata", func(t *testing.T) {
+		err := ValidateAgainstSchema(ContractChaincodeMetadata{})
+		assert.EqualError(t, err, "cannot use metadata. Metadata did not match schema:\n1. (root): info is required\n2. contracts: Invalid type. Expected: object, given: null", "should error when metadata given does not match schema")
+	})
 
-	metadata := ContractChaincodeMetadata{}
+	t.Run("Valid metadata", func(t *testing.T) {
+		metadata, err := ReadMetadataFile()
+		require.NoError(t, err)
 
-	ioutilAbs = ioUtilWorkTestStr{}
+		err = ValidateAgainstSchema(metadata)
+		assert.NoError(t, err, "should not error for valid metadata")
+	})
+}
 
-	err = ValidateAgainstSchema(metadata)
-	assert.EqualError(t, err, "cannot use metadata. Metadata did not match schema:\n1. (root): info is required\n2. contracts: Invalid type. Expected: object, given: null", "should error when metadata given does not match schema")
+func fakeOS(t *testing.T, fake osInterface) {
+	previous := osAbs
+	t.Cleanup(func() {
+		osAbs = previous
+	})
+	osAbs = fake
+}
 
-	metadata, _ = ReadMetadataFile()
-	err = ValidateAgainstSchema(metadata)
-	assert.Nil(t, err, "should not error for valid metadata")
-
-	ioutilAbs = oldIoUtilHelper
-	osAbs = oldOsHelper
+func fakeIOUtil(t *testing.T, fake ioutilInterface) {
+	previous := ioutilAbs
+	t.Cleanup(func() {
+		ioutilAbs = previous
+	})
+	ioutilAbs = fake
 }
