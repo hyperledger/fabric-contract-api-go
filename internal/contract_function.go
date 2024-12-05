@@ -140,7 +140,10 @@ func (cf *ContractFunction) formatArgs(ctx reflect.Value, supplementaryMetadata 
 		}
 
 		c := make(chan formatArgResult)
-		go cf.formatArg(params[i], fieldType, paramMetadata, components, serializer, c)
+		go func(i int) {
+			defer close(c)
+			c <- cf.formatArg(params[i], fieldType, paramMetadata, components, serializer)
+		}(i)
 		channels = append(channels, c)
 	}
 
@@ -158,23 +161,20 @@ func (cf *ContractFunction) formatArgs(ctx reflect.Value, supplementaryMetadata 
 	return values, nil
 }
 
-func (cf *ContractFunction) formatArg(param string, fieldType reflect.Type, parameterMetadata *metadata.ParameterMetadata, components *metadata.ComponentMetadata, serializer serializer.TransactionSerializer, c chan formatArgResult) {
-	defer close(c)
-
+func (cf *ContractFunction) formatArg(param string, fieldType reflect.Type, parameterMetadata *metadata.ParameterMetadata, components *metadata.ComponentMetadata, serializer serializer.TransactionSerializer) formatArgResult {
 	converted, err := serializer.FromString(param, fieldType, parameterMetadata, components)
 
-	paramName := ""
+	var paramName string
 
 	if parameterMetadata != nil {
 		paramName = " " + parameterMetadata.Name
 	}
 
-	res := new(formatArgResult)
-	res.paramName = paramName
-	res.converted = converted
-	res.err = err
-
-	c <- *res
+	return formatArgResult{
+		paramName: paramName,
+		converted: converted,
+		err:       err,
+	}
 }
 
 func (cf *ContractFunction) handleResponse(response []reflect.Value, returnsMetadata *metadata.ReturnMetadata, components *metadata.ComponentMetadata, serializer serializer.TransactionSerializer) (string, interface{}, error) {

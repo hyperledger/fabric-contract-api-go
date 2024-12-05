@@ -5,11 +5,12 @@ go 1.21.0
 require (
 	github.com/cucumber/godog v0.15.0
 	github.com/go-openapi/spec v0.21.0
+	github.com/google/go-cmp v0.6.0
 	github.com/hyperledger/fabric-chaincode-go/v2 v2.0.0
 	github.com/hyperledger/fabric-protos-go-apiv2 v0.3.4
 	github.com/stretchr/testify v1.10.0
 	github.com/xeipuuv/gojsonschema v1.2.0
-	google.golang.org/protobuf v1.35.2
+	google.golang.org/protobuf v1.36.1
 )
 
 require (

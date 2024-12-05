@@ -355,6 +355,10 @@ var BasicTypes = map[reflect.Kind]basicType{
 	reflect.Interface: new(interfaceType),
 }
 
+func IsBytes(t reflect.Type) bool {
+	return (t.Kind() == reflect.Array || t.Kind() == reflect.Slice) && t.Elem().Kind() == reflect.Uint8
+}
+
 // ErrorType reflect type for errors
 var ErrorType = reflect.TypeOf((*error)(nil)).Elem()
 
