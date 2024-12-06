@@ -124,18 +124,12 @@ func (o osWorkTestStr) IsNotExist(err error) bool {
 // ================================
 
 func TestGetJSONSchema(t *testing.T) {
-	var schema []byte
-	var err error
+	expectedSchema, err := readLocalFile("schema/schema.json")
+	assert.NoError(t, err, "read schema file")
 
-	expectedSchema, expectedErr := readLocalFile("schema/schema.json")
-	schema, err = GetJSONSchema()
+	schema := GetJSONSchema()
 
-	if expectedErr != nil {
-		panic("TEST FAILED. Reading schema should not return error")
-	}
-
-	assert.Nil(t, err, "should not error when getting schema")
-	assert.Equal(t, expectedSchema, schema, "should return same schema as in file. Have you updated schema without running packr?")
+	assert.Equal(t, expectedSchema, schema, "should return same schema as in file")
 }
 
 func TestUnmarshalJSON(t *testing.T) {

@@ -4,6 +4,7 @@
 package metadata
 
 import (
+	_ "embed"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -12,7 +13,6 @@ import (
 	"reflect"
 
 	"github.com/go-openapi/spec"
-	"github.com/gobuffalo/packr"
 	"github.com/hyperledger/fabric-contract-api-go/v2/internal/utils"
 	"github.com/xeipuuv/gojsonschema"
 )
@@ -49,13 +49,12 @@ func (o osFront) IsNotExist(err error) bool {
 
 var osAbs osInterface = osFront{}
 
+//go:embed schema/schema.json
+var contractSchemaJson []byte
+
 // GetJSONSchema returns the JSON schema used for metadata
-func GetJSONSchema() ([]byte, error) {
-	box := packr.NewBox("./schema")
-
-	schema, err := box.Find("schema.json")
-
-	return schema, err
+func GetJSONSchema() []byte {
+	return contractSchemaJson
 }
 
 // ParameterMetadata details about a parameter used for a transaction.
@@ -275,15 +274,9 @@ func ReadMetadataFile() (ContractChaincodeMetadata, error) {
 // schema that defines valid metadata structure. If it does not meet the schema it
 // returns an error detailing why
 func ValidateAgainstSchema(metadata ContractChaincodeMetadata) error {
-	jsonSchema, err := GetJSONSchema()
-
-	if err != nil {
-		return fmt.Errorf("failed to read JSON schema. %s", err.Error())
-	}
-
 	metadataBytes, _ := json.Marshal(metadata)
 
-	schemaLoader := gojsonschema.NewBytesLoader(jsonSchema)
+	schemaLoader := gojsonschema.NewBytesLoader(GetJSONSchema())
 	metadataLoader := gojsonschema.NewBytesLoader(metadataBytes)
 
 	schema, _ := gojsonschema.NewSchema(schemaLoader)

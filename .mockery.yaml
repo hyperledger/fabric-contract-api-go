@@ -3,6 +3,7 @@ inpackage: true
 exported: true
 filename: "mock_{{.InterfaceName}}_test.go"
 mockname: "Mock{{.InterfaceName | firstUpper}}"
+issue-845-fix: true
 packages:
   github.com/hyperledger/fabric-contract-api-go/v2/contractapi:
     config:
