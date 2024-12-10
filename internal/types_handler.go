@@ -4,6 +4,7 @@
 package internal
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"sort"
@@ -30,7 +31,7 @@ func listBasicTypes() string {
 
 func arrayOfValidType(array reflect.Value, additionalTypes []reflect.Type) error {
 	if array.Len() < 1 {
-		return fmt.Errorf("arrays must have length greater than 0")
+		return errors.New("arrays must have length greater than 0")
 	}
 
 	return typeIsValid(array.Index(0).Type(), additionalTypes, false)
@@ -109,7 +110,7 @@ func typeIsValid(t reflect.Type, additionalTypes []reflect.Type, allowError bool
 
 func typeMatchesInterface(toMatch reflect.Type, iface reflect.Type) error {
 	if iface.Kind() != reflect.Interface {
-		return fmt.Errorf("type passed for interface is not an interface")
+		return errors.New("type passed for interface is not an interface")
 	}
 
 	for i := 0; i < iface.NumMethod(); i++ {

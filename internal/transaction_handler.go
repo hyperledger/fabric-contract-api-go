@@ -76,9 +76,9 @@ func NewTransactionHandler(fn interface{}, contextHandlerType reflect.Type, hand
 		str, _ := handlesType.String()
 		return nil, fmt.Errorf("%s transactions may not take any params other than the transaction context", str)
 	} else if handlesType == TransactionHandlerTypeAfter && len(cf.params.fields) > 1 {
-		return nil, fmt.Errorf("after transactions must take at most one non-context param")
+		return nil, errors.New("after transactions must take at most one non-context param")
 	} else if handlesType == TransactionHandlerTypeAfter && len(cf.params.fields) == 1 && cf.params.fields[0].Kind() != reflect.Interface {
-		return nil, fmt.Errorf("after transaction must take type interface{} as their only non-context param")
+		return nil, errors.New("after transaction must take type interface{} as their only non-context param")
 	}
 
 	th := TransactionHandler{
