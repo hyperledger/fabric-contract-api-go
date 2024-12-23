@@ -325,7 +325,7 @@ func TestGetSchema(t *testing.T) {
 	int32ArraySchema := spec.ArrayProperty(types.BasicTypes[reflect.Int32].GetSchema())
 	int64ArraySchema := spec.ArrayProperty(types.BasicTypes[reflect.Int64].GetSchema())
 	uintArraySchema := spec.ArrayProperty(types.BasicTypes[reflect.Uint].GetSchema())
-	uint8ArraySchema := spec.ArrayProperty(types.BasicTypes[reflect.Uint8].GetSchema())
+	uint8ArraySchema := spec.StrFmtProperty("byte")
 	uint16ArraySchema := spec.ArrayProperty(types.BasicTypes[reflect.Uint16].GetSchema())
 	uint32ArraySchema := spec.ArrayProperty(types.BasicTypes[reflect.Uint32].GetSchema())
 	uint64ArraySchema := spec.ArrayProperty(types.BasicTypes[reflect.Uint64].GetSchema())

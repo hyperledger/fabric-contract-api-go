@@ -25,32 +25,35 @@ func GetSchema(field reflect.Type, components *ComponentMetadata) (*spec.Schema,
 }
 
 func getSchema(field reflect.Type, components *ComponentMetadata, nested bool) (*spec.Schema, error) {
-	var schema *spec.Schema
-	var err error
+	if types.IsBytes(field) {
+		return spec.StrFmtProperty("byte"), nil
+	}
 
-	if bt, ok := types.BasicTypes[field.Kind()]; !ok {
-		if field == types.TimeType {
-			schema = spec.DateTimeProperty()
-		} else if field.Kind() == reflect.Array {
-			schema, err = buildArraySchema(reflect.New(field).Elem(), components, nested)
-		} else if field.Kind() == reflect.Slice {
-			schema, err = buildSliceSchema(reflect.MakeSlice(field, 1, 1), components, nested)
-		} else if field.Kind() == reflect.Map {
-			schema, err = buildMapSchema(reflect.MakeMap(field), components, nested)
-		} else if field.Kind() == reflect.Struct || (field.Kind() == reflect.Ptr && field.Elem().Kind() == reflect.Struct) {
-			schema, err = buildStructSchema(field, components, nested)
-		} else {
-			return nil, fmt.Errorf("%s was not a valid type", field.String())
-		}
-	} else {
+	if bt, ok := types.BasicTypes[field.Kind()]; ok {
 		return bt.GetSchema(), nil
 	}
 
-	if err != nil {
-		return nil, err
+	if field == types.TimeType {
+		return spec.DateTimeProperty(), nil
 	}
 
-	return schema, nil
+	if field.Kind() == reflect.Array {
+		return buildArraySchema(reflect.New(field).Elem(), components, nested)
+	}
+
+	if field.Kind() == reflect.Slice {
+		return buildSliceSchema(reflect.MakeSlice(field, 1, 1), components, nested)
+	}
+
+	if field.Kind() == reflect.Map {
+		return buildMapSchema(reflect.MakeMap(field), components, nested)
+	}
+
+	if field.Kind() == reflect.Struct || (field.Kind() == reflect.Ptr && field.Elem().Kind() == reflect.Struct) {
+		return buildStructSchema(field, components, nested)
+	}
+
+	return nil, fmt.Errorf("%s was not a valid type", field.String())
 }
 
 func buildArraySchema(array reflect.Value, components *ComponentMetadata, nested bool) (*spec.Schema, error) {

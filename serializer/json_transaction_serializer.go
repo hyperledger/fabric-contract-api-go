@@ -63,6 +63,8 @@ func (js *JSONSerializer) ToString(result reflect.Value, resultType reflect.Type
 	if !isNillableType(result.Kind()) || !result.IsNil() {
 		if resultType == types.TimeType {
 			str = result.Interface().(time.Time).Format(time.RFC3339)
+		} else if types.IsBytes(resultType) {
+			str = fmt.Sprintf("%s", result.Interface())
 		} else if isMarshallingType(resultType) || resultType.Kind() == reflect.Interface && isMarshallingType(result.Type()) {
 			bytes, _ := json.Marshal(result.Interface())
 			str = string(bytes)
@@ -102,6 +104,8 @@ func convertArg(fieldType reflect.Type, paramValue string) (reflect.Value, error
 		var t time.Time
 		t, err = time.Parse(time.RFC3339, paramValue)
 		converted = reflect.ValueOf(t)
+	} else if types.IsBytes(fieldType) {
+		converted = reflect.ValueOf([]byte(paramValue))
 	} else if fieldType.Kind() == reflect.Array || fieldType.Kind() == reflect.Slice || fieldType.Kind() == reflect.Map || fieldType.Kind() == reflect.Struct || (fieldType.Kind() == reflect.Ptr && fieldType.Elem().Kind() == reflect.Struct) {
 		converted, err = createArraySliceMapOrStruct(paramValue, fieldType)
 	} else {
@@ -147,5 +151,6 @@ func isNillableType(kind reflect.Kind) bool {
 }
 
 func isMarshallingType(typ reflect.Type) bool {
-	return typ.Kind() == reflect.Array || typ.Kind() == reflect.Slice || typ.Kind() == reflect.Map || typ.Kind() == reflect.Struct || (typ.Kind() == reflect.Ptr && isMarshallingType(typ.Elem()))
+	return !types.IsBytes(typ) &&
+		(typ.Kind() == reflect.Array || typ.Kind() == reflect.Slice || typ.Kind() == reflect.Map || typ.Kind() == reflect.Struct || (typ.Kind() == reflect.Ptr && isMarshallingType(typ.Elem())))
 }

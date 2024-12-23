@@ -156,39 +156,16 @@ func (cc *ContractChaincode) Init(stub shim.ChaincodeStubInterface) *peer.Respon
 // If no contract name is passed then the default contract is used.
 func (cc *ContractChaincode) Invoke(stub shim.ChaincodeStubInterface) *peer.Response {
 
-	nsFcn, params := stub.GetFunctionAndParameters()
+	ns, fn, params := cc.getNamespaceFunctionAndParams(stub)
 
-	li := strings.LastIndex(nsFcn, ":")
-
-	var ns string
-	var fn string
-
-	if li == -1 {
-		ns = cc.DefaultContract
-		fn = nsFcn
-	} else {
-		ns = nsFcn[:li]
-		fn = nsFcn[li+1:]
-	}
-
-	if _, ok := cc.contracts[ns]; !ok {
+	nsContract, ok := cc.contracts[ns]
+	if !ok {
 		return shim.Error(fmt.Sprintf("Contract not found with name %s", ns))
 	}
 
 	if fn == "" {
 		return shim.Error("Blank function name passed")
 	}
-
-	originalFn := fn
-
-	fnRune := []rune(fn)
-
-	if unicode.IsLower(fnRune[0]) {
-		fnRune[0] = unicode.ToUpper(fnRune[0])
-		fn = string(fnRune)
-	}
-
-	nsContract := cc.contracts[ns]
 
 	ctx := reflect.New(nsContract.transactionContextHandler)
 	ctxIface := ctx.Interface().(SettableTransactionContextInterface)
@@ -213,10 +190,10 @@ func (cc *ContractChaincode) Invoke(stub shim.ChaincodeStubInterface) *peer.Resp
 
 	serializer := cc.TransactionSerializer
 
-	if _, ok := nsContract.functions[fn]; !ok {
+	if contractFn, ok := nsContract.functions[toFirstRuneUpperCase(fn)]; !ok {
 		unknownTransaction := nsContract.unknownTransaction
 		if unknownTransaction == nil {
-			return shim.Error(fmt.Sprintf("Function %s not found in contract %s", originalFn, ns))
+			return shim.Error(fmt.Sprintf("Function %s not found in contract %s", fn, ns))
 		}
 
 		successReturn, successIFace, errorReturn = unknownTransaction.Call(ctx, nil, serializer)
@@ -230,7 +207,7 @@ func (cc *ContractChaincode) Invoke(stub shim.ChaincodeStubInterface) *peer.Resp
 			}
 		}
 
-		successReturn, successIFace, errorReturn = nsContract.functions[fn].Call(ctx, transactionSchema, &cc.metadata.Components, serializer, params...)
+		successReturn, successIFace, errorReturn = contractFn.Call(ctx, transactionSchema, &cc.metadata.Components, serializer, params...)
 	}
 
 	if errorReturn != nil {
@@ -248,6 +225,18 @@ func (cc *ContractChaincode) Invoke(stub shim.ChaincodeStubInterface) *peer.Resp
 	}
 
 	return shim.Success([]byte(successReturn))
+}
+
+func (cc *ContractChaincode) getNamespaceFunctionAndParams(stub shim.ChaincodeStubInterface) (string, string, []string) {
+	nsFn, params := stub.GetFunctionAndParameters()
+
+	nsIndex := strings.LastIndex(nsFn, ":")
+
+	if nsIndex == -1 {
+		return cc.DefaultContract, nsFn, params
+	}
+
+	return nsFn[:nsIndex], nsFn[nsIndex+1:], params
 }
 
 func (cc *ContractChaincode) addContract(contract ContractInterface, excludeFuncs []string) error {
@@ -506,4 +495,19 @@ func getBoolEnv(key string, defaultVal bool) bool {
 		return defaultVal
 	}
 	return value
+}
+
+func toFirstRuneUpperCase(text string) string {
+	if len(text) == 0 {
+		return text
+	}
+
+	runes := []rune(text)
+
+	if unicode.IsUpper(runes[0]) {
+		return text
+	}
+
+	runes[0] = unicode.ToUpper(runes[0])
+	return string(runes)
 }

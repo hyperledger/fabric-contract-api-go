@@ -11,6 +11,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/hyperledger/fabric-chaincode-go/v2/shim"
 	"github.com/hyperledger/fabric-contract-api-go/v2/internal"
 	"github.com/hyperledger/fabric-contract-api-go/v2/internal/utils"
@@ -18,7 +19,9 @@ import (
 	"github.com/hyperledger/fabric-contract-api-go/v2/serializer"
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/encoding/prototext"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/testing/protocmp"
 )
 
 // ================================
@@ -37,8 +40,36 @@ const (
 
 // AssertProtoEqual ensures an expected protobuf message matches an actual message
 func AssertProtoEqual(t *testing.T, expected proto.Message, actual proto.Message) {
-	t.Helper()
-	require.True(t, proto.Equal(expected, actual), "Expected %v, got %v", expected, actual)
+	if diff := cmp.Diff(expected, actual, protocmp.Transform()); diff != "" {
+		require.FailNow(t, fmt.Sprintf(
+			"Not equal:\nexpected: %s\nactual  : %s\n\nDiff:\n- Expected\n+ Actual\n\n%s",
+			formatProto(expected),
+			formatProto(actual),
+			diff,
+		))
+	}
+}
+
+func formatProto(message proto.Message) string {
+	if message == nil {
+		return fmt.Sprintf("%T", message)
+	}
+
+	marshal := prototext.MarshalOptions{
+		Multiline:    true,
+		Indent:       "\t",
+		AllowPartial: true,
+	}
+	formatted := strings.TrimSpace(marshal.Format(message))
+	return fmt.Sprintf("%s{\n%s\n}", protoMessageType(message), indent(formatted))
+}
+
+func protoMessageType(message proto.Message) string {
+	return string(message.ProtoReflect().Descriptor().Name())
+}
+
+func indent(text string) string {
+	return "\t" + strings.ReplaceAll(text, "\n", "\n\t")
 }
 
 type simpleStruct struct {
@@ -103,6 +134,14 @@ func (gc *goodContract) ReturnsError() error {
 }
 
 func (gc *goodContract) ReturnsNothing() {}
+
+func (gc *goodContract) ReturnsBytes() []byte {
+	return []byte("Some bytes")
+}
+
+func (gc *goodContract) AcceptsBytes(arg []byte) []byte {
+	return arg
+}
 
 func (gc *goodContract) CheckContextStub(ctx *TransactionContext) (string, error) {
 	if ctx.GetStub().GetTxID() != standardTxID {
@@ -266,6 +305,12 @@ func testCallingContractFunctions(t *testing.T, callType CallType) {
 
 	// should return success when function returns no error
 	callContractFunctionAndCheckSuccess(t, cc, []string{"goodContract:ReturnsString"}, callType, gc.ReturnsString())
+
+	// should return success when function returns slice of byte
+	callContractFunctionAndCheckSuccess(t, cc, []string{"goodContract:ReturnsBytes"}, callType, string(gc.ReturnsBytes()))
+
+	// should return success when function accepts slice of byte
+	callContractFunctionAndCheckSuccess(t, cc, []string{"goodContract:AcceptsBytes", "bytes message"}, callType, string("bytes message"))
 
 	// Should return error when function returns error
 	callContractFunctionAndCheckError(t, cc, []string{"goodContract:ReturnsError"}, callType, gc.ReturnsError().Error())
