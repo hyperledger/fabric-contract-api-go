@@ -5,6 +5,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/hyperledger/fabric-contract-api-go/v2/contractapi"
 )
@@ -28,7 +29,7 @@ func (sc *PrivateContract) GetPrivateState(ctx contractapi.TransactionContextInt
 	}
 
 	if bytes == nil {
-		return "", errors.New("No value found for " + key)
+		return "", fmt.Errorf("No value found for " + key)
 	}
 
 	return string(bytes), nil
