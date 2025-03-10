@@ -3,6 +3,9 @@
     "@hyperledger/fabric-chaincode-integration": "^0.8.4",
     "@hyperledger/fabric-gateway": "^1.5.0"
   },
+  "overrides": {
+    "axios": "^1.8.2"
+  }, 
   "scripts": {
     "test": "fabric-chaincode-integration"
   }
