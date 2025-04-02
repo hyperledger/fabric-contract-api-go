@@ -1,6 +1,6 @@
 module github.com/hyperledger/fabric-chaincode-integration/advancedtypes
 
-go 1.23.8
+go 1.23.0
 
 require github.com/hyperledger/fabric-contract-api-go/v2 v2.0.0
 
