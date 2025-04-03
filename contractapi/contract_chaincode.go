@@ -264,7 +264,7 @@ func (cc *ContractChaincode) addContract(contract ContractInterface, excludeFunc
 		ccn.info.Title = ns
 	}
 
-	contractType := reflect.PtrTo(reflect.TypeOf(contract).Elem())
+	contractType := reflect.PointerTo(reflect.TypeOf(contract).Elem())
 	contractValue := reflect.ValueOf(contract).Elem().Addr()
 
 	ut := contract.GetUnknownTransaction()
