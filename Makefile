@@ -5,7 +5,7 @@ base_dir := $(patsubst %/,%,$(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
 functional_dir := $(base_dir)/internal/functionaltests
 go_bin_dir := $(shell go env GOPATH)/bin
 
-mockery_version := 2.49.1
+mockery_version := 3.2.5
 kernel_name := $(shell uname -s)
 machine_hardware := $(shell uname -m)
 ifeq ($(machine_hardware), aarch64)
@@ -16,16 +16,11 @@ endif
 test: generate lint unit-test functional-test
 
 .PHONY: lint
-lint: staticcheck golangci-lint
-
-.PHONY: staticcheck
-staticcheck:
-	go install honnef.co/go/tools/cmd/staticcheck@latest
-	cd '$(base_dir)' && staticcheck -f stylish ./...
+lint: golangci-lint
 
 .PHONY: install-golangci-lint
 install-golangci-lint:
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b '$(go_bin_dir)'
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b '$(go_bin_dir)'
 
 $(go_bin_dir)/golangci-lint:
 	$(MAKE) install-golangci-lint

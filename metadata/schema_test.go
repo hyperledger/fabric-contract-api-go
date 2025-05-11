@@ -5,7 +5,6 @@ package metadata
 
 import (
 	"errors"
-	"fmt"
 	"reflect"
 	"testing"
 
@@ -13,6 +12,7 @@ import (
 	"github.com/hyperledger/fabric-contract-api-go/v2/internal/types"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // ================================
@@ -133,8 +133,8 @@ func testGetSchema(t *testing.T, typ reflect.Type, expectedSchema *spec.Schema) 
 
 	schema, err = GetSchema(typ, nil)
 
-	assert.Nil(t, err, fmt.Sprintf("err should be nil for type (%s)", typ.Name()))
-	assert.Equal(t, expectedSchema, schema, fmt.Sprintf("should return expected schema for type (%s)", typ.Name()))
+	require.NoError(t, err, "err should be nil for type (%s)", typ.Name())
+	assert.Equal(t, expectedSchema, schema, "should return expected schema for type (%s)", typ.Name())
 }
 
 // ================================
@@ -157,7 +157,7 @@ func TestBuildArraySchema(t *testing.T) {
 
 	schema, err = buildArraySchema(reflect.ValueOf([1]string{}), nil, false)
 	expectedLowerSchema, _ := getSchema(reflect.TypeOf(""), nil, false)
-	assert.Nil(t, err, "should not error for valid array")
+	require.NoError(t, err, "should not error for valid array")
 	assert.Equal(t, spec.ArrayProperty(expectedLowerSchema), schema, "should return array of lower schema")
 }
 
@@ -172,7 +172,7 @@ func TestBuildSliceSchema(t *testing.T) {
 
 	schema, err = buildSliceSchema(reflect.ValueOf([]string{}), nil, false)
 	expectedLowerSchema, _ := getSchema(reflect.TypeOf(""), nil, false)
-	assert.Nil(t, err, "should not error for valid slice")
+	require.NoError(t, err, "should not error for valid slice")
 	assert.Equal(t, spec.ArrayProperty(expectedLowerSchema), schema, "should return spec array of lower schema for slice")
 }
 
@@ -187,7 +187,7 @@ func TestBuildMapSchema(t *testing.T) {
 
 	schema, err = buildMapSchema(reflect.ValueOf(make(map[string]string)), nil, false)
 	expectedLowerSchema, _ := getSchema(reflect.TypeOf(""), nil, false)
-	assert.Nil(t, err, "should not error for valid map")
+	require.NoError(t, err, "should not error for valid map")
 	assert.Equal(t, spec.MapProperty(expectedLowerSchema), schema, "should return spec map of lower schema")
 }
 
@@ -205,30 +205,30 @@ func TestAddComponentIfNotExists(t *testing.T) {
 	components.Schemas["simpleStruct"] = someObject
 
 	err = addComponentIfNotExists(reflect.TypeOf(simpleStruct{}), components)
-	assert.Nil(t, err, "should return nil for error when component of name already exists")
-	assert.Equal(t, len(components.Schemas), 1, "should not have added a new component when one already exists")
+	require.NoError(t, err, "should return nil for error when component of name already exists")
+	assert.Len(t, components.Schemas, 1, "should not have added a new component when one already exists")
 	_, ok = components.Schemas["simpleStruct"].Properties["some property"]
 	assert.True(t, ok, "should not overwrite existing component")
 
 	err = addComponentIfNotExists(reflect.TypeOf(new(simpleStruct)), components)
-	assert.Nil(t, err, "should return nil for error when component of name already exists for pointer")
-	assert.Equal(t, len(components.Schemas), 1, "should not have added a new component when one already exists for pointer")
+	require.NoError(t, err, "should return nil for error when component of name already exists for pointer")
+	assert.Len(t, components.Schemas, 1, "should not have added a new component when one already exists for pointer")
 	_, ok = components.Schemas["simpleStruct"].Properties["some property"]
 	assert.True(t, ok, "should not overwrite existing component when already exists and pointer passed")
 
 	err = addComponentIfNotExists(reflect.TypeOf(badStruct{}), components)
 	_, expectedError := GetSchema(reflect.TypeOf(complex64(1)), components)
-	assert.EqualError(t, err, expectedError.Error(), "should use the same error as GetSchema when GetSchema errors")
+	require.EqualError(t, err, expectedError.Error(), "should use the same error as GetSchema when GetSchema errors")
 
 	components.Schemas = nil
 	err = addComponentIfNotExists(reflect.TypeOf(simpleStruct{}), components)
-	assert.Nil(t, err, "should not error when adding new component when schemas not initialised")
+	require.NoError(t, err, "should not error when adding new component when schemas not initialised")
 	assert.Equal(t, components.Schemas["simpleStruct"], simpleStructMetadata, "should set correct metadata for new component when schemas not initialised")
 
 	delete(components.Schemas, "simpleStruct")
 	components.Schemas["otherStruct"] = someObject
 	err = addComponentIfNotExists(reflect.TypeOf(simpleStruct{}), components)
-	assert.Nil(t, err, "should not error when adding new component")
+	require.NoError(t, err, "should not error when adding new component")
 	assert.Equal(t, components.Schemas["simpleStruct"], simpleStructMetadata, "should set correct metadata for new component")
 	assert.Equal(t, components.Schemas["otherStruct"], someObject, "should not affect existing components")
 }
@@ -243,23 +243,23 @@ func TestBuildStructSchema(t *testing.T) {
 	schema, err = buildStructSchema(reflect.TypeOf(badStruct{}), components, false)
 	expectedErr := addComponentIfNotExists(reflect.TypeOf(badStruct{}), components)
 	assert.Nil(t, schema, "spec should be nil when buildStructSchema fails from addComponentIfNotExists")
-	assert.NotNil(t, err, "error should not be nil")
+	require.Error(t, err, "error should not be nil")
 	assert.Equal(t, expectedErr, err, "should have same error as addComponentIfNotExists")
 
 	schema, err = buildStructSchema(reflect.TypeOf(simpleStruct{}), components, false)
-	assert.Nil(t, err, "should not return error when struct is good")
+	require.NoError(t, err, "should not return error when struct is good")
 	assert.Equal(t, schema, spec.RefSchema("#/components/schemas/simpleStruct"), "should make schema ref to component")
 	_, ok := components.Schemas["simpleStruct"]
 	assert.True(t, ok, "should have added component")
 
 	schema, err = buildStructSchema(reflect.TypeOf(simpleStruct{}), components, true)
-	assert.Nil(t, err, "should not return error when struct is good")
+	require.NoError(t, err, "should not return error when struct is good")
 	assert.Equal(t, schema, spec.RefSchema("simpleStruct"), "should make schema ref to component for nested ref")
 	_, ok = components.Schemas["simpleStruct"]
 	assert.True(t, ok, "should have added component for nested ref")
 
 	schema, err = buildStructSchema(reflect.TypeOf(new(simpleStruct)), components, false)
-	assert.Nil(t, err, "should not return error when pointer to struct is good")
+	require.NoError(t, err, "should not return error when pointer to struct is good")
 	assert.Equal(t, schema, spec.RefSchema("#/components/schemas/simpleStruct"), "should make schema ref to component")
 
 	_, ok = components.Schemas["simpleStruct"]
@@ -274,27 +274,27 @@ func TestGetSchema(t *testing.T) {
 	components := new(ComponentMetadata)
 
 	schema, err = GetSchema(badType, components)
-	assert.EqualError(t, err, "complex64 was not a valid type", "should return error for invalid type")
+	require.EqualError(t, err, "complex64 was not a valid type", "should return error for invalid type")
 	assert.Nil(t, schema, "should return no schema for bad type")
 
 	schema, err = GetSchema(badArrayType, components)
 	_, expectedErr = buildArraySchema(reflect.New(badArrayType).Elem(), components, false)
-	assert.EqualError(t, err, expectedErr.Error(), "should return error when build array errors")
+	require.EqualError(t, err, expectedErr.Error(), "should return error when build array errors")
 	assert.Nil(t, schema, "should return no schema when build array errors")
 
 	schema, err = GetSchema(badSliceType, components)
 	_, expectedErr = buildSliceSchema(reflect.MakeSlice(badSliceType, 1, 1), components, false)
-	assert.EqualError(t, err, expectedErr.Error(), "should return error when build slice errors")
+	require.EqualError(t, err, expectedErr.Error(), "should return error when build slice errors")
 	assert.Nil(t, schema, "should return no schema when build slice errors")
 
 	schema, err = GetSchema(badMapItemType, components)
 	_, expectedErr = buildMapSchema(reflect.MakeMap(badMapItemType), components, false)
-	assert.EqualError(t, err, expectedErr.Error(), "should return error when build map errors")
+	require.EqualError(t, err, expectedErr.Error(), "should return error when build map errors")
 	assert.Nil(t, schema, "should return no schema when build map errors")
 
 	schema, err = GetSchema(reflect.TypeOf(badStruct{}), components)
 	_, expectedErr = buildStructSchema(reflect.TypeOf(badStruct{}), components, false)
-	assert.EqualError(t, err, expectedErr.Error(), "should return error when build struct errors")
+	require.EqualError(t, err, expectedErr.Error(), "should return error when build struct errors")
 	assert.Nil(t, schema, "should return no schema when build struct errors")
 
 	// Test basic types
@@ -374,7 +374,7 @@ func TestGetSchema(t *testing.T) {
 	badSlice := []complex128{}
 	schema, err = GetSchema(reflect.TypeOf(badSlice), nil)
 
-	assert.EqualError(t, err, "complex128 was not a valid type", "should throw error when invalid type passed")
+	require.EqualError(t, err, "complex128 was not a valid type", "should throw error when invalid type passed")
 	assert.Nil(t, schema, "should not have returned a schema for an array of bad type")
 
 	// Should return an error when array is passed with sub array with a length of zero
@@ -435,7 +435,7 @@ func TestGetSchema(t *testing.T) {
 	badMixedArr := [1][][0]string{}
 	schema, err = GetSchema(reflect.TypeOf(badMixedArr), nil)
 
-	assert.EqualError(t, err, "arrays must have length greater than 0", "should throw error when 0 length array passed")
+	require.EqualError(t, err, "arrays must have length greater than 0", "should throw error when 0 length array passed")
 	assert.Nil(t, schema, "schema should be nil when sub array bad type")
 
 	// Should handle a valid struct and add to components
@@ -444,8 +444,8 @@ func TestGetSchema(t *testing.T) {
 
 	schema, err = GetSchema(reflect.TypeOf(simpleStruct{}), components)
 
-	assert.Nil(t, err, "should return nil when valid object")
-	assert.Equal(t, len(components.Schemas), 1, "should have added a new component")
+	require.NoError(t, err, "should return nil when valid object")
+	assert.Len(t, components.Schemas, 1, "should have added a new component")
 	assert.Equal(t, components.Schemas["simpleStruct"], simpleStructMetadata, "should have added correct metadata to components")
 	assert.Equal(t, schema, spec.RefSchema("#/components/schemas/simpleStruct"))
 
@@ -455,8 +455,8 @@ func TestGetSchema(t *testing.T) {
 
 	schema, err = GetSchema(reflect.TypeOf(new(simpleStruct)), components)
 
-	assert.Nil(t, err, "should return nil when valid object")
-	assert.Equal(t, len(components.Schemas), 1, "should have added a new component")
+	require.NoError(t, err, "should return nil when valid object")
+	assert.Len(t, components.Schemas, 1, "should have added a new component")
 	assert.Equal(t, components.Schemas["simpleStruct"], simpleStructMetadata, "should have added correct metadata to components")
 	assert.Equal(t, schema, spec.RefSchema("#/components/schemas/simpleStruct"))
 
@@ -466,8 +466,8 @@ func TestGetSchema(t *testing.T) {
 
 	schema, err = GetSchema(reflect.TypeOf([1]simpleStruct{}), components)
 
-	assert.Nil(t, err, "should return nil when valid object")
-	assert.Equal(t, len(components.Schemas), 1, "should have added a new component")
+	require.NoError(t, err, "should return nil when valid object")
+	assert.Len(t, components.Schemas, 1, "should have added a new component")
 	assert.Equal(t, components.Schemas["simpleStruct"], simpleStructMetadata, "should have added correct metadata to components")
 	assert.Equal(t, schema, spec.ArrayProperty(spec.RefSchema("#/components/schemas/simpleStruct")))
 
@@ -477,8 +477,8 @@ func TestGetSchema(t *testing.T) {
 
 	schema, err = GetSchema(reflect.TypeOf([]simpleStruct{}), components)
 
-	assert.Nil(t, err, "should return nil when valid object")
-	assert.Equal(t, len(components.Schemas), 1, "should have added a new component")
+	require.NoError(t, err, "should return nil when valid object")
+	assert.Len(t, components.Schemas, 1, "should have added a new component")
 	assert.Equal(t, components.Schemas["simpleStruct"], simpleStructMetadata, "should have added correct metadata to components")
 	assert.Equal(t, schema, spec.ArrayProperty(spec.RefSchema("#/components/schemas/simpleStruct")))
 
@@ -488,8 +488,8 @@ func TestGetSchema(t *testing.T) {
 
 	schema, err = GetSchema(reflect.TypeOf(new(complexStruct)), components)
 
-	assert.Nil(t, err, "should return nil when valid object")
-	assert.Equal(t, len(components.Schemas), 2, "should have added two new components")
+	require.NoError(t, err, "should return nil when valid object")
+	assert.Len(t, components.Schemas, 2, "should have added two new components")
 	assert.Equal(t, components.Schemas["simpleStruct"], simpleStructMetadata, "should have added correct metadata to components for sub struct")
 	assert.Equal(t, components.Schemas["complexStruct"], complexStructMetadata, "should have added correct metadata to components for main struct")
 	assert.Equal(t, schema, spec.RefSchema("#/components/schemas/complexStruct"))
@@ -500,8 +500,8 @@ func TestGetSchema(t *testing.T) {
 
 	schema, err = GetSchema(reflect.TypeOf(new(superComplexStruct)), components)
 
-	assert.Nil(t, err, "should return nil when valid object")
-	assert.Equal(t, len(components.Schemas), 3, "should have added two new components")
+	require.NoError(t, err, "should return nil when valid object")
+	assert.Len(t, components.Schemas, 3, "should have added two new components")
 	assert.Equal(t, components.Schemas["simpleStruct"], simpleStructMetadata, "should have added correct metadata to components for sub struct")
 	assert.Equal(t, components.Schemas["complexStruct"], complexStructMetadata, "should have added correct metadata to components for sub struct")
 	assert.Equal(t, components.Schemas["superComplexStruct"], superComplexStructMetadata, "should have added correct metadata to components for main struct")
@@ -514,6 +514,6 @@ func TestGetSchema(t *testing.T) {
 	schema, err = GetSchema(reflect.TypeOf(new(badStruct)), components)
 
 	assert.Nil(t, schema, "should not give back a schema when struct is bad")
-	assert.EqualError(t, err, "complex64 was not a valid type", "should return err when invalid object")
-	assert.Equal(t, len(components.Schemas), 0, "should not have added new component")
+	require.EqualError(t, err, "complex64 was not a valid type", "should return err when invalid object")
+	assert.Empty(t, components.Schemas, "should not have added new component")
 }

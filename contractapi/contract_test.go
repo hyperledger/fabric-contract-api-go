@@ -67,7 +67,7 @@ func TestGetInfo(t *testing.T) {
 func TestGetName(t *testing.T) {
 	mc := myContract{}
 
-	assert.Equal(t, "", mc.GetName(), "should have returned blank ns when not set")
+	assert.Empty(t, mc.GetName(), "should have returned blank ns when not set")
 
 	mc.Name = "myname"
 	assert.Equal(t, "myname", mc.GetName(), "should have returned custom ns when set")

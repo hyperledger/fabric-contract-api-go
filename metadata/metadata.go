@@ -50,11 +50,11 @@ func (o osFront) IsNotExist(err error) bool {
 var osAbs osInterface = osFront{}
 
 //go:embed schema/schema.json
-var contractSchemaJson []byte
+var contractSchemaJSON []byte
 
 // GetJSONSchema returns the JSON schema used for metadata
 func GetJSONSchema() []byte {
-	return contractSchemaJson
+	return contractSchemaJSON
 }
 
 // ParameterMetadata details about a parameter used for a transaction.
@@ -259,7 +259,7 @@ func ReadMetadataFile() (ContractChaincodeMetadata, error) {
 	metadataBytes, err := ioutilAbs.ReadFile(metadataPath)
 
 	if err != nil {
-		return ContractChaincodeMetadata{}, fmt.Errorf("failed to read metadata from file. Could not read file %s. %s", metadataPath, err)
+		return ContractChaincodeMetadata{}, fmt.Errorf("failed to read metadata from file. Could not read file %s. %w", metadataPath, err)
 	}
 
 	err = json.Unmarshal(metadataBytes, &fileMetadata)

@@ -1,28 +1,42 @@
-# See https://golangci-lint.run/usage/configuration/
-
-run:
-  timeout: 5m
-
+version: "2"
 linters:
-  disable-all: true
+  default: none
   enable:
+    - cyclop
     - errcheck
-    - gocyclo
-    - gofmt
+    - errname
+    - errorlint
+    - gocognit
     - goheader
-    - goimports
     - gosec
-    - gosimple
     - govet
     - ineffassign
     - misspell
-    - typecheck
+    - nolintlint
+    - staticcheck
+    - testifylint
     - unused
-
-linters-settings:
-  gocyclo:
-    min-complexity: 18
-  goheader:
-    template: |-
-      Copyright the Hyperledger Fabric contributors. All rights reserved.
-      SPDX-License-Identifier: Apache-2.0
+    - usetesting
+  settings:
+    cyclop:
+      max-complexity: 18
+    gocognit:
+      min-complexity: 26
+    goheader:
+      template: |-
+        Copyright the Hyperledger Fabric contributors. All rights reserved.
+        SPDX-License-Identifier: Apache-2.0
+    staticcheck:
+      checks:
+        - all
+        - -ST1000
+  exclusions:
+    generated: strict
+    presets:
+      - common-false-positives
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  exclusions:
+    generated: strict

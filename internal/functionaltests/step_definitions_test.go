@@ -61,7 +61,7 @@ type suiteContextKey struct{}
 
 func cleanup(ctx context.Context) {
 	if sc, ok := ctx.Value(suiteContextKey{}).(suiteContext); ok && sc.metadataFolder != "" {
-		os.RemoveAll(sc.metadataFolder)
+		_ = os.RemoveAll(sc.metadataFolder)
 	}
 }
 
@@ -190,16 +190,16 @@ func iAmUsingMetadataFile(ctx context.Context, file string) (context.Context, er
 
 	metadataBytes, err := os.ReadFile(metadataPath)
 	if err != nil {
-		return ctx, fmt.Errorf("failed to read metadata from file. Could not read file %s. %s", metadataPath, err)
+		return ctx, fmt.Errorf("failed to read metadata from file. Could not read file %s. %w", metadataPath, err)
 	}
 
 	metadataFolder := filepath.Join(exPath, metadata.MetadataFolder)
 
-	if err := os.MkdirAll(metadataFolder, os.ModePerm); err != nil {
+	if err := os.MkdirAll(metadataFolder, 0750); err != nil {
 		return ctx, err
 	}
 
-	if err := os.WriteFile(filepath.Join(metadataFolder, metadata.MetadataFile), metadataBytes, os.ModePerm); err != nil { //nolint:gosec
+	if err := os.WriteFile(filepath.Join(metadataFolder, metadata.MetadataFile), metadataBytes, 0600); err != nil {
 		return ctx, err
 	}
 

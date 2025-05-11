@@ -21,5 +21,5 @@ func TestReadLocalFile(t *testing.T) {
 	file, err = readLocalFile("schema/schema.json")
 	expectedFile, _ := os.ReadFile("./schema/schema.json")
 	assert.Equal(t, expectedFile, file, "should return same file")
-	assert.Nil(t, err, "should return same err")
+	assert.NoError(t, err, "should return same err")
 }

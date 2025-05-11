@@ -13,6 +13,7 @@ import (
 	metadata "github.com/hyperledger/fabric-contract-api-go/v2/metadata"
 	"github.com/hyperledger/fabric-contract-api-go/v2/serializer"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/xeipuuv/gojsonschema"
 )
 
@@ -205,20 +206,20 @@ func TestFormatArgs(t *testing.T) {
 
 	supplementaryMetadata.Parameters = []metadata.ParameterMetadata{}
 	args, err = fn.formatArgs(ctx, supplementaryMetadata.Parameters, nil, []string{}, serializer)
-	assert.EqualError(t, err, "incorrect number of params in supplementary metadata. Expected 2, received 0", "should return error when metadata is incorrect")
+	require.EqualError(t, err, "incorrect number of params in supplementary metadata. Expected 2, received 0", "should return error when metadata is incorrect")
 	assert.Nil(t, args, "should not return values when metadata error occurs")
 
 	args, err = fn.formatArgs(ctx, nil, nil, []string{}, serializer)
-	assert.EqualError(t, err, "incorrect number of params. Expected 2, received 0", "should return error when number of params is incorrect")
+	require.EqualError(t, err, "incorrect number of params. Expected 2, received 0", "should return error when number of params is incorrect")
 	assert.Nil(t, args, "should not return values when param error occurs")
 
 	_, fromStringErr := serializer.FromString("NaN", reflect.TypeOf(1), nil, nil)
 	args, err = fn.formatArgs(ctx, nil, nil, []string{"1", "NaN"}, serializer)
-	assert.EqualError(t, err, fmt.Sprintf("error managing parameter. %s", fromStringErr.Error()), "should return error when type of params is incorrect")
+	require.EqualError(t, err, fmt.Sprintf("error managing parameter. %s", fromStringErr.Error()), "should return error when type of params is incorrect")
 	assert.Nil(t, args, "should not return values when from string error occurs")
 
 	args, err = fn.formatArgs(ctx, nil, nil, []string{"1", "2"}, serializer)
-	assert.Nil(t, err, "should not error for valid values")
+	require.NoError(t, err, "should not error for valid values")
 	assert.Equal(t, 1, args[0].Interface(), "should return converted values")
 	assert.Equal(t, 2, args[1].Interface(), "should return converted values")
 
@@ -235,13 +236,13 @@ func TestFormatArgs(t *testing.T) {
 		},
 	}
 	args, err = fn.formatArgs(ctx, supplementaryMetadata.Parameters, nil, []string{"1", "2"}, serializer)
-	assert.Nil(t, err, "should not error for valid values which validates against metadata")
+	require.NoError(t, err, "should not error for valid values which validates against metadata")
 	assert.Equal(t, 1, args[0].Interface(), "should return converted values validated against metadata")
 	assert.Equal(t, 2, args[1].Interface(), "should return converted values validated against metadata")
 
 	fn.params.context = reflect.TypeOf(ctx)
 	args, err = fn.formatArgs(ctx, nil, nil, []string{"1", "2"}, serializer)
-	assert.Nil(t, err, "should not error for valid values with context")
+	require.NoError(t, err, "should not error for valid values with context")
 	assert.Equal(t, ctx, args[0], "should return converted values and context")
 	assert.Equal(t, 1, args[1].Interface(), "should return converted values and context")
 	assert.Equal(t, 2, args[2].Interface(), "should return converted values and context")
@@ -257,73 +258,73 @@ func TestMethodToContractFunctionParams(t *testing.T) {
 	badMethod, _ := getMethodByName(new(simpleStruct), "BadMethod")
 	validTypeErr = typeIsValid(reflect.TypeOf(complex64(1)), []reflect.Type{}, false)
 	params, err = methodToContractFunctionParams(badMethod, ctx)
-	assert.EqualError(t, err, fmt.Sprintf("BadMethod contains invalid parameter type. %s", validTypeErr.Error()), "should error when type is valid fails on first param")
-	assert.Equal(t, params, contractFunctionParams{}, "should return blank params for invalid first param type")
+	require.EqualError(t, err, fmt.Sprintf("BadMethod contains invalid parameter type. %s", validTypeErr.Error()), "should error when type is valid fails on first param")
+	assert.Equal(t, contractFunctionParams{}, params, "should return blank params for invalid first param type")
 
 	interfaceType := reflect.TypeOf((*BadTransactionInterface)(nil)).Elem()
 	badInterfaceMethod, _ := getMethodByName(new(simpleStruct), "BadTransactionInterfaceMethod")
 	matchesInterfaceErr := typeMatchesInterface(ctx, interfaceType)
 	params, err = methodToContractFunctionParams(badInterfaceMethod, ctx)
-	assert.EqualError(t, err, fmt.Sprintf("BadTransactionInterfaceMethod contains invalid transaction context interface type. Set transaction context for contract does not meet interface used in method. %s", matchesInterfaceErr.Error()), "should error when match on interface fails on first param")
-	assert.Equal(t, params, contractFunctionParams{}, "should return blank params for invalid first param type")
+	require.EqualError(t, err, fmt.Sprintf("BadTransactionInterfaceMethod contains invalid transaction context interface type. Set transaction context for contract does not meet interface used in method. %s", matchesInterfaceErr.Error()), "should error when match on interface fails on first param")
+	assert.Equal(t, contractFunctionParams{}, params, "should return blank params for invalid first param type")
 
 	badCtxMethod, _ := getMethodByName(new(simpleStruct), "BadTransactionMethod")
 	params, err = methodToContractFunctionParams(badCtxMethod, ctx)
-	assert.EqualError(t, err, "functions requiring the TransactionContext must require it as the first parameter. BadTransactionMethod takes it in as parameter 1", "should error when ctx in wrong position")
-	assert.Equal(t, params, contractFunctionParams{}, "should return blank params when context in wrong position")
+	require.EqualError(t, err, "functions requiring the TransactionContext must require it as the first parameter. BadTransactionMethod takes it in as parameter 1", "should error when ctx in wrong position")
+	assert.Equal(t, contractFunctionParams{}, params, "should return blank params when context in wrong position")
 
 	badMethodGoodTransaction, _ := getMethodByName(new(simpleStruct), "BadMethodGoodTransaction")
 	validTypeErr = typeIsValid(reflect.TypeOf(complex64(1)), []reflect.Type{}, false)
 	params, err = methodToContractFunctionParams(badMethodGoodTransaction, ctx)
-	assert.EqualError(t, err, fmt.Sprintf("BadMethodGoodTransaction contains invalid parameter type. %s", validTypeErr.Error()), "should error when type is valid fails but first param valid")
-	assert.Equal(t, params, contractFunctionParams{}, "should return blank params for invalid param type when first param is ctx")
+	require.EqualError(t, err, fmt.Sprintf("BadMethodGoodTransaction contains invalid parameter type. %s", validTypeErr.Error()), "should error when type is valid fails but first param valid")
+	assert.Equal(t, contractFunctionParams{}, params, "should return blank params for invalid param type when first param is ctx")
 
 	goodMethod, _ := getMethodByName(new(simpleStruct), "GoodMethod")
 	params, err = methodToContractFunctionParams(goodMethod, ctx)
-	assert.Nil(t, err, "should not error for valid function")
-	assert.Equal(t, params, contractFunctionParams{
+	require.NoError(t, err, "should not error for valid function")
+	assert.Equal(t, contractFunctionParams{
 		context: nil,
 		fields: []reflect.Type{
 			reflect.TypeOf(""),
 			reflect.TypeOf(""),
 		},
-	}, "should return params without context when none specified")
+	}, params, "should return params without context when none specified")
 
 	goodTransactionMethod, _ := getMethodByName(new(simpleStruct), "GoodTransactionMethod")
 	params, err = methodToContractFunctionParams(goodTransactionMethod, ctx)
-	assert.Nil(t, err, "should not error for valid function")
-	assert.Equal(t, params, contractFunctionParams{
+	require.NoError(t, err, "should not error for valid function")
+	assert.Equal(t, contractFunctionParams{
 		context: ctx,
 		fields: []reflect.Type{
 			reflect.TypeOf(""),
 			reflect.TypeOf(""),
 		},
-	}, "should return params with context when one specified")
+	}, params, "should return params with context when one specified")
 
 	goodTransactionInterfaceMethod, _ := getMethodByName(new(simpleStruct), "GoodTransactionInterfaceMethod")
 	params, err = methodToContractFunctionParams(goodTransactionInterfaceMethod, ctx)
-	assert.Nil(t, err, "should not error for valid function")
-	assert.Equal(t, params, contractFunctionParams{
+	require.NoError(t, err, "should not error for valid function")
+	assert.Equal(t, contractFunctionParams{
 		context: ctx,
 		fields: []reflect.Type{
 			reflect.TypeOf(""),
 			reflect.TypeOf(""),
 		},
-	}, "should return params with context when one specified")
+	}, params, "should return params with context when one specified")
 
 	method := new(simpleStruct).GoodMethod
 	funcMethod := reflect.Method{}
 	funcMethod.Func = reflect.ValueOf(method)
 	funcMethod.Type = reflect.TypeOf(method)
 	params, err = methodToContractFunctionParams(funcMethod, ctx)
-	assert.Nil(t, err, "should not error for valid function")
-	assert.Equal(t, params, contractFunctionParams{
+	require.NoError(t, err, "should not error for valid function")
+	assert.Equal(t, contractFunctionParams{
 		context: nil,
 		fields: []reflect.Type{
 			reflect.TypeOf(""),
 			reflect.TypeOf(""),
 		},
-	}, "should return params without context when none specified for method from function")
+	}, params, "should return params without context when none specified for method from function")
 }
 
 func TestMethodToContractFunctionReturns(t *testing.T) {
@@ -333,53 +334,53 @@ func TestMethodToContractFunctionReturns(t *testing.T) {
 
 	badReturnMethod, _ := getMethodByName(new(simpleStruct), "BadReturnMethod")
 	returns, err = methodToContractFunctionReturns(badReturnMethod)
-	assert.EqualError(t, err, "functions may only return a maximum of two values. BadReturnMethod returns 3", "should error when more than two return values")
-	assert.Equal(t, returns, contractFunctionReturns{}, "should return nothing for returns when errors for bad return length")
+	require.EqualError(t, err, "functions may only return a maximum of two values. BadReturnMethod returns 3", "should error when more than two return values")
+	assert.Equal(t, contractFunctionReturns{}, returns, "should return nothing for returns when errors for bad return length")
 
 	badMethod, _ := getMethodByName(new(simpleStruct), "BadMethod")
 	invalidTypeError = typeIsValid(reflect.TypeOf(complex64(1)), []reflect.Type{reflect.TypeOf((*error)(nil)).Elem()}, true)
 	returns, err = methodToContractFunctionReturns(badMethod)
-	assert.EqualError(t, err, fmt.Sprintf("BadMethod contains invalid single return type. %s", invalidTypeError.Error()), "should error when bad return type on single return")
-	assert.Equal(t, returns, contractFunctionReturns{}, "should return nothing for returns when errors for single return type")
+	require.EqualError(t, err, fmt.Sprintf("BadMethod contains invalid single return type. %s", invalidTypeError.Error()), "should error when bad return type on single return")
+	assert.Equal(t, contractFunctionReturns{}, returns, "should return nothing for returns when errors for single return type")
 
 	badMethodFirstReturn, _ := getMethodByName(new(simpleStruct), "BadMethodFirstReturn")
 	invalidTypeError = typeIsValid(reflect.TypeOf(complex64(1)), []reflect.Type{}, true)
 	returns, err = methodToContractFunctionReturns(badMethodFirstReturn)
-	assert.EqualError(t, err, fmt.Sprintf("BadMethodFirstReturn contains invalid first return type. %s", invalidTypeError.Error()), "should error when bad return type on first return")
-	assert.Equal(t, returns, contractFunctionReturns{}, "should return nothing for returns when errors for first return type")
+	require.EqualError(t, err, fmt.Sprintf("BadMethodFirstReturn contains invalid first return type. %s", invalidTypeError.Error()), "should error when bad return type on first return")
+	assert.Equal(t, contractFunctionReturns{}, returns, "should return nothing for returns when errors for first return type")
 
 	badMethodSecondReturn, _ := getMethodByName(new(simpleStruct), "BadMethodSecondReturn")
 	returns, err = methodToContractFunctionReturns(badMethodSecondReturn)
-	assert.EqualError(t, err, "BadMethodSecondReturn contains invalid second return type. Type string is not valid. Expected error", "should error when bad return type on second return")
-	assert.Equal(t, returns, contractFunctionReturns{}, "should return nothing for returns when errors for second return type")
+	require.EqualError(t, err, "BadMethodSecondReturn contains invalid second return type. Type string is not valid. Expected error", "should error when bad return type on second return")
+	assert.Equal(t, contractFunctionReturns{}, returns, "should return nothing for returns when errors for second return type")
 
 	goodMethodNoReturn, _ := getMethodByName(new(simpleStruct), "GoodMethodNoReturn")
 	returns, err = methodToContractFunctionReturns(goodMethodNoReturn)
-	assert.Nil(t, err, "should not error when no return specified")
-	assert.Equal(t, returns, contractFunctionReturns{nil, false}, "should return contractFunctionReturns for no return types")
+	require.NoError(t, err, "should not error when no return specified")
+	assert.Equal(t, contractFunctionReturns{nil, false}, returns, "should return contractFunctionReturns for no return types")
 
 	goodMethod, _ := getMethodByName(new(simpleStruct), "GoodMethod")
 	returns, err = methodToContractFunctionReturns(goodMethod)
-	assert.Nil(t, err, "should not error when single non error return type specified")
-	assert.Equal(t, returns, contractFunctionReturns{reflect.TypeOf(""), false}, "should return contractFunctionReturns for single error return types")
+	require.NoError(t, err, "should not error when single non error return type specified")
+	assert.Equal(t, contractFunctionReturns{reflect.TypeOf(""), false}, returns, "should return contractFunctionReturns for single error return types")
 
 	goodErrorMethod, _ := getMethodByName(new(simpleStruct), "GoodErrorMethod")
 	returns, err = methodToContractFunctionReturns(goodErrorMethod)
-	assert.Nil(t, err, "should not error when single error return type specified")
-	assert.Equal(t, returns, contractFunctionReturns{nil, true}, "should return contractFunctionReturns for single error return types")
+	require.NoError(t, err, "should not error when single error return type specified")
+	assert.Equal(t, contractFunctionReturns{nil, true}, returns, "should return contractFunctionReturns for single error return types")
 
 	goodReturnMethod, _ := getMethodByName(new(simpleStruct), "GoodReturnMethod")
 	returns, err = methodToContractFunctionReturns(goodReturnMethod)
-	assert.Nil(t, err, "should not error when good double return type specified")
-	assert.Equal(t, returns, contractFunctionReturns{reflect.TypeOf(""), true}, "should return contractFunctionReturns for double return types")
+	require.NoError(t, err, "should not error when good double return type specified")
+	assert.Equal(t, contractFunctionReturns{reflect.TypeOf(""), true}, returns, "should return contractFunctionReturns for double return types")
 
 	method := new(simpleStruct).GoodReturnMethod
 	funcMethod := reflect.Method{}
 	funcMethod.Func = reflect.ValueOf(method)
 	funcMethod.Type = reflect.TypeOf(method)
 	returns, err = methodToContractFunctionReturns(funcMethod)
-	assert.Nil(t, err, "should not error when good double return type specified when method got from function")
-	assert.Equal(t, returns, contractFunctionReturns{reflect.TypeOf(""), true}, "should return contractFunctionReturns for double return types when method got from function")
+	require.NoError(t, err, "should not error when good double return type specified when method got from function")
+	assert.Equal(t, contractFunctionReturns{reflect.TypeOf(""), true}, returns, "should return contractFunctionReturns for double return types when method got from function")
 }
 
 func TestParseMethod(t *testing.T) {
@@ -392,14 +393,14 @@ func TestParseMethod(t *testing.T) {
 	badMethod, _ := getMethodByName(new(simpleStruct), "BadMethod")
 	_, paramErr := methodToContractFunctionParams(badMethod, ctx)
 	params, returns, err = parseMethod(badMethod, ctx)
-	assert.EqualError(t, err, paramErr.Error(), "should return an error when get params errors")
+	require.EqualError(t, err, paramErr.Error(), "should return an error when get params errors")
 	assert.Equal(t, contractFunctionParams{}, params, "should return no param detail when get params errors")
 	assert.Equal(t, contractFunctionReturns{}, returns, "should return no return detail when get params errors")
 
 	badReturnMethod, _ := getMethodByName(new(simpleStruct), "BadReturnMethod")
 	_, returnErr := methodToContractFunctionReturns(badReturnMethod)
 	params, returns, err = parseMethod(badReturnMethod, ctx)
-	assert.EqualError(t, err, returnErr.Error(), "should return an error when get returns errors")
+	require.EqualError(t, err, returnErr.Error(), "should return an error when get returns errors")
 	assert.Equal(t, contractFunctionParams{}, params, "should return no param detail when get returns errors")
 	assert.Equal(t, contractFunctionReturns{}, returns, "should return no return detail when get returns errors")
 
@@ -407,7 +408,7 @@ func TestParseMethod(t *testing.T) {
 	expectedParam, _ := methodToContractFunctionParams(goodMethod, ctx)
 	expectedReturn, _ := methodToContractFunctionReturns(goodMethod)
 	params, returns, err = parseMethod(goodMethod, ctx)
-	assert.Nil(t, err, "should not error for valid function")
+	require.NoError(t, err, "should not error for valid function")
 	assert.Equal(t, expectedParam, params, "should return params for valid function")
 	assert.Equal(t, expectedReturn, returns, "should return returns for valid function")
 }
@@ -430,7 +431,7 @@ func TestNewContractFunction(t *testing.T) {
 
 	cf := newContractFunction(fnValue, CallTypeEvaluate, params, returns)
 
-	assert.Equal(t, cf, expectedCf, "should create contract function from passed in components")
+	assert.Equal(t, expectedCf, cf, "should create contract function from passed in components")
 }
 
 func TestNewContractFunctionFromFunc(t *testing.T) {
@@ -442,7 +443,7 @@ func TestNewContractFunctionFromFunc(t *testing.T) {
 	ctx := reflect.TypeOf(new(TransactionContext))
 
 	cf, err = NewContractFunctionFromFunc("", CallTypeSubmit, ctx)
-	assert.EqualError(t, err, "cannot create new contract function from string. Can only use func", "should return error if interface passed not a func")
+	require.EqualError(t, err, "cannot create new contract function from string. Can only use func", "should return error if interface passed not a func")
 	assert.Nil(t, cf, "should not return contract function if interface passed not a func")
 
 	method = new(simpleStruct).BadMethod
@@ -451,7 +452,7 @@ func TestNewContractFunctionFromFunc(t *testing.T) {
 	funcMethod.Type = reflect.TypeOf(method)
 	_, _, parseErr := parseMethod(funcMethod, ctx)
 	cf, err = NewContractFunctionFromFunc(method, CallTypeSubmit, ctx)
-	assert.EqualError(t, err, parseErr.Error(), "should return error from failed parsing")
+	require.EqualError(t, err, parseErr.Error(), "should return error from failed parsing")
 	assert.Nil(t, cf, "should not return contract function if parse fails")
 
 	method = new(simpleStruct).GoodMethod
@@ -461,7 +462,7 @@ func TestNewContractFunctionFromFunc(t *testing.T) {
 	params, returns, _ := parseMethod(funcMethod, ctx)
 	expectedCf := newContractFunction(reflect.ValueOf(method), CallTypeSubmit, params, returns)
 	cf, err = NewContractFunctionFromFunc(method, CallTypeSubmit, ctx)
-	assert.Nil(t, err, "should not error when parse successful from func")
+	require.NoError(t, err, "should not error when parse successful from func")
 	assert.Equal(t, expectedCf, cf, "should return contract function for good method from func")
 }
 
@@ -474,14 +475,14 @@ func TestNewContractFunctionFromReflect(t *testing.T) {
 	badMethod, badMethodValue := getMethodByName(new(simpleStruct), "BadMethod")
 	_, _, parseErr := parseMethod(badMethod, ctx)
 	cf, err = NewContractFunctionFromReflect(badMethod, badMethodValue, CallTypeEvaluate, ctx)
-	assert.EqualError(t, err, parseErr.Error(), "should return parse error on parsing failure")
+	require.EqualError(t, err, parseErr.Error(), "should return parse error on parsing failure")
 	assert.Nil(t, cf, "should not return contract function on error")
 
 	goodMethod, goodMethodValue := getMethodByName(new(simpleStruct), "GoodMethod")
 	params, returns, _ := parseMethod(goodMethod, ctx)
 	expectedCf := newContractFunction(goodMethodValue, CallTypeEvaluate, params, returns)
 	cf, err = NewContractFunctionFromReflect(goodMethod, goodMethodValue, CallTypeEvaluate, ctx)
-	assert.Nil(t, err, "should not error when parse successful from reflect")
+	require.NoError(t, err, "should not error when parse successful from reflect")
 	assert.Equal(t, expectedCf, cf, "should return contract function for good method from reflect")
 }
 
@@ -541,13 +542,13 @@ func TestCall(t *testing.T) {
 
 	actualStr, actualIface, actualErr = testCf.Call(ctx, nil, nil, serializer, "some data")
 	_, expectedErr = testCf.formatArgs(ctx, nil, nil, []string{"some data"}, serializer)
-	assert.EqualError(t, actualErr, expectedErr.Error(), "should error when formatting args fails")
+	require.EqualError(t, actualErr, expectedErr.Error(), "should error when formatting args fails")
 	assert.Nil(t, actualIface, "should not return an interface when format args fails")
-	assert.Equal(t, "", actualStr, "should return empty string when format args fails")
+	assert.Empty(t, actualStr, "should return empty string when format args fails")
 
 	expectedStr, expectedIface, expectedErr = testCf.handleResponse([]reflect.Value{reflect.ValueOf("helloworld")}, nil, nil, serializer)
 	actualStr, actualIface, actualErr = testCf.Call(ctx, nil, nil, serializer, "hello", "world")
-	assert.Equal(t, actualErr, expectedErr, "should return same error as handle response for good function")
+	assert.Equal(t, expectedErr, actualErr, "should return same error as handle response for good function")
 	assert.Equal(t, expectedStr, actualStr, "should return same string as handle response for good function and params")
 	assert.Equal(t, expectedIface, actualIface, "should return same interface as handle response for good function and params")
 
@@ -567,7 +568,7 @@ func TestCall(t *testing.T) {
 	schema.Returns = metadata.ReturnMetadata{Schema: spec.StringProperty(), CompiledSchema: compiled}
 	expectedStr, expectedIface, expectedErr = testCf.handleResponse([]reflect.Value{reflect.ValueOf("helloworld")}, &schema.Returns, nil, serializer)
 	actualStr, actualIface, actualErr = testCf.Call(ctx, &schema, nil, serializer, "hello", "world")
-	assert.Equal(t, actualErr, expectedErr, "should return same error as handle response for good function with schema")
+	assert.Equal(t, expectedErr, actualErr, "should return same error as handle response for good function with schema")
 	assert.Equal(t, expectedStr, actualStr, "should return same string as handle response for good function and params with schema")
 	assert.Equal(t, expectedIface, actualIface, "should return same interface as handle response for good function and params with schema")
 }
