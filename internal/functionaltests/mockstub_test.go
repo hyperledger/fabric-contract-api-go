@@ -345,6 +345,25 @@ func (stub *MockStub) GetPrivateDataValidationParameter(collection, key string) 
 	return nil, errors.New("not implemented")
 }
 
+func (stub *MockStub) FinishWriteBatch() error {
+	return errors.New("not implemented")
+}
+
+func (stub *MockStub) GetAllStatesCompositeKeyWithPagination(pageSize int32,
+	bookmark string) (shim.StateQueryIteratorInterface, *peer.QueryResponseMetadata, error) {
+	return nil, nil, errors.New("not implemented")
+}
+
+func (stub *MockStub) GetMultiplePrivateData(collection string, keys ...string) ([][]byte, error) {
+	return nil, errors.New("not implemented")
+}
+
+func (stub *MockStub) GetMultipleStates(keys ...string) ([][]byte, error) {
+	return nil, errors.New("not implemented")
+}
+
+func (stub *MockStub) StartWriteBatch() {}
+
 // NewMockStub Constructor to initialise the internal State map
 func NewMockStub(cc shim.Chaincode) *MockStub {
 	return &MockStub{
