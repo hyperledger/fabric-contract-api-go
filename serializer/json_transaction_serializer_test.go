@@ -14,6 +14,7 @@ import (
 	"github.com/hyperledger/fabric-contract-api-go/v2/internal/types"
 	"github.com/hyperledger/fabric-contract-api-go/v2/metadata"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/xeipuuv/gojsonschema"
 )
 
@@ -69,8 +70,8 @@ func testConvertArgsBasicType(t *testing.T, expected interface{}, str string) {
 
 	expectedValue, _ = types.BasicTypes[typ.Kind()].Convert(str)
 	actualValue, actualErr = convertArg(typ, str)
-	assert.Nil(t, actualErr, fmt.Sprintf("should not return an error on good convert (%s)", typ.Name()))
-	assert.Equal(t, expectedValue.Interface(), actualValue.Interface(), fmt.Sprintf("should return same value as convert for good convert (%s)", typ.Name()))
+	require.NoError(t, actualErr, "should not return an error on good convert (%s)", typ.Name())
+	assert.Equal(t, expectedValue.Interface(), actualValue.Interface(), "should return same value as convert for good convert (%s)", typ.Name())
 }
 
 func testConvertArgsComplexType(t *testing.T, expected interface{}, str string) {
@@ -84,8 +85,8 @@ func testConvertArgsComplexType(t *testing.T, expected interface{}, str string) 
 
 	expectedValue, _ = createArraySliceMapOrStruct(str, typ)
 	actualValue, actualErr = convertArg(typ, str)
-	assert.Nil(t, actualErr, fmt.Sprintf("should not return an error on good complex convert (%s)", typ.Name()))
-	assert.Equal(t, expectedValue.Interface(), actualValue.Interface(), fmt.Sprintf("should return same value as convert for good complex convert (%s)", typ.Name()))
+	require.NoError(t, actualErr, "should not return an error on good complex convert (%s)", typ.Name())
+	assert.Equal(t, expectedValue.Interface(), actualValue.Interface(), "should return same value as convert for good complex convert (%s)", typ.Name())
 }
 
 // ================================
@@ -136,23 +137,23 @@ func TestCreateArraySliceMapOrStruct(t *testing.T) {
 
 	arrType := reflect.TypeOf([1]string{})
 	val, err = createArraySliceMapOrStruct("bad json", arrType)
-	assert.EqualError(t, err, fmt.Sprintf("value %s was not passed in expected format %s", "bad json", arrType.String()), "should error when JSON marshall fails")
+	require.EqualError(t, err, fmt.Sprintf("value %s was not passed in expected format %s", "bad json", arrType.String()), "should error when JSON marshall fails")
 	assert.Equal(t, reflect.Value{}, val, "should return an empty value when error found")
 
 	val, err = createArraySliceMapOrStruct("[\"array\"]", arrType)
-	assert.Nil(t, err, "should not error for valid array JSON")
+	require.NoError(t, err, "should not error for valid array JSON")
 	assert.Equal(t, [1]string{"array"}, val.Interface().([1]string), "should produce populated array")
 
 	val, err = createArraySliceMapOrStruct("[\"slice\", \"slice\", \"baby\"]", reflect.TypeOf([]string{}))
-	assert.Nil(t, err, "should not error for valid slice JSON")
+	require.NoError(t, err, "should not error for valid slice JSON")
 	assert.Equal(t, []string{"slice", "slice", "baby"}, val.Interface().([]string), "should produce populated slice")
 
 	val, err = createArraySliceMapOrStruct("{\"Prop1\": \"value\"}", reflect.TypeOf(simpleStruct{}))
-	assert.Nil(t, err, "should not error for valid struct json")
+	require.NoError(t, err, "should not error for valid struct json")
 	assert.Equal(t, simpleStruct{"value", ""}, val.Interface().(simpleStruct), "should produce populated struct")
 
 	val, err = createArraySliceMapOrStruct("{\"key\": 1}", reflect.TypeOf(make(map[string]int)))
-	assert.Nil(t, err, "should not error for valid map JSON")
+	require.NoError(t, err, "should not error for valid map JSON")
 	assert.Equal(t, map[string]int{"key": 1}, val.Interface().(map[string]int), "should produce populated map")
 }
 
@@ -164,12 +165,12 @@ func TestConvertArg(t *testing.T) {
 	_, expectedErr = types.BasicTypes[reflect.Int].Convert("NaN")
 	actualValue, actualErr = convertArg(reflect.TypeOf(1), "NaN")
 	assert.Equal(t, reflect.Value{}, actualValue, "should not return a value when basic type conversion fails")
-	assert.EqualError(t, actualErr, fmt.Sprintf("conversion error. %s", expectedErr.Error()), "should error on basic type conversion error using message")
+	require.EqualError(t, actualErr, fmt.Sprintf("conversion error. %s", expectedErr.Error()), "should error on basic type conversion error using message")
 
 	_, expectedErr = createArraySliceMapOrStruct("Not an array", reflect.TypeOf([1]string{}))
 	actualValue, actualErr = convertArg(reflect.TypeOf([1]string{}), "Not an array")
 	assert.Equal(t, reflect.Value{}, actualValue, "should not return a value when complex type conversion fails")
-	assert.EqualError(t, actualErr, fmt.Sprintf("conversion error. %s", expectedErr.Error()), "should error on complex type conversion error using message")
+	require.EqualError(t, actualErr, fmt.Sprintf("conversion error. %s", expectedErr.Error()), "should error on complex type conversion error using message")
 
 	// should handle basic types
 	testConvertArgsBasicType(t, "some string", "some string")
@@ -194,7 +195,7 @@ func TestConvertArg(t *testing.T) {
 
 	// should handle time
 	actualValue, actualErr = convertArg(types.TimeType, "2002-10-02T15:00:00Z")
-	assert.Nil(t, actualErr, "should not return error for RFC3339 type")
+	require.NoError(t, actualErr, "should not return error for RFC3339 type")
 	expectedTime, _ := time.Parse(time.RFC3339, "2002-10-02T15:00:00Z")
 	assert.Equal(t, expectedTime, actualValue.Interface(), "should create error using string for error type")
 }
@@ -216,7 +217,7 @@ func TestValidateAgainstSchema(t *testing.T) {
 
 	comparisonSchema = createGoJSONSchemaSchema("prop", types.BasicTypes[reflect.Uint].GetSchema(), components)
 	err = validateAgainstSchema("prop", reflect.TypeOf(10), "10", 10, comparisonSchema)
-	assert.Nil(t, err, "should not error when matches schema")
+	require.NoError(t, err, "should not error when matches schema")
 
 	expectedStruct := new(simpleStruct)
 	expectedStruct.Prop1 = "hello"
@@ -224,7 +225,7 @@ func TestValidateAgainstSchema(t *testing.T) {
 	schema, _ := metadata.GetSchema(reflect.TypeOf(expectedStruct), components)
 	comparisonSchema = createGoJSONSchemaSchema("prop", schema, components)
 	err = validateAgainstSchema("prop", reflect.TypeOf(expectedStruct), string(bytes), expectedStruct, comparisonSchema)
-	assert.Nil(t, err, "should handle struct")
+	require.NoError(t, err, "should handle struct")
 }
 
 func TestFromString(t *testing.T) {
@@ -239,7 +240,7 @@ func TestFromString(t *testing.T) {
 
 	value, err = serializer.FromString("some string", reflect.TypeOf(1), nil, nil)
 	_, expectedErr = convertArg(reflect.TypeOf(1), "some string")
-	assert.EqualError(t, err, expectedErr.Error(), "should error when convertArg errors")
+	require.EqualError(t, err, expectedErr.Error(), "should error when convertArg errors")
 	assert.Equal(t, reflect.Value{}, value, "should return an empty reflect value when it errors due to convertArg")
 
 	float := float64(2)
@@ -249,11 +250,11 @@ func TestFromString(t *testing.T) {
 	paramMetadata = metadata.ParameterMetadata{Name: "param1", Schema: schema, CompiledSchema: compiledSchema}
 	value, err = serializer.FromString("1", reflect.TypeOf(1), &paramMetadata, nil)
 	expectedErr = validateAgainstSchema("param1", reflect.TypeOf(1), "1", 1, compiledSchema)
-	assert.EqualError(t, err, expectedErr.Error(), "should error when validateAgainstSchema errors")
+	require.EqualError(t, err, expectedErr.Error(), "should error when validateAgainstSchema errors")
 	assert.Equal(t, reflect.Value{}, value, "should return an empty reflect value when it errors due to validateAgainstSchema")
 
 	value, err = serializer.FromString("1234", reflect.TypeOf(1), nil, nil)
-	assert.Nil(t, err, "should not error when convert args passes and no schema")
+	require.NoError(t, err, "should not error when convert args passes and no schema")
 	assert.Equal(t, reflect.ValueOf(1234).Interface(), value.Interface(), "should reflect value for converted arg")
 
 	expectedStruct := new(simpleStruct)
@@ -263,7 +264,7 @@ func TestFromString(t *testing.T) {
 	compiledSchema = createGoJSONSchemaSchema("param1", schema, components)
 	paramMetadata = metadata.ParameterMetadata{Name: "param1", Schema: schema, CompiledSchema: compiledSchema}
 	value, err = serializer.FromString("{\"prop1\":\"hello\"}", reflect.TypeOf(expectedStruct), &paramMetadata, components)
-	assert.Nil(t, err, "should not error when convert args passes and schema passes")
+	require.NoError(t, err, "should not error when convert args passes and schema passes")
 	assert.Equal(t, reflect.ValueOf(expectedStruct).Interface(), value.Interface(), "should reflect value for converted arg when arg and schema passes")
 }
 
@@ -279,22 +280,22 @@ func TestToString(t *testing.T) {
 
 	var nilResult *simpleStruct
 	value, err = serializer.ToString(reflect.ValueOf(nilResult), reflect.TypeOf(new(simpleStruct)), nil, nil)
-	assert.Nil(t, err, "should not error when receives nil")
-	assert.Equal(t, "", value, "should return blank string for nil value")
+	require.NoError(t, err, "should not error when receives nil")
+	assert.Empty(t, value, "should return blank string for nil value")
 
 	result := new(simpleStruct)
 	result.Prop1 = "property 1"
 	value, err = serializer.ToString(reflect.ValueOf(result), reflect.TypeOf(result), nil, nil)
-	assert.Nil(t, err, "should not error when receives non nil nillable type")
-	assert.Equal(t, "{\"prop1\":\"property 1\"}", value, "should return JSON formatted value for marshallable type")
+	require.NoError(t, err, "should not error when receives non nil nillable type")
+	assert.JSONEqf(t, "{\"prop1\":\"property 1\"}", value, "should return JSON formatted value for marshallable type")
 
 	value, err = serializer.ToString(reflect.ValueOf(1), reflect.TypeOf(1), nil, nil)
-	assert.Nil(t, err, "should not error when receives non nillable and marshalling type")
+	require.NoError(t, err, "should not error when receives non nillable and marshalling type")
 	assert.Equal(t, "1", value, "should return sprint version of value when not marshalling type")
 
 	testTime, _ := time.Parse(time.RFC3339, "2002-10-02T15:00:00Z")
 	value, err = serializer.ToString(reflect.ValueOf(testTime), types.TimeType, nil, nil)
-	assert.Nil(t, err, "should not error for time")
+	require.NoError(t, err, "should not error for time")
 	assert.Equal(t, "2002-10-02T15:00:00Z", value, "should return string version of time in RFC3339 format")
 
 	float := float64(2)
@@ -304,8 +305,8 @@ func TestToString(t *testing.T) {
 	returnMetadata = metadata.ReturnMetadata{Schema: schema, CompiledSchema: compiledSchema}
 	value, err = serializer.ToString(reflect.ValueOf(1), reflect.TypeOf(1), &returnMetadata, nil)
 	expectedErr = validateAgainstSchema("return", reflect.TypeOf(1), "1", 1, compiledSchema)
-	assert.EqualError(t, err, expectedErr.Error(), "should error when validateAgainstSchema errors")
-	assert.Equal(t, "", value, "should return an empty string value when it errors due to validateAgainstSchema")
+	require.EqualError(t, err, expectedErr.Error(), "should error when validateAgainstSchema errors")
+	assert.Empty(t, value, "should return an empty string value when it errors due to validateAgainstSchema")
 
 	expectedStruct := new(simpleStruct)
 	expectedStruct.Prop1 = "hello"
@@ -314,6 +315,6 @@ func TestToString(t *testing.T) {
 	compiledSchema = createGoJSONSchemaSchema("return", schema, components)
 	returnMetadata = metadata.ReturnMetadata{Schema: schema, CompiledSchema: compiledSchema}
 	value, err = serializer.ToString(reflect.ValueOf(expectedStruct), reflect.TypeOf(expectedStruct), &returnMetadata, components)
-	assert.Nil(t, err, "should not error when making a string passes and schema passes")
-	assert.Equal(t, "{\"prop1\":\"hello\"}", value, "should return string value when schema passes")
+	require.NoError(t, err, "should not error when making a string passes and schema passes")
+	assert.JSONEqf(t, "{\"prop1\":\"hello\"}", value, "should return string value when schema passes")
 }

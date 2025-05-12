@@ -50,7 +50,7 @@ const (
 	// SystemContractName the name of the system smart contract
 	SystemContractName    = "org.hyperledger.fabric"
 	serverAddressVariable = "CHAINCODE_SERVER_ADDRESS"
-	chaincodeIdVariable   = "CORE_CHAINCODE_ID_NAME"
+	chaincodeIDVariable   = "CORE_CHAINCODE_ID_NAME"
 	tlsEnabledVariable    = "CORE_PEER_TLS_ENABLED"
 	rootCertVariable      = "CORE_PEER_TLS_ROOTCERT_FILE"
 	clientKeyVariable     = "CORE_TLS_CLIENT_KEY_FILE"
@@ -423,7 +423,7 @@ func getCiMethods() []string {
 
 func loadChaincodeServerConfig() (*shim.ChaincodeServer, error) {
 	address := getStringEnv(serverAddressVariable, "")
-	ccid := getStringEnv(chaincodeIdVariable, "")
+	ccid := getStringEnv(chaincodeIDVariable, "")
 
 	if address == "" || ccid == "" {
 		return nil, nil
@@ -458,18 +458,18 @@ func loadTLSProperties() (*shim.TLSProperties, error) {
 
 	keyBytes, err = os.ReadFile(key)
 	if err != nil {
-		return nil, fmt.Errorf("error while reading the crypto file: %s", err)
+		return nil, fmt.Errorf("error while reading the crypto file: %w", err)
 	}
 
 	certBytes, err = os.ReadFile(cert)
 	if err != nil {
-		return nil, fmt.Errorf("error while reading the crypto file: %s", err)
+		return nil, fmt.Errorf("error while reading the crypto file: %w", err)
 	}
 
 	if root != "" {
 		rootBytes, err = os.ReadFile(root)
 		if err != nil {
-			return nil, fmt.Errorf("error while reading the crypto file: %s", err)
+			return nil, fmt.Errorf("error while reading the crypto file: %w", err)
 		}
 	}
 

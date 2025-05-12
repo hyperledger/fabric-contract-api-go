@@ -1,0 +1,8 @@
+structname: Mock{{.InterfaceName | firstUpper}}
+template: testify
+packages:
+  github.com/hyperledger/fabric-contract-api-go/v2/contractapi:
+    config:
+      dir: contractapi
+    interfaces:
+      chaincodeStubInterface: {}

@@ -9,44 +9,52 @@ on:
 jobs:
   lint:
     name: Lint
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version: "1.23"
-      - name: Staticcheck
-        run: make staticcheck
+          go-version: stable
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@v8
         with:
           version: latest
 
   unit_test:
     name: Unit test
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-version:
+          - "1.23"
+          - stable
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version: "1.23"
+          go-version: ${{ matrix.go-version }}
       - name: Run tests (excluding fv)
         run: make unit-test
 
   functional_test:
     name: Functional test
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-version:
+          - "1.23"
+          - stable
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version: "1.23"
+          go-version: ${{ matrix.go-version }}
       - name: Run functional tests
         run: make functional-test
 
   integration_test:
     name: Integration test
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
@@ -54,7 +62,7 @@ jobs:
           go-version: "1.23"
       - uses: actions/setup-node@v4
         with:
-          node-version: 16
+          node-version: "lts/*"
           registry-url: "https://npm.pkg.github.com"
       - name: Run the integration tests
         env:

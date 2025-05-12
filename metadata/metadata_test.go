@@ -6,7 +6,6 @@ package metadata
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"os"
 	"strings"
 	"testing"
@@ -125,7 +124,7 @@ func (o osWorkTestStr) IsNotExist(err error) bool {
 
 func TestGetJSONSchema(t *testing.T) {
 	expectedSchema, err := readLocalFile("schema/schema.json")
-	assert.NoError(t, err, "read schema file")
+	require.NoError(t, err, "read schema file")
 
 	schema := GetJSONSchema()
 
@@ -136,10 +135,11 @@ func TestUnmarshalJSON(t *testing.T) {
 	ttm := new(TransactionMetadata)
 
 	err := json.Unmarshal([]byte("{\"name\": 1}"), ttm)
-	assert.EqualError(t, err, "json: cannot unmarshal number into Go struct field jsonTransactionMetadata.name of type string", "should error on bad JSON")
+	require.Error(t, err, "should error on bad JSON")
+	assert.Regexpf(t, "json: cannot unmarshal number into Go struct field .*\\.name of type string", err.Error(), "should error on bad JSON")
 
 	err = json.Unmarshal([]byte("{\"name\":\"Transaction1\",\"returns\":{\"type\":\"string\"}}"), ttm)
-	assert.Nil(t, err, "should not error on valid json")
+	require.NoError(t, err, "should not error on valid json")
 	assert.Equal(t, &TransactionMetadata{Name: "Transaction1", Returns: ReturnMetadata{Schema: spec.StringProperty()}}, ttm, "should setup TransactionMetadata from json bytes")
 
 }
@@ -148,8 +148,8 @@ func TestMarshalJSON(t *testing.T) {
 	ttm := TransactionMetadata{Name: "Transaction1", Returns: ReturnMetadata{Schema: spec.StringProperty()}}
 	bytes, err := json.Marshal(&ttm)
 
-	assert.Nil(t, err, "should not error on marshall")
-	assert.Equal(t, "{\"name\":\"Transaction1\",\"returns\":{\"type\":\"string\"}}", string(bytes), "should return JSON with returns as schema not object")
+	require.NoError(t, err, "should not error on marshall")
+	assert.JSONEqf(t, "{\"name\":\"Transaction1\",\"returns\":{\"type\":\"string\"}}", string(bytes), "should return JSON with returns as schema not object")
 }
 
 func TestAppend(t *testing.T) {
@@ -304,7 +304,7 @@ func TestCompileSchemas(t *testing.T) {
 	someContract.Transactions[0] = someTransaction
 	ccm.Contracts["someContract"] = someContract
 	err = ccm.CompileSchemas()
-	assert.Nil(t, err, "should not error on good metadata")
+	require.NoError(t, err, "should not error on good metadata")
 	validateCompiledSchema(t, "goodParam1", make(map[string]interface{}), ccm.Contracts["someContract"].Transactions[0].Parameters[0].CompiledSchema)
 	validateCompiledSchema(t, "goodParam2", "abc", ccm.Contracts["someContract"].Transactions[0].Parameters[1].CompiledSchema)
 	validateCompiledSchema(t, "return", 1, ccm.Contracts["someContract"].Transactions[0].Returns.CompiledSchema)
@@ -314,7 +314,7 @@ func TestCompileSchemas(t *testing.T) {
 	someContract.Transactions[0] = someTransaction
 	ccm.Contracts["someContract"] = someContract
 	err = ccm.CompileSchemas()
-	assert.Nil(t, err, "should not error on good metadata when return is nil")
+	require.NoError(t, err, "should not error on good metadata when return is nil")
 	validateCompiledSchema(t, "goodParam1", make(map[string]interface{}), ccm.Contracts["someContract"].Transactions[0].Parameters[0].CompiledSchema)
 	validateCompiledSchema(t, "goodParam2", "abc", ccm.Contracts["someContract"].Transactions[0].Parameters[1].CompiledSchema)
 	assert.Nil(t, ccm.Contracts["someContract"].Transactions[0].Returns.CompiledSchema, "should set compiled schema nil on no return")
@@ -330,7 +330,7 @@ func validateCompiledSchema(t *testing.T, propName string, propValue interface{}
 
 	result, _ := compiledSchema.Validate(toValidateLoader)
 
-	assert.True(t, result.Valid(), fmt.Sprintf("should validate for %s compiled schema", propName))
+	assert.True(t, result.Valid(), "should validate for %s compiled schema", propName)
 }
 
 func TestReadMetadataFile(t *testing.T) {
@@ -342,7 +342,7 @@ func TestReadMetadataFile(t *testing.T) {
 		fakeOS(t, osExcTestStr{})
 
 		metadata, err := ReadMetadataFile()
-		assert.EqualError(t, err, "failed to read metadata from file. Could not find location of executable. some error", "should error when cannot read file due to exec error")
+		require.EqualError(t, err, "failed to read metadata from file. Could not find location of executable. some error", "should error when cannot read file due to exec error")
 		assert.Equal(t, ContractChaincodeMetadata{}, metadata, "should return blank metadata when cannot read file due to exec error")
 	})
 
@@ -350,7 +350,7 @@ func TestReadMetadataFile(t *testing.T) {
 		fakeOS(t, osStatTestStr{})
 
 		metadata, err := ReadMetadataFile()
-		assert.EqualError(t, err, "failed to read metadata from file. Metadata file does not exist", "should error when cannot read file due to stat error")
+		require.EqualError(t, err, "failed to read metadata from file. Metadata file does not exist", "should error when cannot read file due to stat error")
 		assert.Equal(t, ContractChaincodeMetadata{}, metadata, "should return blank metadata when cannot read file due to stat error")
 	})
 
@@ -359,7 +359,7 @@ func TestReadMetadataFile(t *testing.T) {
 		ContractMetaNumberOfCalls = 0
 
 		metadata, err := ReadMetadataFile()
-		assert.Equal(t, ContractMetaNumberOfCalls, 2, "Should check contract-metadata directory if META-INF doesn't contain metadata.json file")
+		assert.Equal(t, 2, ContractMetaNumberOfCalls, "Should check contract-metadata directory if META-INF doesn't contain metadata.json file")
 		assert.Contains(t, err.Error(), "failed to read metadata from file. Could not read file", "should error when cannot read file due to read error")
 		assert.Equal(t, ContractChaincodeMetadata{}, metadata, "should return blank metadata when cannot read file due to read error")
 	})
@@ -378,7 +378,7 @@ func TestReadMetadataFile(t *testing.T) {
 		fakeIOUtil(t, ioUtilWorkTestStr{})
 
 		metadata, err := ReadMetadataFile()
-		assert.NoError(t, err, "should not return error when can read file")
+		require.NoError(t, err, "should not return error when can read file")
 
 		assert.Equal(t, expectedContractChaincodeMetadata, metadata, "should return contract metadata that was in the file")
 	})
@@ -389,8 +389,8 @@ func TestReadMetadataFile(t *testing.T) {
 		ContractMetaNumberOfCalls = 0
 
 		metadata, err := ReadMetadataFile()
-		assert.Equal(t, ContractMetaNumberOfCalls, 2, "Should check contract-metadata directory if META-INF doesn't contain metadata.json file")
-		assert.Nil(t, err, "should not return error when can read file")
+		assert.Equal(t, 2, ContractMetaNumberOfCalls, "Should check contract-metadata directory if META-INF doesn't contain metadata.json file")
+		require.NoError(t, err, "should not return error when can read file")
 		assert.Equal(t, expectedContractChaincodeMetadata, metadata, "should return contract metadata that was in the file")
 	})
 }
@@ -401,7 +401,7 @@ func TestValidateAgainstSchema(t *testing.T) {
 
 	t.Run("Error on empty metadata", func(t *testing.T) {
 		err := ValidateAgainstSchema(ContractChaincodeMetadata{})
-		assert.EqualError(t, err, "cannot use metadata. Metadata did not match schema:\n1. (root): info is required\n2. contracts: Invalid type. Expected: object, given: null", "should error when metadata given does not match schema")
+		require.EqualError(t, err, "cannot use metadata. Metadata did not match schema:\n1. (root): info is required\n2. contracts: Invalid type. Expected: object, given: null", "should error when metadata given does not match schema")
 	})
 
 	t.Run("Valid metadata", func(t *testing.T) {
@@ -409,7 +409,7 @@ func TestValidateAgainstSchema(t *testing.T) {
 		require.NoError(t, err)
 
 		err = ValidateAgainstSchema(metadata)
-		assert.NoError(t, err, "should not error for valid metadata")
+		require.NoError(t, err, "should not error for valid metadata")
 	})
 }
 

@@ -4,7 +4,6 @@
 package internal
 
 import (
-	"errors"
 	"fmt"
 	"reflect"
 	"testing"
@@ -12,6 +11,7 @@ import (
 	"github.com/hyperledger/fabric-contract-api-go/v2/contractapi/utils"
 	"github.com/hyperledger/fabric-contract-api-go/v2/serializer"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // ================================
@@ -64,20 +64,20 @@ func TestString(t *testing.T) {
 	var str string
 
 	str, err = TransactionHandlerTypeBefore.String()
-	assert.Nil(t, err, "should output no error when before type")
+	require.NoError(t, err, "should output no error when before type")
 	assert.Equal(t, "Before", str, "should output Before for before type")
 
 	str, err = TransactionHandlerTypeAfter.String()
-	assert.Nil(t, err, "should output no error when after type")
+	require.NoError(t, err, "should output no error when after type")
 	assert.Equal(t, "After", str, "should output After for after type")
 
 	str, err = TransactionHandlerTypeUnknown.String()
-	assert.Nil(t, err, "should output no error when unknown type")
+	require.NoError(t, err, "should output no error when unknown type")
 	assert.Equal(t, "Unknown", str, "should output Unknown for unknown type")
 
 	str, err = TransactionHandlerType(TransactionHandlerTypeAfter + 1).String()
-	assert.Error(t, err, errors.New("invalid transaction handler type"), "should error when not one of enum")
-	assert.Equal(t, "", str, "should return blank string for error")
+	require.EqualError(t, err, "invalid transaction handler type", "should error when not one of enum")
+	assert.Empty(t, str, "should return blank string for error")
 }
 
 func TestNewTransactionHandler(t *testing.T) {
@@ -88,45 +88,45 @@ func TestNewTransactionHandler(t *testing.T) {
 	ms := transactionHandlerStruct{}
 
 	_, err = NewTransactionHandler(ms.BasicFunction, basicContextPtrType, TransactionHandlerTypeBefore)
-	assert.EqualError(t, err, "Before transactions may not take any params other than the transaction context", "should error when before function takes args but not just the context")
+	require.EqualError(t, err, "Before transactions may not take any params other than the transaction context", "should error when before function takes args but not just the context")
 
 	_, err = NewTransactionHandler(ms.BasicFunction, basicContextPtrType, TransactionHandlerTypeUnknown)
-	assert.EqualError(t, err, "Unknown transactions may not take any params other than the transaction context", "should error when unknown function takes args but not just the context")
+	require.EqualError(t, err, "Unknown transactions may not take any params other than the transaction context", "should error when unknown function takes args but not just the context")
 
 	_, err = NewTransactionHandler(ms.AdvancedFunction, basicContextPtrType, TransactionHandlerTypeAfter)
-	assert.EqualError(t, err, "after transactions must take at most one non-context param", "should error when after function takes more than one non-context arg")
+	require.EqualError(t, err, "after transactions must take at most one non-context param", "should error when after function takes more than one non-context arg")
 
 	_, err = NewTransactionHandler(ms.BasicFunction, basicContextPtrType, TransactionHandlerTypeAfter)
-	assert.EqualError(t, err, "after transaction must take type interface{} as their only non-context param", "should error when after function takes correct number of non-context args but not interface type")
+	require.EqualError(t, err, "after transaction must take type interface{} as their only non-context param", "should error when after function takes correct number of non-context args but not interface type")
 
 	_, expectedErr := NewContractFunctionFromFunc(ms.BadFunction, 0, basicContextPtrType)
 	_, err = NewTransactionHandler(ms.BadFunction, basicContextPtrType, TransactionHandlerTypeAfter)
-	assert.EqualError(t, err, fmt.Sprintf("error creating After. %s", expectedErr.Error()), "should error when new contract function errors")
+	require.EqualError(t, err, fmt.Sprintf("error creating After. %s", expectedErr.Error()), "should error when new contract function errors")
 
 	th, err = NewTransactionHandler(ms.GoodBeforeUnknownAfterFunction, basicContextPtrType, TransactionHandlerTypeBefore)
 	cf, _ = NewContractFunctionFromFunc(ms.GoodBeforeUnknownAfterFunction, 0, basicContextPtrType)
-	assert.Nil(t, err, "should not error for valid tx handler (before)")
+	require.NoError(t, err, "should not error for valid tx handler (before)")
 	assert.Equal(t, TransactionHandlerTypeBefore, th.handlesType, "should create a txn handler for a before txn")
 	assert.Equal(t, th.params, cf.params, "should create a txn handler for a before txn that has matching contract function")
 	assert.Equal(t, th.returns, cf.returns, "should create a txn handler for a before txn that has matching contract function")
 
 	th, err = NewTransactionHandler(ms.GoodBeforeUnknownAfterFunction, basicContextPtrType, TransactionHandlerTypeUnknown)
 	cf, _ = NewContractFunctionFromFunc(ms.GoodBeforeUnknownAfterFunction, 0, basicContextPtrType)
-	assert.Nil(t, err, "should not error for valid tx handler (unknown)")
+	require.NoError(t, err, "should not error for valid tx handler (unknown)")
 	assert.Equal(t, TransactionHandlerTypeUnknown, th.handlesType, "should create a txn handler for an unknown txn")
 	assert.Equal(t, th.params, cf.params, "should create a txn handler for an unknown txn that has matching contract function")
 	assert.Equal(t, th.returns, cf.returns, "should create a txn handler for an unknown txn that has matching contract function")
 
 	th, err = NewTransactionHandler(ms.GoodBeforeUnknownAfterFunction, basicContextPtrType, TransactionHandlerTypeAfter)
 	cf, _ = NewContractFunctionFromFunc(ms.GoodBeforeUnknownAfterFunction, 0, basicContextPtrType)
-	assert.Nil(t, err, "should not error for valid tx handler (after)")
+	require.NoError(t, err, "should not error for valid tx handler (after)")
 	assert.Equal(t, TransactionHandlerTypeAfter, th.handlesType, "should create a txn handler for an after txn")
 	assert.Equal(t, th.params, cf.params, "should create a txn handler for an after txn that has matching contract function")
 	assert.Equal(t, th.returns, cf.returns, "should create a txn handler for an after txn that has matching contract function")
 
 	th, err = NewTransactionHandler(ms.GoodAfterFunction, basicContextPtrType, TransactionHandlerTypeAfter)
 	cf, _ = NewContractFunctionFromFunc(ms.GoodAfterFunction, 0, basicContextPtrType)
-	assert.Nil(t, err, "should not error for valid tx handler (afetr with param)")
+	require.NoError(t, err, "should not error for valid tx handler (afetr with param)")
 	assert.Equal(t, TransactionHandlerTypeAfter, th.handlesType, "should create a txn handler for an after txn with arg")
 	assert.Equal(t, th.params, cf.params, "should create a txn handler for an after txn with arg that has matching contract function")
 	assert.Equal(t, th.returns, cf.returns, "should create a txn handler for an after txn with arg that has matching contract function")

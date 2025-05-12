@@ -259,9 +259,10 @@ func callContractFunctionAndCheckResponse(t *testing.T, cc *ContractChaincode, a
 
 	var response *peer.Response
 
-	if callType == initType {
+	switch callType {
+	case initType:
 		response = cc.Init(mockStub)
-	} else if callType == invokeType {
+	case invokeType:
 		response = cc.Invoke(mockStub)
 	}
 
@@ -413,10 +414,10 @@ func jsonCompare(t *testing.T, s1, s2 string) {
 
 	var err error
 	err = json.Unmarshal([]byte(s1), &o1)
-	require.Nil(t, err, "invalid json supplied for string 1")
+	require.NoError(t, err, "invalid json supplied for string 1")
 
 	err = json.Unmarshal([]byte(s2), &o2)
-	require.Nil(t, err, "invalid json supplied for string 2")
+	require.NoError(t, err, "invalid json supplied for string 2")
 
 	require.True(t, reflect.DeepEqual(o1, o2), "JSON should be equal")
 }
@@ -563,7 +564,7 @@ func TestAddContract(t *testing.T) {
 	cc.contracts["anotherContract"] = existingCCC
 	mc = new(myContract)
 	err = cc.addContract(mc, defaultExcludes)
-	require.Nil(t, err, "should not error when adding contract using default name")
+	require.NoError(t, err, "should not error when adding contract using default name")
 	require.Equal(t, existingCCC, cc.contracts["anotherContract"], "should not affect existing contract in map")
 	testContractChaincodeContractMatchesContract(t, cc.contracts["myContract"], expectedCCC)
 
@@ -574,7 +575,7 @@ func TestAddContract(t *testing.T) {
 	mc.Name = "customname"
 	expectedCCC.info.Title = "customname"
 	err = cc.addContract(mc, defaultExcludes)
-	require.Nil(t, err, "should not error when adding contract using custom name")
+	require.NoError(t, err, "should not error when adding contract using custom name")
 	testContractChaincodeContractMatchesContract(t, cc.contracts["customname"], expectedCCC)
 	expectedCCC.info.Title = "myContract"
 
@@ -589,7 +590,7 @@ func TestAddContract(t *testing.T) {
 		Title:   "some title",
 	}
 	err = cc.addContract(mc, defaultExcludes)
-	require.Nil(t, err, "should not error when adding contract using version")
+	require.NoError(t, err, "should not error when adding contract using version")
 	testContractChaincodeContractMatchesContract(t, cc.contracts["myContract"], expectedCCC)
 	expectedCCC.info = metadata.InfoMetadata{
 		Version: "latest",
@@ -604,7 +605,7 @@ func TestAddContract(t *testing.T) {
 	expectedCCC.info.Title = "evaluateContract"
 	ec := new(evaluateContract)
 	err = cc.addContract(ec, defaultExcludes)
-	require.Nil(t, err, "should not error when adding contract using version")
+	require.NoError(t, err, "should not error when adding contract using version")
 	testContractChaincodeContractMatchesContract(t, cc.contracts["evaluateContract"], expectedCCC)
 	expectedCCC.functions["ReturnsString"] = oldFunc
 	expectedCCC.info.Title = "myContract"
@@ -616,7 +617,7 @@ func TestAddContract(t *testing.T) {
 	mc.BeforeTransaction = tx.Handler
 	expectedCCC.beforeTransaction, _ = internal.NewTransactionHandler(tx.Handler, transactionContextPtrHandler, internal.TransactionHandlerTypeBefore)
 	err = cc.addContract(mc, defaultExcludes)
-	require.Nil(t, err, "should not error when adding contract using before tx")
+	require.NoError(t, err, "should not error when adding contract using before tx")
 	testContractChaincodeContractMatchesContract(t, cc.contracts["myContract"], expectedCCC)
 
 	// should use after transaction
@@ -626,7 +627,7 @@ func TestAddContract(t *testing.T) {
 	mc.AfterTransaction = tx.Handler
 	expectedCCC.afterTransaction, _ = internal.NewTransactionHandler(tx.Handler, transactionContextPtrHandler, internal.TransactionHandlerTypeBefore)
 	err = cc.addContract(mc, defaultExcludes)
-	require.Nil(t, err, "should not error when adding contract using after tx")
+	require.NoError(t, err, "should not error when adding contract using after tx")
 	testContractChaincodeContractMatchesContract(t, cc.contracts["myContract"], expectedCCC)
 
 	// should use unknown transaction
@@ -636,7 +637,7 @@ func TestAddContract(t *testing.T) {
 	mc.UnknownTransaction = tx.Handler
 	expectedCCC.unknownTransaction, _ = internal.NewTransactionHandler(tx.Handler, transactionContextPtrHandler, internal.TransactionHandlerTypeBefore)
 	err = cc.addContract(mc, defaultExcludes)
-	require.Nil(t, err, "should not error when adding contract using unknown tx")
+	require.NoError(t, err, "should not error when adding contract using unknown tx")
 	testContractChaincodeContractMatchesContract(t, cc.contracts["myContract"], expectedCCC)
 
 	// should error on bad function
@@ -645,7 +646,7 @@ func TestAddContract(t *testing.T) {
 	bc := new(badContract)
 	err = cc.addContract(bc, defaultExcludes)
 	_, expectedErr := internal.NewContractFunctionFromFunc(bc.BadMethod, internal.CallTypeSubmit, transactionContextPtrHandler)
-	expectedErrStr := strings.Replace(expectedErr.Error(), "Function", "BadMethod", -1)
+	expectedErrStr := strings.ReplaceAll(expectedErr.Error(), "Function", "BadMethod")
 	require.EqualError(t, err, expectedErrStr, "should error when contract has bad method")
 
 	// should error on bad before transaction
@@ -690,15 +691,15 @@ func TestNewChaincode(t *testing.T) {
 	require.Nil(t, contractChaincode, "should return blank contract chaincode on error")
 
 	contractChaincode, err = NewChaincode(new(myContract), new(evaluateContract))
-	require.Nil(t, err, "should not error when passed valid contracts")
-	require.Equal(t, 3, len(contractChaincode.contracts), "should add both passed contracts and system contract")
+	require.NoError(t, err, "should not error when passed valid contracts")
+	require.Len(t, contractChaincode.contracts, 3, "should add both passed contracts and system contract")
 	require.Equal(t, reflect.TypeOf(new(serializer.JSONSerializer)), reflect.TypeOf(contractChaincode.TransactionSerializer), "should have set the transaction serializer")
 	setMetadata, _, _ := contractChaincode.contracts[SystemContractName].functions["GetMetadata"].Call(reflect.ValueOf(nil), nil, nil, new(serializer.JSONSerializer))
 	jsonCompare(t, "{\"info\":{\"title\":\"undefined\",\"version\":\"latest\"},\"contracts\":{\"evaluateContract\":{\"info\":{\"title\":\"evaluateContract\",\"version\":\"latest\"},\"name\":\"evaluateContract\",\"transactions\":[{\"returns\":{\"type\":\"string\"},\"tag\":[\"evaluate\", \"EVALUATE\"],\"name\":\"ReturnsString\"}],\"default\": false},\"myContract\":{\"info\":{\"title\":\"myContract\",\"version\":\"latest\"},\"name\":\"myContract\",\"transactions\":[{\"returns\":{\"type\":\"string\"},\"tag\":[\"submit\", \"SUBMIT\"],\"name\":\"ReturnsString\"}], \"default\": true},\"org.hyperledger.fabric\":{\"info\":{\"title\":\"org.hyperledger.fabric\",\"version\":\"latest\"},\"name\":\"org.hyperledger.fabric\",\"transactions\":[{\"returns\":{\"type\":\"string\"},\"tag\":[\"evaluate\", \"EVALUATE\"],\"name\":\"GetMetadata\"}], \"default\": false}},\"components\":{}}", setMetadata)
 
 	contractChaincode, err = NewChaincode(new(ignorableFuncContract))
 	_, ok := contractChaincode.contracts["ignorableFuncContract"].functions["IgnoreMe"]
-	require.Nil(t, err, "should not return error for valid contract with ignores")
+	require.NoError(t, err, "should not return error for valid contract with ignores")
 	require.False(t, ok, "should not include ignored function")
 }
 
