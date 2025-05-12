@@ -184,6 +184,115 @@ func (_c *MockChaincodeStubInterface_DelState_Call) RunAndReturn(run func(key st
 	return _c
 }
 
+// FinishWriteBatch provides a mock function for the type MockChaincodeStubInterface
+func (_mock *MockChaincodeStubInterface) FinishWriteBatch() error {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for FinishWriteBatch")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func() error); ok {
+		r0 = returnFunc()
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockChaincodeStubInterface_FinishWriteBatch_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FinishWriteBatch'
+type MockChaincodeStubInterface_FinishWriteBatch_Call struct {
+	*mock.Call
+}
+
+// FinishWriteBatch is a helper method to define mock.On call
+func (_e *MockChaincodeStubInterface_Expecter) FinishWriteBatch() *MockChaincodeStubInterface_FinishWriteBatch_Call {
+	return &MockChaincodeStubInterface_FinishWriteBatch_Call{Call: _e.mock.On("FinishWriteBatch")}
+}
+
+func (_c *MockChaincodeStubInterface_FinishWriteBatch_Call) Run(run func()) *MockChaincodeStubInterface_FinishWriteBatch_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockChaincodeStubInterface_FinishWriteBatch_Call) Return(err error) *MockChaincodeStubInterface_FinishWriteBatch_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockChaincodeStubInterface_FinishWriteBatch_Call) RunAndReturn(run func() error) *MockChaincodeStubInterface_FinishWriteBatch_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetAllStatesCompositeKeyWithPagination provides a mock function for the type MockChaincodeStubInterface
+func (_mock *MockChaincodeStubInterface) GetAllStatesCompositeKeyWithPagination(pageSize int32, bookmark string) (shim.StateQueryIteratorInterface, *peer.QueryResponseMetadata, error) {
+	ret := _mock.Called(pageSize, bookmark)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAllStatesCompositeKeyWithPagination")
+	}
+
+	var r0 shim.StateQueryIteratorInterface
+	var r1 *peer.QueryResponseMetadata
+	var r2 error
+	if returnFunc, ok := ret.Get(0).(func(int32, string) (shim.StateQueryIteratorInterface, *peer.QueryResponseMetadata, error)); ok {
+		return returnFunc(pageSize, bookmark)
+	}
+	if returnFunc, ok := ret.Get(0).(func(int32, string) shim.StateQueryIteratorInterface); ok {
+		r0 = returnFunc(pageSize, bookmark)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(shim.StateQueryIteratorInterface)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(int32, string) *peer.QueryResponseMetadata); ok {
+		r1 = returnFunc(pageSize, bookmark)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*peer.QueryResponseMetadata)
+		}
+	}
+	if returnFunc, ok := ret.Get(2).(func(int32, string) error); ok {
+		r2 = returnFunc(pageSize, bookmark)
+	} else {
+		r2 = ret.Error(2)
+	}
+	return r0, r1, r2
+}
+
+// MockChaincodeStubInterface_GetAllStatesCompositeKeyWithPagination_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAllStatesCompositeKeyWithPagination'
+type MockChaincodeStubInterface_GetAllStatesCompositeKeyWithPagination_Call struct {
+	*mock.Call
+}
+
+// GetAllStatesCompositeKeyWithPagination is a helper method to define mock.On call
+//   - pageSize
+//   - bookmark
+func (_e *MockChaincodeStubInterface_Expecter) GetAllStatesCompositeKeyWithPagination(pageSize interface{}, bookmark interface{}) *MockChaincodeStubInterface_GetAllStatesCompositeKeyWithPagination_Call {
+	return &MockChaincodeStubInterface_GetAllStatesCompositeKeyWithPagination_Call{Call: _e.mock.On("GetAllStatesCompositeKeyWithPagination", pageSize, bookmark)}
+}
+
+func (_c *MockChaincodeStubInterface_GetAllStatesCompositeKeyWithPagination_Call) Run(run func(pageSize int32, bookmark string)) *MockChaincodeStubInterface_GetAllStatesCompositeKeyWithPagination_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(int32), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *MockChaincodeStubInterface_GetAllStatesCompositeKeyWithPagination_Call) Return(stateQueryIteratorInterface shim.StateQueryIteratorInterface, queryResponseMetadata *peer.QueryResponseMetadata, err error) *MockChaincodeStubInterface_GetAllStatesCompositeKeyWithPagination_Call {
+	_c.Call.Return(stateQueryIteratorInterface, queryResponseMetadata, err)
+	return _c
+}
+
+func (_c *MockChaincodeStubInterface_GetAllStatesCompositeKeyWithPagination_Call) RunAndReturn(run func(pageSize int32, bookmark string) (shim.StateQueryIteratorInterface, *peer.QueryResponseMetadata, error)) *MockChaincodeStubInterface_GetAllStatesCompositeKeyWithPagination_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetArgs provides a mock function for the type MockChaincodeStubInterface
 func (_mock *MockChaincodeStubInterface) GetArgs() [][]byte {
 	ret := _mock.Called()
@@ -592,6 +701,135 @@ func (_c *MockChaincodeStubInterface_GetHistoryForKey_Call) Return(historyQueryI
 }
 
 func (_c *MockChaincodeStubInterface_GetHistoryForKey_Call) RunAndReturn(run func(key string) (shim.HistoryQueryIteratorInterface, error)) *MockChaincodeStubInterface_GetHistoryForKey_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetMultiplePrivateData provides a mock function for the type MockChaincodeStubInterface
+func (_mock *MockChaincodeStubInterface) GetMultiplePrivateData(collection string, keys ...string) ([][]byte, error) {
+	var tmpRet mock.Arguments
+	if len(keys) > 0 {
+		tmpRet = _mock.Called(collection, keys)
+	} else {
+		tmpRet = _mock.Called(collection)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetMultiplePrivateData")
+	}
+
+	var r0 [][]byte
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(string, ...string) ([][]byte, error)); ok {
+		return returnFunc(collection, keys...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(string, ...string) [][]byte); ok {
+		r0 = returnFunc(collection, keys...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([][]byte)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(string, ...string) error); ok {
+		r1 = returnFunc(collection, keys...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockChaincodeStubInterface_GetMultiplePrivateData_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetMultiplePrivateData'
+type MockChaincodeStubInterface_GetMultiplePrivateData_Call struct {
+	*mock.Call
+}
+
+// GetMultiplePrivateData is a helper method to define mock.On call
+//   - collection
+//   - keys
+func (_e *MockChaincodeStubInterface_Expecter) GetMultiplePrivateData(collection interface{}, keys ...interface{}) *MockChaincodeStubInterface_GetMultiplePrivateData_Call {
+	return &MockChaincodeStubInterface_GetMultiplePrivateData_Call{Call: _e.mock.On("GetMultiplePrivateData",
+		append([]interface{}{collection}, keys...)...)}
+}
+
+func (_c *MockChaincodeStubInterface_GetMultiplePrivateData_Call) Run(run func(collection string, keys ...string)) *MockChaincodeStubInterface_GetMultiplePrivateData_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := args[1].([]string)
+		run(args[0].(string), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *MockChaincodeStubInterface_GetMultiplePrivateData_Call) Return(bytess [][]byte, err error) *MockChaincodeStubInterface_GetMultiplePrivateData_Call {
+	_c.Call.Return(bytess, err)
+	return _c
+}
+
+func (_c *MockChaincodeStubInterface_GetMultiplePrivateData_Call) RunAndReturn(run func(collection string, keys ...string) ([][]byte, error)) *MockChaincodeStubInterface_GetMultiplePrivateData_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetMultipleStates provides a mock function for the type MockChaincodeStubInterface
+func (_mock *MockChaincodeStubInterface) GetMultipleStates(keys ...string) ([][]byte, error) {
+	var tmpRet mock.Arguments
+	if len(keys) > 0 {
+		tmpRet = _mock.Called(keys)
+	} else {
+		tmpRet = _mock.Called()
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetMultipleStates")
+	}
+
+	var r0 [][]byte
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(...string) ([][]byte, error)); ok {
+		return returnFunc(keys...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(...string) [][]byte); ok {
+		r0 = returnFunc(keys...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([][]byte)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(...string) error); ok {
+		r1 = returnFunc(keys...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockChaincodeStubInterface_GetMultipleStates_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetMultipleStates'
+type MockChaincodeStubInterface_GetMultipleStates_Call struct {
+	*mock.Call
+}
+
+// GetMultipleStates is a helper method to define mock.On call
+//   - keys
+func (_e *MockChaincodeStubInterface_Expecter) GetMultipleStates(keys ...interface{}) *MockChaincodeStubInterface_GetMultipleStates_Call {
+	return &MockChaincodeStubInterface_GetMultipleStates_Call{Call: _e.mock.On("GetMultipleStates",
+		append([]interface{}{}, keys...)...)}
+}
+
+func (_c *MockChaincodeStubInterface_GetMultipleStates_Call) Run(run func(keys ...string)) *MockChaincodeStubInterface_GetMultipleStates_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := args[0].([]string)
+		run(variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *MockChaincodeStubInterface_GetMultipleStates_Call) Return(bytess [][]byte, err error) *MockChaincodeStubInterface_GetMultipleStates_Call {
+	_c.Call.Return(bytess, err)
+	return _c
+}
+
+func (_c *MockChaincodeStubInterface_GetMultipleStates_Call) RunAndReturn(run func(keys ...string) ([][]byte, error)) *MockChaincodeStubInterface_GetMultipleStates_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -2063,5 +2301,38 @@ func (_c *MockChaincodeStubInterface_SplitCompositeKey_Call) Return(s string, st
 
 func (_c *MockChaincodeStubInterface_SplitCompositeKey_Call) RunAndReturn(run func(compositeKey string) (string, []string, error)) *MockChaincodeStubInterface_SplitCompositeKey_Call {
 	_c.Call.Return(run)
+	return _c
+}
+
+// StartWriteBatch provides a mock function for the type MockChaincodeStubInterface
+func (_mock *MockChaincodeStubInterface) StartWriteBatch() {
+	_mock.Called()
+	return
+}
+
+// MockChaincodeStubInterface_StartWriteBatch_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'StartWriteBatch'
+type MockChaincodeStubInterface_StartWriteBatch_Call struct {
+	*mock.Call
+}
+
+// StartWriteBatch is a helper method to define mock.On call
+func (_e *MockChaincodeStubInterface_Expecter) StartWriteBatch() *MockChaincodeStubInterface_StartWriteBatch_Call {
+	return &MockChaincodeStubInterface_StartWriteBatch_Call{Call: _e.mock.On("StartWriteBatch")}
+}
+
+func (_c *MockChaincodeStubInterface_StartWriteBatch_Call) Run(run func()) *MockChaincodeStubInterface_StartWriteBatch_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockChaincodeStubInterface_StartWriteBatch_Call) Return() *MockChaincodeStubInterface_StartWriteBatch_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *MockChaincodeStubInterface_StartWriteBatch_Call) RunAndReturn(run func()) *MockChaincodeStubInterface_StartWriteBatch_Call {
+	_c.Run(run)
 	return _c
 }
