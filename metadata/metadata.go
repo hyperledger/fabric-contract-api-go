@@ -8,7 +8,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	os "os"
+	"io/fs"
+	"os"
 	"path/filepath"
 	"reflect"
 
@@ -28,26 +29,26 @@ const MetadataFile = "metadata.json"
 
 // Helpers for testing
 type osInterface interface {
-	Executable() (string, error)
-	Stat(string) (os.FileInfo, error)
+	Getwd() (string, error)
+	ReadFile(string) ([]byte, error)
 	IsNotExist(error) bool
 }
 
 type osFront struct{}
 
-func (o osFront) Executable() (string, error) {
-	return os.Executable()
+func (o *osFront) Getwd() (string, error) {
+	return os.Getwd()
 }
 
-func (o osFront) Stat(name string) (os.FileInfo, error) {
-	return os.Stat(name)
+func (o *osFront) ReadFile(name string) ([]byte, error) {
+	return os.ReadFile(name)
 }
 
-func (o osFront) IsNotExist(err error) bool {
-	return os.IsNotExist(err)
+func (o *osFront) IsNotExist(err error) bool {
+	return errors.Is(err, fs.ErrNotExist)
 }
 
-var osAbs osInterface = osFront{}
+var osAbs osInterface = &osFront{}
 
 //go:embed schema/schema.json
 var contractSchemaJSON []byte
@@ -232,38 +233,29 @@ func (ccm *ContractChaincodeMetadata) CompileSchemas() error {
 	return nil
 }
 
-// ReadMetadataFile return the contents of metadata file as ContractChaincodeMetadata
+// ReadMetadataFile return the contents of metadata file as ContractChaincodeMetadata. If no metadata file can be read,
+// an error chain containing fs.ErrNotExist is returned.
 func ReadMetadataFile() (ContractChaincodeMetadata, error) {
-
-	fileMetadata := ContractChaincodeMetadata{}
-
-	ex, execErr := osAbs.Executable()
-	if execErr != nil {
-		return ContractChaincodeMetadata{}, fmt.Errorf("failed to read metadata from file. Could not find location of executable. %s", execErr.Error())
+	workingDir, err := osAbs.Getwd()
+	if err != nil {
+		return ContractChaincodeMetadata{}, err
 	}
-	exPath := filepath.Dir(ex)
-	metadataPath := filepath.Join(exPath, MetadataFolder, MetadataFile)
 
-	_, err := osAbs.Stat(metadataPath)
-
-	if osAbs.IsNotExist(err) {
-		metadataPath = filepath.Join(exPath, MetadataFolderSecondary, MetadataFile)
-		_, err = osAbs.Stat(metadataPath)
-		if osAbs.IsNotExist(err) {
-			return ContractChaincodeMetadata{}, errors.New("failed to read metadata from file. Metadata file does not exist")
+	metadataPath := filepath.Join(workingDir, MetadataFolder, MetadataFile)
+	metadataBytes, err := osAbs.ReadFile(metadataPath)
+	if err != nil {
+		metadataPath = filepath.Join(workingDir, MetadataFolderSecondary, MetadataFile)
+		var err2 error
+		metadataBytes, err2 = osAbs.ReadFile(metadataPath)
+		if err2 != nil {
+			return ContractChaincodeMetadata{}, fmt.Errorf("failed to read metadata from file: %w", errors.Join(err, err2))
 		}
 	}
 
+	fileMetadata := ContractChaincodeMetadata{}
 	fileMetadata.Contracts = make(map[string]ContractMetadata)
 
-	metadataBytes, err := ioutilAbs.ReadFile(metadataPath)
-
-	if err != nil {
-		return ContractChaincodeMetadata{}, fmt.Errorf("failed to read metadata from file. Could not read file %s. %w", metadataPath, err)
-	}
-
-	err = json.Unmarshal(metadataBytes, &fileMetadata)
-	if err != nil {
+	if err := json.Unmarshal(metadataBytes, &fileMetadata); err != nil {
 		return ContractChaincodeMetadata{}, err
 	}
 
