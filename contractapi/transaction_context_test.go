@@ -41,7 +41,7 @@ func (mci *mockClientIdentity) GetX509Certificate() (*x509.Certificate, error) {
 // ================================
 
 func TestSetStub(t *testing.T) {
-	stub := NewMockChaincodeStubInterface(t)
+	stub := NewMockChaincodeStub(t)
 	ctx := TransactionContext{}
 
 	ctx.SetStub(stub)
@@ -50,7 +50,7 @@ func TestSetStub(t *testing.T) {
 }
 
 func TestGetStub(t *testing.T) {
-	stub := NewMockChaincodeStubInterface(t)
+	stub := NewMockChaincodeStub(t)
 	ctx := TransactionContext{}
 	ctx.stub = stub
 

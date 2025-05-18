@@ -5,7 +5,9 @@ package contractapi
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io/fs"
 	"log"
 	"os"
 	"reflect"
@@ -22,11 +24,6 @@ import (
 	"github.com/hyperledger/fabric-contract-api-go/v2/serializer"
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
 )
-
-//lint:ignore U1000 used for testing
-type chaincodeStubInterface interface {
-	shim.ChaincodeStubInterface
-}
 
 type contractChaincodeContract struct {
 	info                      metadata.InfoMetadata
@@ -382,8 +379,7 @@ func (cc *ContractChaincode) reflectMetadata() metadata.ContractChaincodeMetadat
 
 func (cc *ContractChaincode) augmentMetadata() error {
 	fileMetadata, err := metadata.ReadMetadataFile()
-
-	if err != nil && !strings.Contains(err.Error(), "failed to read metadata from file") {
+	if err != nil && !errors.Is(err, fs.ErrNotExist) {
 		return err
 	}
 

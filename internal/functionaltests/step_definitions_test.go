@@ -1,7 +1,7 @@
 // Copyright the Hyperledger Fabric contributors. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-package fvtests
+package functionaltests
 
 import (
 	"context"
@@ -181,19 +181,18 @@ func iSubmitTheTransaction(ctx context.Context, function string, argsTbl *godog.
 }
 
 func iAmUsingMetadataFile(ctx context.Context, file string) (context.Context, error) {
-	ex, execErr := os.Executable()
-	if execErr != nil {
-		return ctx, fmt.Errorf("failed to read metadata from file. Could not find location of executable. %s", execErr.Error())
+	workingDir, err := os.Getwd()
+	if err != nil {
+		return ctx, err
 	}
-	exPath := filepath.Dir(ex)
-	metadataPath := filepath.Join(exPath, file)
 
+	metadataPath := filepath.Join(workingDir, file)
 	metadataBytes, err := os.ReadFile(metadataPath)
 	if err != nil {
 		return ctx, fmt.Errorf("failed to read metadata from file. Could not read file %s. %w", metadataPath, err)
 	}
 
-	metadataFolder := filepath.Join(exPath, metadata.MetadataFolder)
+	metadataFolder := filepath.Join(workingDir, metadata.MetadataFolder)
 
 	if err := os.MkdirAll(metadataFolder, 0750); err != nil {
 		return ctx, err

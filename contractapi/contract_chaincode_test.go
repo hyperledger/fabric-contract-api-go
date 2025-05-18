@@ -252,7 +252,7 @@ func callContractFunctionAndCheckSuccess(t *testing.T, cc *ContractChaincode, ar
 func callContractFunctionAndCheckResponse(t *testing.T, cc *ContractChaincode, arguments []string, callType CallType, expectedMessage string, expectedType string) {
 	t.Helper()
 
-	mockStub := NewMockChaincodeStubInterface(t)
+	mockStub := NewMockChaincodeStub(t)
 	mockStub.EXPECT().GetTxID().Maybe().Return(standardTxID)
 	mockStub.EXPECT().GetFunctionAndParameters().Maybe().Return(arguments[0], arguments[1:])
 	mockStub.EXPECT().GetCreator().Maybe().Return([]byte{}, nil)
@@ -718,7 +718,7 @@ func TestStart(t *testing.T) {
 
 func TestInit(t *testing.T) {
 	cc, _ := NewChaincode(new(myContract))
-	mockStub := NewMockChaincodeStubInterface(t)
+	mockStub := NewMockChaincodeStub(t)
 	mockStub.EXPECT().GetFunctionAndParameters().Maybe().Return("", nil)
 	AssertProtoEqual(t, shim.Success([]byte("Default initiator successful.")), cc.Init(mockStub))
 
