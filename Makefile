@@ -48,8 +48,7 @@ unit-test:
 
 .PHONY: functional-test
 functional-test:
-	go install github.com/cucumber/godog/cmd/godog@v0.12
-	cd '$(functional_dir)' && godog run features/*
+	cd '$(functional_dir)' && go test -test.run '^TestFeatures$$'
 
 .PHONY: scan
 scan:
