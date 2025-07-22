@@ -1,11 +1,11 @@
 {
   "dependencies": {
     "@hyperledger/fabric-chaincode-integration": "^0.8.4",
-    "@hyperledger/fabric-gateway": "^1.5.0",
-    "form-data": "^4.0.4"
+    "@hyperledger/fabric-gateway": "^1.5.0"
   },
   "overrides": {
-    "axios": "^1.8.2"
+    "axios": "^1.8.2",
+    "form-data": "^4.0.4"
   },
   "scripts": {
     "test": "fabric-chaincode-integration"
