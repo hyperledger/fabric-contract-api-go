@@ -12,6 +12,9 @@ ifeq ($(machine_hardware), aarch64)
 	machine_hardware := arm64
 endif
 
+TMPDIR ?= /tmp
+TMPDIR := $(abspath $(TMPDIR))
+
 .PHONY: test
 test: generate lint unit-test functional-test
 
@@ -52,5 +55,6 @@ functional-test:
 
 .PHONY: scan
 scan:
-	go install golang.org/x/vuln/cmd/govulncheck@latest
-	cd '$(base_dir)' && govulncheck ./...
+	go install github.com/google/osv-scanner/v2/cmd/osv-scanner@latest
+	echo "GoVersionOverride = '$$(go env GOVERSION | sed -e 's/^go//' -e 's/-.*//')'" > '$(TMPDIR)/osv-scanner.toml'
+	osv-scanner scan --config='$(TMPDIR)/osv-scanner.toml' --lockfile='$(base_dir)/go.mod'
