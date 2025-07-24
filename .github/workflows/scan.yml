@@ -17,9 +17,25 @@ jobs:
         with:
           ref: ${{ inputs.ref }}
       - name: Set up Go
+        id: setup-go
         uses: actions/setup-go@v5
         with:
           go-version: stable
           check-latest: true
+      - name: Create OSV-Scanner config
+        run: |
+          echo "GoVersionOverride = '${{ steps.setup-go.outputs.go-version }}'" > osv-scanner.toml
       - name: Scan
-        run: make scan
+        id: scan-go
+        run: |
+          docker run --rm \
+            --volume './:/src' \
+            ghcr.io/google/osv-scanner:latest \
+            scan \
+            --config=/src/osv-scanner.toml \
+            --lockfile=/src/go.mod \
+            --format=markdown > osv-scanner.md
+      - name: Report failure
+        if: ${{ failure() && steps.scan-go.conclusion == 'failure' }}
+        run: |
+          cat osv-scanner.md >> ${GITHUB_STEP_SUMMARY}
