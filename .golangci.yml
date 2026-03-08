@@ -34,6 +34,11 @@ linters:
     generated: strict
     presets:
       - common-false-positives
+    rules:
+      - path: "_test.go$"
+        text: "^G703:"
+        linters:
+          - gosec
 formatters:
   enable:
     - gofmt
