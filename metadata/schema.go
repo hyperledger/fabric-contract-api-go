@@ -49,7 +49,7 @@ func getSchema(field reflect.Type, components *ComponentMetadata, nested bool) (
 		return buildMapSchema(reflect.MakeMap(field), components, nested)
 	}
 
-	if field.Kind() == reflect.Struct || (field.Kind() == reflect.Ptr && field.Elem().Kind() == reflect.Struct) {
+	if field.Kind() == reflect.Struct || (field.Kind() == reflect.Pointer && field.Elem().Kind() == reflect.Struct) {
 		return buildStructSchema(field, components, nested)
 	}
 
@@ -95,7 +95,7 @@ func buildMapSchema(rmap reflect.Value, components *ComponentMetadata, nested bo
 }
 
 func addComponentIfNotExists(obj reflect.Type, components *ComponentMetadata) error {
-	if obj.Kind() == reflect.Ptr {
+	if obj.Kind() == reflect.Pointer {
 		obj = obj.Elem()
 	}
 
@@ -193,7 +193,7 @@ func getField(field reflect.StructField, schema *ObjectMetadata, components *Com
 }
 
 func buildStructSchema(obj reflect.Type, components *ComponentMetadata, nested bool) (*spec.Schema, error) {
-	if obj.Kind() == reflect.Ptr {
+	if obj.Kind() == reflect.Pointer {
 		obj = obj.Elem()
 	}
 
