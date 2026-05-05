@@ -106,7 +106,7 @@ func convertArg(fieldType reflect.Type, paramValue string) (reflect.Value, error
 		converted = reflect.ValueOf(t)
 	} else if types.IsBytes(fieldType) {
 		converted = reflect.ValueOf([]byte(paramValue))
-	} else if fieldType.Kind() == reflect.Array || fieldType.Kind() == reflect.Slice || fieldType.Kind() == reflect.Map || fieldType.Kind() == reflect.Struct || (fieldType.Kind() == reflect.Ptr && fieldType.Elem().Kind() == reflect.Struct) {
+	} else if fieldType.Kind() == reflect.Array || fieldType.Kind() == reflect.Slice || fieldType.Kind() == reflect.Map || fieldType.Kind() == reflect.Struct || (fieldType.Kind() == reflect.Pointer && fieldType.Elem().Kind() == reflect.Struct) {
 		converted, err = createArraySliceMapOrStruct(paramValue, fieldType)
 	} else {
 		converted, err = types.BasicTypes[fieldType.Kind()].Convert(paramValue)
@@ -124,7 +124,7 @@ func validateAgainstSchema(propName string, typ reflect.Type, stringValue string
 
 	if typ == reflect.TypeOf(time.Time{}) {
 		toValidate[propName] = stringValue
-	} else if typ.Kind() == reflect.Struct || (typ.Kind() == reflect.Ptr && typ.Elem().Kind() == reflect.Struct) {
+	} else if typ.Kind() == reflect.Struct || (typ.Kind() == reflect.Pointer && typ.Elem().Kind() == reflect.Struct) {
 		// use a map for structs as schema seems to like that
 		structMap := make(map[string]interface{})
 		if err := json.Unmarshal([]byte(stringValue), &structMap); err != nil {
@@ -147,10 +147,10 @@ func validateAgainstSchema(propName string, typ reflect.Type, stringValue string
 }
 
 func isNillableType(kind reflect.Kind) bool {
-	return kind == reflect.Ptr || kind == reflect.Interface || kind == reflect.Map || kind == reflect.Slice || kind == reflect.Chan || kind == reflect.Func
+	return kind == reflect.Pointer || kind == reflect.Interface || kind == reflect.Map || kind == reflect.Slice || kind == reflect.Chan || kind == reflect.Func
 }
 
 func isMarshallingType(typ reflect.Type) bool {
 	return !types.IsBytes(typ) &&
-		(typ.Kind() == reflect.Array || typ.Kind() == reflect.Slice || typ.Kind() == reflect.Map || typ.Kind() == reflect.Struct || (typ.Kind() == reflect.Ptr && isMarshallingType(typ.Elem())))
+		(typ.Kind() == reflect.Array || typ.Kind() == reflect.Slice || typ.Kind() == reflect.Map || typ.Kind() == reflect.Struct || (typ.Kind() == reflect.Pointer && isMarshallingType(typ.Elem())))
 }

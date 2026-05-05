@@ -38,7 +38,7 @@ func arrayOfValidType(array reflect.Value, additionalTypes []reflect.Type) error
 }
 
 func structOfValidType(obj reflect.Type, additionalTypes []reflect.Type) error {
-	if obj.Kind() == reflect.Ptr {
+	if obj.Kind() == reflect.Pointer {
 		obj = obj.Elem()
 	}
 
@@ -89,7 +89,7 @@ func typeIsValid(t reflect.Type, additionalTypes []reflect.Type, allowError bool
 			additionalTypes = append(additionalTypes, reflect.PointerTo(t))
 			// add self for cyclic
 			return structOfValidType(t, additionalTypes)
-		} else if kind == reflect.Ptr && t.Elem().Kind() == reflect.Struct {
+		} else if kind == reflect.Pointer && t.Elem().Kind() == reflect.Struct {
 			additionalTypes = append(additionalTypes, t)
 			additionalTypes = append(additionalTypes, t.Elem())
 			// add self for cyclic
