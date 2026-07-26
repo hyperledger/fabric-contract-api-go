@@ -1,14 +1,20 @@
 version: 2
 updates:
   - package-ecosystem: "github-actions"
-    directory: "/"
     schedule:
       interval: weekly
+    directory: "/"
   - package-ecosystem: gomod
-    directory: "/"
     schedule:
       interval: weekly
+    directories:
+      - "/"
+      - "/integrationtest/chaincode/*"
+    groups:
+      # Single PR to update a specific dependency in multiple directories.
+      go:
+        group-by: dependency-name
   - package-ecosystem: npm
-    directory: "/integrationtest"
     schedule:
       interval: weekly
+    directory: "/integrationtest"
