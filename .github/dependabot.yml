@@ -4,6 +4,10 @@ updates:
     schedule:
       interval: weekly
     directory: "/"
+    groups:
+      actions:
+        patterns:
+          - "*"
   - package-ecosystem: gomod
     schedule:
       interval: weekly
