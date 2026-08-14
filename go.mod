@@ -10,7 +10,7 @@ require (
 	github.com/hyperledger/fabric-protos-go-apiv2 v0.3.7
 	github.com/stretchr/testify v1.11.1
 	github.com/xeipuuv/gojsonschema v1.2.0
-	google.golang.org/protobuf v1.36.11
+	google.golang.org/protobuf v1.36.12
 )
 
 require (
