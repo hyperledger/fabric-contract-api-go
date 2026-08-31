@@ -78,3 +78,9 @@ $(osv_scanner):
 scan: $(osv_scanner)
 	echo "GoVersionOverride = '$$(go env GOVERSION | sed -e 's/^go//' -e 's/-.*//')'" > '$(TMPDIR)/osv-scanner.toml'
 	osv-scanner scan --config='$(TMPDIR)/osv-scanner.toml' --lockfile='$(base_dir)/go.mod'
+
+PHONY: sync-deps
+sync-deps:
+	cd '$(base_dir)' && go mod tidy \
+		&& cd '$(base_dir)/integrationtest/chaincode' \
+		&& find . -mindepth 2 -maxdepth 2 -type f -name go.mod -execdir go mod tidy \;
