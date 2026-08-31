@@ -16,14 +16,16 @@ Although unit test coverage of 100% is not always possible or sensible in Go, un
 
 This repo uses Godog to run cucumber functional tests, which are located in `internal/functionaltests`. The features for these tests are then located in the `features` folder. The functional tests use contracts from the `contracts` folder. To run the functional tests, run the `godog` command in the `internal/functionaltests` folder. You can find more information on Godog [here](https://github.com/cucumber/godog).
 
-All source files in this repo require licenses at the top. You can find the text of this license [here](.azure-pipelines/resources/license.txt). License checking is performed using the npm package [license-check-and-add](https://www.npmjs.com/package/license-check-and-add) and config for this is located in `.azure-pipelines/resources/license-config.json`. To perform license checking yourself install the package globally and in the top level of this repo, run `license-check-and-add check -f .azure-pipelines/resources/license-config.json`.
+All source files in this repo require licenses at the top. You can find the text of this license [here](.golangci.yml). To perform license checking yourself, run `make lint`.
+
+## Updating dependencies
+
+If any changes are made to the module dependencies in [go.mod](go.mod), the module changes must be reflected in the integration test chaincodes, since they refer to the development codebase rather than a released version. This is done by running `make sync-deps`.
 
 ## Mechanics of Contributing
-The codebase for this repo is maintained in GitHub, as such changes to the codebase should be given via a Pull Request. An Azure Pipeline build is run against all pull requests and a passing build is required for code to be merged. The pipeline performs vetting, linting, license checking and testing. Issues for this repo are handled in [JIRA](https://jira.hyperledger.org). Fabric projects are split in JIRA and therefore all issues related to fabric-contract-api-go should use `FABCAG`. All pull requests should refer to a JIRA issue.
+The codebase for this repo is maintained in GitHub, as such changes to the codebase should be given via a Pull Request.
 
-Pull requests should contain a single commit. The commit message should be prefixed with the issue number in square brackets e.g. `[FABCAG-XXXX]` followed by a concise explanation of the changes being made. The PR should then contain more in depth information. If a change is requested you should amend your original commit and force push over the original.
-
-When you take on an issue raised in JIRA you should assign it to yourself and update that status as you do the work.
+The pull request title and commit messages should be a concise explanation of the changes being made. The PR should then contain more in depth information. If a change is requested you should add an additional commit and push this to the PR branch.
 
 ## Code of Conduct Guidelines
 See our [Code of Conduct Guidelines](CODE_OF_CONDUCT.md)
