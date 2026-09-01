@@ -4,3 +4,5 @@ vendor
 node_modules
 tmp.go.mod
 fabric-samples
+
+contractapi/mocks_test.go
