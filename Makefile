@@ -9,8 +9,6 @@ mockery := $(go_bin_dir)/mockery
 osv_scanner := $(go_bin_dir)/osv-scanner
 golangci_lint := $(go_bin_dir)/golangci-lint
 
-mockery_version := 3.7.4
-
 kernel_name := $(shell uname -s)
 lowercase_kernel_name := $(shell echo '$(kernel_name)' | tr '[:upper:]' '[:lower:]')
 
@@ -28,7 +26,7 @@ TMPDIR ?= /tmp
 TMPDIR := $(abspath $(TMPDIR))
 
 .PHONY: test
-test: generate lint unit-test functional-test
+test: lint unit-test functional-test
 
 .PHONY: lint
 lint: golangci-lint
@@ -44,7 +42,7 @@ $(golangci_lint):
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b '$(go_bin_dir)'
 
 .PHONY: golangci-lint
-golangci-lint: $(golangci_lint)
+golangci-lint: generate $(golangci_lint)
 	cd '$(base_dir)' && '$(golangci_lint)' run
 
 .PHONY: install-mockery
@@ -55,17 +53,20 @@ uninstall-mockery:
 	rm -f '$(mockery)'
 
 $(mockery):
-	curl --fail --location \
-		'https://github.com/vektra/mockery/releases/download/v$(mockery_version)/mockery_$(mockery_version)_$(kernel_name)_$(machine_hardware).tar.gz' \
-		| tar -C '$(go_bin_dir)' -xzf - mockery
+	mockery_version=$$(curl --fail --show-error --silent https://api.github.com/repos/vektra/mockery/releases/latest | jq --raw-output .tag_name) && \
+		curl --fail --location --show-error --silent \
+			"https://github.com/vektra/mockery/releases/download/$${mockery_version}/mockery_$${mockery_version#v}_$(kernel_name)_$(machine_hardware).tar.gz" \
+			| tar -C '$(go_bin_dir)' -xzf - mockery
 	chmod u+x '$(mockery)'
 
 .PHONY: generate
-generate: $(mockery)
+generate: contractapi/mocks_test.go
+
+contractapi/mocks_test.go: $(mockery)
 	cd '$(base_dir)' && '$(mockery)'
 
 .PHONY: unit-test
-unit-test:
+unit-test: generate
 	cd '$(base_dir)' && go test -race $$(go list ./... | grep -v functionaltests)
 
 .PHONY: functional-test
