@@ -34,6 +34,8 @@ linters:
     generated: strict
     presets:
       - common-false-positives
+    paths:
+      - integrationtest/node_modules/
     rules:
       - path: "_test.go$"
         text: "^G703:"
