@@ -72,7 +72,7 @@ type MockChaincodeStub_CreateCompositeKey_Call struct {
 // CreateCompositeKey is a helper method to define mock.On call
 //   - objectType string
 //   - attributes []string
-func (_e *MockChaincodeStub_Expecter) CreateCompositeKey(objectType interface{}, attributes interface{}) *MockChaincodeStub_CreateCompositeKey_Call {
+func (_e *MockChaincodeStub_Expecter) CreateCompositeKey(objectType any, attributes any) *MockChaincodeStub_CreateCompositeKey_Call {
 	return &MockChaincodeStub_CreateCompositeKey_Call{Call: _e.mock.On("CreateCompositeKey", objectType, attributes)}
 }
 
@@ -129,7 +129,7 @@ type MockChaincodeStub_DelPrivateData_Call struct {
 // DelPrivateData is a helper method to define mock.On call
 //   - collection string
 //   - key string
-func (_e *MockChaincodeStub_Expecter) DelPrivateData(collection interface{}, key interface{}) *MockChaincodeStub_DelPrivateData_Call {
+func (_e *MockChaincodeStub_Expecter) DelPrivateData(collection any, key any) *MockChaincodeStub_DelPrivateData_Call {
 	return &MockChaincodeStub_DelPrivateData_Call{Call: _e.mock.On("DelPrivateData", collection, key)}
 }
 
@@ -185,7 +185,7 @@ type MockChaincodeStub_DelState_Call struct {
 
 // DelState is a helper method to define mock.On call
 //   - key string
-func (_e *MockChaincodeStub_Expecter) DelState(key interface{}) *MockChaincodeStub_DelState_Call {
+func (_e *MockChaincodeStub_Expecter) DelState(key any) *MockChaincodeStub_DelState_Call {
 	return &MockChaincodeStub_DelState_Call{Call: _e.mock.On("DelState", key)}
 }
 
@@ -300,7 +300,7 @@ type MockChaincodeStub_GetAllStatesCompositeKeyWithPagination_Call struct {
 // GetAllStatesCompositeKeyWithPagination is a helper method to define mock.On call
 //   - pageSize int32
 //   - bookmark string
-func (_e *MockChaincodeStub_Expecter) GetAllStatesCompositeKeyWithPagination(pageSize interface{}, bookmark interface{}) *MockChaincodeStub_GetAllStatesCompositeKeyWithPagination_Call {
+func (_e *MockChaincodeStub_Expecter) GetAllStatesCompositeKeyWithPagination(pageSize any, bookmark any) *MockChaincodeStub_GetAllStatesCompositeKeyWithPagination_Call {
 	return &MockChaincodeStub_GetAllStatesCompositeKeyWithPagination_Call{Call: _e.mock.On("GetAllStatesCompositeKeyWithPagination", pageSize, bookmark)}
 }
 
@@ -723,7 +723,7 @@ type MockChaincodeStub_GetHistoryForKey_Call struct {
 
 // GetHistoryForKey is a helper method to define mock.On call
 //   - key string
-func (_e *MockChaincodeStub_Expecter) GetHistoryForKey(key interface{}) *MockChaincodeStub_GetHistoryForKey_Call {
+func (_e *MockChaincodeStub_Expecter) GetHistoryForKey(key any) *MockChaincodeStub_GetHistoryForKey_Call {
 	return &MockChaincodeStub_GetHistoryForKey_Call{Call: _e.mock.On("GetHistoryForKey", key)}
 }
 
@@ -792,9 +792,9 @@ type MockChaincodeStub_GetMultiplePrivateData_Call struct {
 // GetMultiplePrivateData is a helper method to define mock.On call
 //   - collection string
 //   - keys ...string
-func (_e *MockChaincodeStub_Expecter) GetMultiplePrivateData(collection interface{}, keys ...interface{}) *MockChaincodeStub_GetMultiplePrivateData_Call {
+func (_e *MockChaincodeStub_Expecter) GetMultiplePrivateData(collection any, keys ...any) *MockChaincodeStub_GetMultiplePrivateData_Call {
 	return &MockChaincodeStub_GetMultiplePrivateData_Call{Call: _e.mock.On("GetMultiplePrivateData",
-		append([]interface{}{collection}, keys...)...)}
+		append([]any{collection}, keys...)...)}
 }
 
 func (_c *MockChaincodeStub_GetMultiplePrivateData_Call) Run(run func(collection string, keys ...string)) *MockChaincodeStub_GetMultiplePrivateData_Call {
@@ -868,9 +868,9 @@ type MockChaincodeStub_GetMultipleStates_Call struct {
 
 // GetMultipleStates is a helper method to define mock.On call
 //   - keys ...string
-func (_e *MockChaincodeStub_Expecter) GetMultipleStates(keys ...interface{}) *MockChaincodeStub_GetMultipleStates_Call {
+func (_e *MockChaincodeStub_Expecter) GetMultipleStates(keys ...any) *MockChaincodeStub_GetMultipleStates_Call {
 	return &MockChaincodeStub_GetMultipleStates_Call{Call: _e.mock.On("GetMultipleStates",
-		append([]interface{}{}, keys...)...)}
+		append([]any{}, keys...)...)}
 }
 
 func (_c *MockChaincodeStub_GetMultipleStates_Call) Run(run func(keys ...string)) *MockChaincodeStub_GetMultipleStates_Call {
@@ -934,7 +934,7 @@ type MockChaincodeStub_GetPrivateData_Call struct {
 // GetPrivateData is a helper method to define mock.On call
 //   - collection string
 //   - key string
-func (_e *MockChaincodeStub_Expecter) GetPrivateData(collection interface{}, key interface{}) *MockChaincodeStub_GetPrivateData_Call {
+func (_e *MockChaincodeStub_Expecter) GetPrivateData(collection any, key any) *MockChaincodeStub_GetPrivateData_Call {
 	return &MockChaincodeStub_GetPrivateData_Call{Call: _e.mock.On("GetPrivateData", collection, key)}
 }
 
@@ -1003,7 +1003,7 @@ type MockChaincodeStub_GetPrivateDataByPartialCompositeKey_Call struct {
 //   - collection string
 //   - objectType string
 //   - keys []string
-func (_e *MockChaincodeStub_Expecter) GetPrivateDataByPartialCompositeKey(collection interface{}, objectType interface{}, keys interface{}) *MockChaincodeStub_GetPrivateDataByPartialCompositeKey_Call {
+func (_e *MockChaincodeStub_Expecter) GetPrivateDataByPartialCompositeKey(collection any, objectType any, keys any) *MockChaincodeStub_GetPrivateDataByPartialCompositeKey_Call {
 	return &MockChaincodeStub_GetPrivateDataByPartialCompositeKey_Call{Call: _e.mock.On("GetPrivateDataByPartialCompositeKey", collection, objectType, keys)}
 }
 
@@ -1077,7 +1077,7 @@ type MockChaincodeStub_GetPrivateDataByRange_Call struct {
 //   - collection string
 //   - startKey string
 //   - endKey string
-func (_e *MockChaincodeStub_Expecter) GetPrivateDataByRange(collection interface{}, startKey interface{}, endKey interface{}) *MockChaincodeStub_GetPrivateDataByRange_Call {
+func (_e *MockChaincodeStub_Expecter) GetPrivateDataByRange(collection any, startKey any, endKey any) *MockChaincodeStub_GetPrivateDataByRange_Call {
 	return &MockChaincodeStub_GetPrivateDataByRange_Call{Call: _e.mock.On("GetPrivateDataByRange", collection, startKey, endKey)}
 }
 
@@ -1150,7 +1150,7 @@ type MockChaincodeStub_GetPrivateDataHash_Call struct {
 // GetPrivateDataHash is a helper method to define mock.On call
 //   - collection string
 //   - key string
-func (_e *MockChaincodeStub_Expecter) GetPrivateDataHash(collection interface{}, key interface{}) *MockChaincodeStub_GetPrivateDataHash_Call {
+func (_e *MockChaincodeStub_Expecter) GetPrivateDataHash(collection any, key any) *MockChaincodeStub_GetPrivateDataHash_Call {
 	return &MockChaincodeStub_GetPrivateDataHash_Call{Call: _e.mock.On("GetPrivateDataHash", collection, key)}
 }
 
@@ -1218,7 +1218,7 @@ type MockChaincodeStub_GetPrivateDataQueryResult_Call struct {
 // GetPrivateDataQueryResult is a helper method to define mock.On call
 //   - collection string
 //   - query string
-func (_e *MockChaincodeStub_Expecter) GetPrivateDataQueryResult(collection interface{}, query interface{}) *MockChaincodeStub_GetPrivateDataQueryResult_Call {
+func (_e *MockChaincodeStub_Expecter) GetPrivateDataQueryResult(collection any, query any) *MockChaincodeStub_GetPrivateDataQueryResult_Call {
 	return &MockChaincodeStub_GetPrivateDataQueryResult_Call{Call: _e.mock.On("GetPrivateDataQueryResult", collection, query)}
 }
 
@@ -1286,7 +1286,7 @@ type MockChaincodeStub_GetPrivateDataValidationParameter_Call struct {
 // GetPrivateDataValidationParameter is a helper method to define mock.On call
 //   - collection string
 //   - key string
-func (_e *MockChaincodeStub_Expecter) GetPrivateDataValidationParameter(collection interface{}, key interface{}) *MockChaincodeStub_GetPrivateDataValidationParameter_Call {
+func (_e *MockChaincodeStub_Expecter) GetPrivateDataValidationParameter(collection any, key any) *MockChaincodeStub_GetPrivateDataValidationParameter_Call {
 	return &MockChaincodeStub_GetPrivateDataValidationParameter_Call{Call: _e.mock.On("GetPrivateDataValidationParameter", collection, key)}
 }
 
@@ -1353,7 +1353,7 @@ type MockChaincodeStub_GetQueryResult_Call struct {
 
 // GetQueryResult is a helper method to define mock.On call
 //   - query string
-func (_e *MockChaincodeStub_Expecter) GetQueryResult(query interface{}) *MockChaincodeStub_GetQueryResult_Call {
+func (_e *MockChaincodeStub_Expecter) GetQueryResult(query any) *MockChaincodeStub_GetQueryResult_Call {
 	return &MockChaincodeStub_GetQueryResult_Call{Call: _e.mock.On("GetQueryResult", query)}
 }
 
@@ -1425,7 +1425,7 @@ type MockChaincodeStub_GetQueryResultWithPagination_Call struct {
 //   - query string
 //   - pageSize int32
 //   - bookmark string
-func (_e *MockChaincodeStub_Expecter) GetQueryResultWithPagination(query interface{}, pageSize interface{}, bookmark interface{}) *MockChaincodeStub_GetQueryResultWithPagination_Call {
+func (_e *MockChaincodeStub_Expecter) GetQueryResultWithPagination(query any, pageSize any, bookmark any) *MockChaincodeStub_GetQueryResultWithPagination_Call {
 	return &MockChaincodeStub_GetQueryResultWithPagination_Call{Call: _e.mock.On("GetQueryResultWithPagination", query, pageSize, bookmark)}
 }
 
@@ -1552,7 +1552,7 @@ type MockChaincodeStub_GetState_Call struct {
 
 // GetState is a helper method to define mock.On call
 //   - key string
-func (_e *MockChaincodeStub_Expecter) GetState(key interface{}) *MockChaincodeStub_GetState_Call {
+func (_e *MockChaincodeStub_Expecter) GetState(key any) *MockChaincodeStub_GetState_Call {
 	return &MockChaincodeStub_GetState_Call{Call: _e.mock.On("GetState", key)}
 }
 
@@ -1615,7 +1615,7 @@ type MockChaincodeStub_GetStateByPartialCompositeKey_Call struct {
 // GetStateByPartialCompositeKey is a helper method to define mock.On call
 //   - objectType string
 //   - keys []string
-func (_e *MockChaincodeStub_Expecter) GetStateByPartialCompositeKey(objectType interface{}, keys interface{}) *MockChaincodeStub_GetStateByPartialCompositeKey_Call {
+func (_e *MockChaincodeStub_Expecter) GetStateByPartialCompositeKey(objectType any, keys any) *MockChaincodeStub_GetStateByPartialCompositeKey_Call {
 	return &MockChaincodeStub_GetStateByPartialCompositeKey_Call{Call: _e.mock.On("GetStateByPartialCompositeKey", objectType, keys)}
 }
 
@@ -1693,7 +1693,7 @@ type MockChaincodeStub_GetStateByPartialCompositeKeyWithPagination_Call struct {
 //   - keys []string
 //   - pageSize int32
 //   - bookmark string
-func (_e *MockChaincodeStub_Expecter) GetStateByPartialCompositeKeyWithPagination(objectType interface{}, keys interface{}, pageSize interface{}, bookmark interface{}) *MockChaincodeStub_GetStateByPartialCompositeKeyWithPagination_Call {
+func (_e *MockChaincodeStub_Expecter) GetStateByPartialCompositeKeyWithPagination(objectType any, keys any, pageSize any, bookmark any) *MockChaincodeStub_GetStateByPartialCompositeKeyWithPagination_Call {
 	return &MockChaincodeStub_GetStateByPartialCompositeKeyWithPagination_Call{Call: _e.mock.On("GetStateByPartialCompositeKeyWithPagination", objectType, keys, pageSize, bookmark)}
 }
 
@@ -1771,7 +1771,7 @@ type MockChaincodeStub_GetStateByRange_Call struct {
 // GetStateByRange is a helper method to define mock.On call
 //   - startKey string
 //   - endKey string
-func (_e *MockChaincodeStub_Expecter) GetStateByRange(startKey interface{}, endKey interface{}) *MockChaincodeStub_GetStateByRange_Call {
+func (_e *MockChaincodeStub_Expecter) GetStateByRange(startKey any, endKey any) *MockChaincodeStub_GetStateByRange_Call {
 	return &MockChaincodeStub_GetStateByRange_Call{Call: _e.mock.On("GetStateByRange", startKey, endKey)}
 }
 
@@ -1849,7 +1849,7 @@ type MockChaincodeStub_GetStateByRangeWithPagination_Call struct {
 //   - endKey string
 //   - pageSize int32
 //   - bookmark string
-func (_e *MockChaincodeStub_Expecter) GetStateByRangeWithPagination(startKey interface{}, endKey interface{}, pageSize interface{}, bookmark interface{}) *MockChaincodeStub_GetStateByRangeWithPagination_Call {
+func (_e *MockChaincodeStub_Expecter) GetStateByRangeWithPagination(startKey any, endKey any, pageSize any, bookmark any) *MockChaincodeStub_GetStateByRangeWithPagination_Call {
 	return &MockChaincodeStub_GetStateByRangeWithPagination_Call{Call: _e.mock.On("GetStateByRangeWithPagination", startKey, endKey, pageSize, bookmark)}
 }
 
@@ -1926,7 +1926,7 @@ type MockChaincodeStub_GetStateValidationParameter_Call struct {
 
 // GetStateValidationParameter is a helper method to define mock.On call
 //   - key string
-func (_e *MockChaincodeStub_Expecter) GetStateValidationParameter(key interface{}) *MockChaincodeStub_GetStateValidationParameter_Call {
+func (_e *MockChaincodeStub_Expecter) GetStateValidationParameter(key any) *MockChaincodeStub_GetStateValidationParameter_Call {
 	return &MockChaincodeStub_GetStateValidationParameter_Call{Call: _e.mock.On("GetStateValidationParameter", key)}
 }
 
@@ -2181,7 +2181,7 @@ type MockChaincodeStub_InvokeChaincode_Call struct {
 //   - chaincodeName string
 //   - args [][]byte
 //   - channel string
-func (_e *MockChaincodeStub_Expecter) InvokeChaincode(chaincodeName interface{}, args interface{}, channel interface{}) *MockChaincodeStub_InvokeChaincode_Call {
+func (_e *MockChaincodeStub_Expecter) InvokeChaincode(chaincodeName any, args any, channel any) *MockChaincodeStub_InvokeChaincode_Call {
 	return &MockChaincodeStub_InvokeChaincode_Call{Call: _e.mock.On("InvokeChaincode", chaincodeName, args, channel)}
 }
 
@@ -2243,7 +2243,7 @@ type MockChaincodeStub_PurgePrivateData_Call struct {
 // PurgePrivateData is a helper method to define mock.On call
 //   - collection string
 //   - key string
-func (_e *MockChaincodeStub_Expecter) PurgePrivateData(collection interface{}, key interface{}) *MockChaincodeStub_PurgePrivateData_Call {
+func (_e *MockChaincodeStub_Expecter) PurgePrivateData(collection any, key any) *MockChaincodeStub_PurgePrivateData_Call {
 	return &MockChaincodeStub_PurgePrivateData_Call{Call: _e.mock.On("PurgePrivateData", collection, key)}
 }
 
@@ -2301,7 +2301,7 @@ type MockChaincodeStub_PutPrivateData_Call struct {
 //   - collection string
 //   - key string
 //   - value []byte
-func (_e *MockChaincodeStub_Expecter) PutPrivateData(collection interface{}, key interface{}, value interface{}) *MockChaincodeStub_PutPrivateData_Call {
+func (_e *MockChaincodeStub_Expecter) PutPrivateData(collection any, key any, value any) *MockChaincodeStub_PutPrivateData_Call {
 	return &MockChaincodeStub_PutPrivateData_Call{Call: _e.mock.On("PutPrivateData", collection, key, value)}
 }
 
@@ -2363,7 +2363,7 @@ type MockChaincodeStub_PutState_Call struct {
 // PutState is a helper method to define mock.On call
 //   - key string
 //   - value []byte
-func (_e *MockChaincodeStub_Expecter) PutState(key interface{}, value interface{}) *MockChaincodeStub_PutState_Call {
+func (_e *MockChaincodeStub_Expecter) PutState(key any, value any) *MockChaincodeStub_PutState_Call {
 	return &MockChaincodeStub_PutState_Call{Call: _e.mock.On("PutState", key, value)}
 }
 
@@ -2420,7 +2420,7 @@ type MockChaincodeStub_SetEvent_Call struct {
 // SetEvent is a helper method to define mock.On call
 //   - name string
 //   - payload []byte
-func (_e *MockChaincodeStub_Expecter) SetEvent(name interface{}, payload interface{}) *MockChaincodeStub_SetEvent_Call {
+func (_e *MockChaincodeStub_Expecter) SetEvent(name any, payload any) *MockChaincodeStub_SetEvent_Call {
 	return &MockChaincodeStub_SetEvent_Call{Call: _e.mock.On("SetEvent", name, payload)}
 }
 
@@ -2478,7 +2478,7 @@ type MockChaincodeStub_SetPrivateDataValidationParameter_Call struct {
 //   - collection string
 //   - key string
 //   - ep []byte
-func (_e *MockChaincodeStub_Expecter) SetPrivateDataValidationParameter(collection interface{}, key interface{}, ep interface{}) *MockChaincodeStub_SetPrivateDataValidationParameter_Call {
+func (_e *MockChaincodeStub_Expecter) SetPrivateDataValidationParameter(collection any, key any, ep any) *MockChaincodeStub_SetPrivateDataValidationParameter_Call {
 	return &MockChaincodeStub_SetPrivateDataValidationParameter_Call{Call: _e.mock.On("SetPrivateDataValidationParameter", collection, key, ep)}
 }
 
@@ -2540,7 +2540,7 @@ type MockChaincodeStub_SetStateValidationParameter_Call struct {
 // SetStateValidationParameter is a helper method to define mock.On call
 //   - key string
 //   - ep []byte
-func (_e *MockChaincodeStub_Expecter) SetStateValidationParameter(key interface{}, ep interface{}) *MockChaincodeStub_SetStateValidationParameter_Call {
+func (_e *MockChaincodeStub_Expecter) SetStateValidationParameter(key any, ep any) *MockChaincodeStub_SetStateValidationParameter_Call {
 	return &MockChaincodeStub_SetStateValidationParameter_Call{Call: _e.mock.On("SetStateValidationParameter", key, ep)}
 }
 
@@ -2613,7 +2613,7 @@ type MockChaincodeStub_SplitCompositeKey_Call struct {
 
 // SplitCompositeKey is a helper method to define mock.On call
 //   - compositeKey string
-func (_e *MockChaincodeStub_Expecter) SplitCompositeKey(compositeKey interface{}) *MockChaincodeStub_SplitCompositeKey_Call {
+func (_e *MockChaincodeStub_Expecter) SplitCompositeKey(compositeKey any) *MockChaincodeStub_SplitCompositeKey_Call {
 	return &MockChaincodeStub_SplitCompositeKey_Call{Call: _e.mock.On("SplitCompositeKey", compositeKey)}
 }
 
