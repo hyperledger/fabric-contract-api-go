@@ -4,7 +4,7 @@ go 1.26.7
 
 require (
 	github.com/cucumber/godog v0.16.0
-	github.com/go-openapi/spec v0.22.11
+	github.com/go-openapi/spec v1.0.0
 	github.com/google/go-cmp v0.7.0
 	github.com/hyperledger/fabric-chaincode-go/v2 v2.3.1-0.20260831054443-83a556592560
 	github.com/hyperledger/fabric-protos-go-apiv2 v0.3.7
@@ -30,7 +30,6 @@ require (
 	github.com/hashicorp/go-memdb v1.3.5 // indirect
 	github.com/hashicorp/golang-lru v1.0.2 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
-	github.com/stretchr/objx v0.5.3 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
