@@ -1,97 +1,105 @@
 # Copyright the Hyperledger Fabric contributors. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-base_dir := $(patsubst %/,%,$(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
-functional_dir := $(base_dir)/internal/functionaltests
-go_bin_dir := $(shell go env GOPATH)/bin
-
-mockery := $(go_bin_dir)/mockery
-osv_scanner := $(go_bin_dir)/osv-scanner
-golangci_lint := $(go_bin_dir)/golangci-lint
-
-kernel_name := $(shell uname -s)
-lowercase_kernel_name := $(shell echo '$(kernel_name)' | tr '[:upper:]' '[:lower:]')
-
-machine_hardware := $(shell uname -m)
-ifeq ($(machine_hardware), aarch64)
-	machine_hardware := arm64
+BASE_DIR := $(patsubst %/,%,$(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
+FUNCTIONAL_DIR := $(BASE_DIR)/internal/functionaltests
+GO_BIN_DIR := $(shell go env GOBIN)
+ifeq ($(GO_BIN_DIR),)
+	GO_BIN_DIR := $(shell go env GOPATH)/bin
 endif
 
-amd_arm_machine_hardware := $(machine_hardware)
-ifeq ($(machine_hardware), x86_64)
-	amd_arm_machine_hardware := amd64
+MOCKERY := $(GO_BIN_DIR)/mockery
+OSV_SCANNER := $(GO_BIN_DIR)/osv-scanner
+GOLANGCI_LINT := $(GO_BIN_DIR)/golangci-lint
+
+KERNEL_NAME := $(shell uname -s)
+LOWERCASE_KERNEL_NAME := $(shell echo '$(KERNEL_NAME)' | tr '[:upper:]' '[:lower:]')
+
+MACHINE_HARDWARE := $(shell uname -m)
+ifeq ($(MACHINE_HARDWARE), aarch64)
+	MACHINE_HARDWARE := arm64
+endif
+
+AMD_ARM_MACHINE_HARDWARE := $(MACHINE_HARDWARE)
+ifeq ($(AMD_ARM_MACHINE_HARDWARE), x86_64)
+	AMD_ARM_MACHINE_HARDWARE := amd64
 endif
 
 TMPDIR ?= /tmp
 TMPDIR := $(abspath $(TMPDIR))
 
+# If GH_TOKEN environment variable is set, use it as the GitHub API auth token
+GH_API_AUTH := $(if $(GH_TOKEN),--header 'Authorization: Bearer $(GH_TOKEN)',)
+
 .PHONY: test
 test: lint unit-test functional-test
 
 .PHONY: lint
-lint: golangci-lint
+lint: generate golangci-lint
 
 .PHONY: install-golangci-lint
-install-golangci-lint: uninstall-golangci-lint $(golangci_lint)
+install-golangci-lint: uninstall-golangci-lint $(GOLANGCI_LINT)
 
 .PHONY: uninstall-golangci-lint
 uninstall-golangci-lint:
-	rm -f '$(golangci_lint)'
+	rm -f '$(GOLANGCI_LINT)'
 
-$(golangci_lint):
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b '$(go_bin_dir)'
+$(GOLANGCI_LINT):
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b '$(dir $(GOLANGCI_LINT))'
 
 .PHONY: golangci-lint
-golangci-lint: generate $(golangci_lint)
-	cd '$(base_dir)' && '$(golangci_lint)' run
+golangci-lint: generate $(GOLANGCI_LINT)
+	cd '$(BASE_DIR)' && '$(GOLANGCI_LINT)' run
 
 .PHONY: install-mockery
-install-mockery: uninstall-mockery $(mockery)
+install-mockery: uninstall-mockery $(MOCKERY)
 
 .PHONY: uninstall-mockery
 uninstall-mockery:
-	rm -f '$(mockery)'
+	rm -f '$(MOCKERY)'
 
-$(mockery):
-	mockery_version=$$(curl --fail --show-error --silent https://api.github.com/repos/vektra/mockery/releases/latest | jq --raw-output .tag_name) && \
+# Silent to prevent printing of auth token
+.SILENT: $(MOCKERY)
+$(MOCKERY):
+	mockery_version=$$(curl --fail --show-error --silent $(GH_API_AUTH) https://api.github.com/repos/vektra/mockery/releases | jq --raw-output '.[].tag_name' | sort --version-sort | tail -1) && \
 		curl --fail --location --show-error --silent \
-			"https://github.com/vektra/mockery/releases/download/$${mockery_version}/mockery_$${mockery_version#v}_$(kernel_name)_$(machine_hardware).tar.gz" \
-			| tar -C '$(go_bin_dir)' -xzf - mockery
-	chmod u+x '$(mockery)'
+			"https://github.com/vektra/mockery/releases/download/$${mockery_version}/mockery_$${mockery_version#v}_$(KERNEL_NAME)_$(MACHINE_HARDWARE).tar.gz" \
+			| tar -C '$(dir $(MOCKERY))' -xzf - mockery
+	chmod u+x '$(MOCKERY)'
 
 .PHONY: generate
 generate: contractapi/mocks_test.go
 
-contractapi/mocks_test.go: $(mockery)
-	cd '$(base_dir)' && '$(mockery)'
+contractapi/mocks_test.go: $(MOCKERY)
+	cd '$(BASE_DIR)' && '$(MOCKERY)'
 
 .PHONY: unit-test
 unit-test: generate
-	cd '$(base_dir)' && go test -race $$(go list ./... | grep -v functionaltests)
+	cd '$(BASE_DIR)' && go test -race $$(go list ./... | grep -v functionaltests)
 
 .PHONY: functional-test
 functional-test:
-	cd '$(functional_dir)' && go test -test.run '^TestFeatures$$'
+	cd '$(FUNCTIONAL_DIR)' && go test -test.run '^TestFeatures$$'
 
 .PHONY: install-osv-scanner
-install-osv-scanner: uninstall-osv-scanner $(osv_scanner)
+install-osv-scanner: uninstall-osv-scanner $(OSV_SCANNER)
 
 .PHONY: uninstall-osv-scanner
 uninstall-osv-scanner:
-	rm -f '$(osv_scanner)'
+	rm -f '$(OSV_SCANNER)'
 
-$(osv_scanner):
-	curl --fail --location --show-error --silent --output '$(osv_scanner)' \
-    	'https://github.com/google/osv-scanner/releases/latest/download/osv-scanner_$(lowercase_kernel_name)_$(amd_arm_machine_hardware)'
-	chmod u+x '$(osv_scanner)'
+$(OSV_SCANNER):
+	curl --fail --location --show-error --silent --output '$(OSV_SCANNER)' \
+    	'https://github.com/google/osv-scanner/releases/latest/download/osv-scanner_$(LOWERCASE_KERNEL_NAME)_$(AMD_ARM_MACHINE_HARDWARE)'
+	chmod u+x '$(OSV_SCANNER)'
 
 .PHONY: scan
-scan: $(osv_scanner)
+scan: $(OSV_SCANNER)
 	echo "GoVersionOverride = '$$(go env GOVERSION | sed -e 's/^go//' -e 's/-.*//')'" > '$(TMPDIR)/osv-scanner.toml'
-	'$(osv_scanner)' scan source --config='$(TMPDIR)/osv-scanner.toml' --lockfile='$(base_dir)/go.mod'
+	'$(OSV_SCANNER)' scan source --config='$(TMPDIR)/osv-scanner.toml' --lockfile='$(BASE_DIR)/go.mod'
 
-PHONY: sync-deps
+.PHONY: sync-deps
 sync-deps:
-	cd '$(base_dir)' && go mod tidy \
-		&& cd '$(base_dir)/integrationtest/chaincode' \
+	cd '$(BASE_DIR)' && go mod tidy \
+		&& cd '$(BASE_DIR)/integrationtest/chaincode' \
 		&& find . -mindepth 2 -maxdepth 2 -type f -name go.mod -execdir go mod tidy \;
