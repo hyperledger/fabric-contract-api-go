@@ -4,7 +4,7 @@ go 1.26.7
 
 require (
 	github.com/cucumber/godog v0.16.0
-	github.com/go-openapi/spec v0.22.11
+	github.com/go-openapi/spec v1.0.1
 	github.com/google/go-cmp v0.7.0
 	github.com/hyperledger/fabric-chaincode-go/v2 v2.3.1-0.20260831054443-83a556592560
 	github.com/hyperledger/fabric-protos-go-apiv2 v0.3.7
