@@ -10,10 +10,7 @@ import (
 	"time"
 
 	"github.com/hyperledger/fabric-contract-api-go/v2/internal/types"
-	"github.com/hyperledger/fabric-contract-api-go/v2/internal/utils"
 	"github.com/hyperledger/fabric-contract-api-go/v2/metadata"
-
-	"github.com/xeipuuv/gojsonschema"
 )
 
 // JSONSerializer an implementation of TransactionSerializer for handling conversion of to and from
@@ -37,8 +34,8 @@ func (js *JSONSerializer) FromString(param string, fieldType reflect.Type, param
 		return reflect.Value{}, err
 	}
 
-	if paramMetadata != nil {
-		err := validateAgainstSchema(paramMetadata.Name, fieldType, param, converted.Interface(), paramMetadata.CompiledSchema)
+	if paramMetadata != nil && paramMetadata.Validator != nil {
+		err := paramMetadata.Validator.Validate(paramMetadata.Name, fieldType, param, converted.Interface())
 
 		if err != nil {
 			return reflect.Value{}, err
@@ -72,8 +69,8 @@ func (js *JSONSerializer) ToString(result reflect.Value, resultType reflect.Type
 			str = fmt.Sprint(result.Interface())
 		}
 
-		if returns != nil {
-			err := validateAgainstSchema("return", resultType, str, result.Interface(), returns.CompiledSchema)
+		if returns != nil && returns.Validator != nil {
+			err := returns.Validator.Validate("return", resultType, str, result.Interface())
 
 			if err != nil {
 				return "", err
@@ -117,33 +114,6 @@ func convertArg(fieldType reflect.Type, paramValue string) (reflect.Value, error
 	}
 
 	return converted, nil
-}
-
-func validateAgainstSchema(propName string, typ reflect.Type, stringValue string, obj interface{}, schema *gojsonschema.Schema) error {
-	toValidate := make(map[string]interface{})
-
-	if typ == reflect.TypeOf(time.Time{}) {
-		toValidate[propName] = stringValue
-	} else if typ.Kind() == reflect.Struct || (typ.Kind() == reflect.Pointer && typ.Elem().Kind() == reflect.Struct) {
-		// use a map for structs as schema seems to like that
-		structMap := make(map[string]interface{})
-		if err := json.Unmarshal([]byte(stringValue), &structMap); err != nil {
-			return err
-		}
-		toValidate[propName] = structMap
-	} else {
-		toValidate[propName] = obj
-	}
-
-	toValidateLoader := gojsonschema.NewGoLoader(toValidate)
-
-	result, _ := schema.Validate(toValidateLoader)
-
-	if !result.Valid() {
-		return fmt.Errorf("value did not match schema:\n%s", utils.ValidateErrorsToString(result.Errors()))
-	}
-
-	return nil
 }
 
 func isNillableType(kind reflect.Kind) bool {

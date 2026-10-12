@@ -6,10 +6,12 @@ package metadata
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/fs"
 	"os"
 	"path"
 	"path/filepath"
+	"reflect"
 	"runtime"
 	"strings"
 	"testing"
@@ -17,7 +19,6 @@ import (
 	"github.com/go-openapi/spec"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/xeipuuv/gojsonschema"
 )
 
 // ================================
@@ -75,6 +76,16 @@ func TestGetJSONSchema(t *testing.T) {
 	schema := GetJSONSchema()
 
 	assert.Equal(t, expectedSchema, schema, "should return same schema as in file")
+}
+
+func TestGetCompiledSchema(t *testing.T) {
+	s1, err := getCompiledSchema()
+	require.NoError(t, err)
+	require.NotNil(t, s1)
+
+	s2, err := getCompiledSchema()
+	require.NoError(t, err)
+	assert.Same(t, s1, s2, "should return the same cached compiled schema instance")
 }
 
 func TestUnmarshalJSON(t *testing.T) {
@@ -251,9 +262,9 @@ func TestCompileSchemas(t *testing.T) {
 	ccm.Contracts["someContract"] = someContract
 	err = ccm.CompileSchemas()
 	require.NoError(t, err, "should not error on good metadata")
-	validateCompiledSchema(t, "goodParam1", make(map[string]interface{}), ccm.Contracts["someContract"].Transactions[0].Parameters[0].CompiledSchema)
-	validateCompiledSchema(t, "goodParam2", "abc", ccm.Contracts["someContract"].Transactions[0].Parameters[1].CompiledSchema)
-	validateCompiledSchema(t, "return", 1, ccm.Contracts["someContract"].Transactions[0].Returns.CompiledSchema)
+	validateWithSchemaValidator(t, "goodParam1", make(map[string]any), ccm.Contracts["someContract"].Transactions[0].Parameters[0].Validator)
+	validateWithSchemaValidator(t, "goodParam2", "abc", ccm.Contracts["someContract"].Transactions[0].Parameters[1].Validator)
+	validateWithSchemaValidator(t, "return", 1, ccm.Contracts["someContract"].Transactions[0].Returns.Validator)
 
 	someTransaction.Returns = nilReturn
 	someTransaction.Parameters = []ParameterMetadata{goodParameter1, goodParameter2}
@@ -261,22 +272,16 @@ func TestCompileSchemas(t *testing.T) {
 	ccm.Contracts["someContract"] = someContract
 	err = ccm.CompileSchemas()
 	require.NoError(t, err, "should not error on good metadata when return is nil")
-	validateCompiledSchema(t, "goodParam1", make(map[string]interface{}), ccm.Contracts["someContract"].Transactions[0].Parameters[0].CompiledSchema)
-	validateCompiledSchema(t, "goodParam2", "abc", ccm.Contracts["someContract"].Transactions[0].Parameters[1].CompiledSchema)
-	assert.Nil(t, ccm.Contracts["someContract"].Transactions[0].Returns.CompiledSchema, "should set compiled schema nil on no return")
+	validateWithSchemaValidator(t, "goodParam1", make(map[string]any), ccm.Contracts["someContract"].Transactions[0].Parameters[0].Validator)
+	validateWithSchemaValidator(t, "goodParam2", "abc", ccm.Contracts["someContract"].Transactions[0].Parameters[1].Validator)
+	assert.Nil(t, ccm.Contracts["someContract"].Transactions[0].Returns.Validator, "should set validator nil on no return")
 }
 
-func validateCompiledSchema(t *testing.T, propName string, propValue interface{}, compiledSchema *gojsonschema.Schema) {
+func validateWithSchemaValidator(t *testing.T, propName string, propValue any, validator SchemaValidator) {
 	t.Helper()
-
-	returnValidator := make(map[string]interface{})
-	returnValidator["return"] = propValue
-
-	toValidateLoader := gojsonschema.NewGoLoader(returnValidator)
-
-	result, _ := compiledSchema.Validate(toValidateLoader)
-
-	assert.True(t, result.Valid(), "should validate for %s compiled schema", propName)
+	require.NotNil(t, validator)
+	err := validator.Validate(propName, reflect.TypeOf(propValue), fmt.Sprint(propValue), propValue)
+	assert.NoError(t, err, "should validate for %s compiled schema", propName)
 }
 
 func TestReadMetadataFile(t *testing.T) {
@@ -337,7 +342,7 @@ func TestValidateAgainstSchema(t *testing.T) {
 
 	t.Run("Error on empty metadata", func(t *testing.T) {
 		err := ValidateAgainstSchema(ContractChaincodeMetadata{})
-		require.EqualError(t, err, "cannot use metadata. Metadata did not match schema:\n1. (root): info is required\n2. contracts: Invalid type. Expected: object, given: null", "should error when metadata given does not match schema")
+		require.EqualError(t, err, "cannot use metadata. Metadata did not match schema:\n1. (root): missing property 'info'\n2. contracts: got null, want object", "should error when metadata given does not match schema")
 	})
 
 	t.Run("Valid metadata", func(t *testing.T) {
