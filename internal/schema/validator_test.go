@@ -198,6 +198,19 @@ func TestCompileSchema_NilType(t *testing.T) {
 	})
 }
 
+func TestCompileRawSchema(t *testing.T) {
+	t.Run("valid schema", func(t *testing.T) {
+		s, err := CompileRawSchema("test.json", []byte(`{"type": "string"}`))
+		require.NoError(t, err)
+		require.NotNil(t, s)
+	})
+
+	t.Run("invalid json", func(t *testing.T) {
+		_, err := CompileRawSchema("test.json", []byte(`invalid json`))
+		require.Error(t, err)
+	})
+}
+
 func TestValidateMetadata(t *testing.T) {
 	schemaJSON := []byte(`{
 		"$schema": "http://json-schema.org/draft-07/schema#",
@@ -207,6 +220,9 @@ func TestValidateMetadata(t *testing.T) {
 			"info": { "type": "string" }
 		}
 	}`)
+
+	compiledSchema, err := CompileRawSchema("schema.json", schemaJSON)
+	require.NoError(t, err)
 
 	tests := map[string]struct {
 		metadata    any
@@ -223,7 +239,7 @@ func TestValidateMetadata(t *testing.T) {
 
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
-			err := ValidateMetadata(tt.metadata, schemaJSON)
+			err := ValidateMetadata(tt.metadata, compiledSchema)
 			if tt.errContains != "" {
 				require.ErrorContains(t, err, tt.errContains)
 			} else {

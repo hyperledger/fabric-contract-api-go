@@ -117,7 +117,8 @@ func CompileSchema(propName string, schema *spec.Schema, components any) (Valida
 	return CompileProperties(map[string]*spec.Schema{propName: schema}, components)
 }
 
-func compileRawSchema(resName string, raw []byte) (*jsonschema.Schema, error) {
+// CompileRawSchema compiles a raw JSON schema into a *jsonschema.Schema.
+func CompileRawSchema(resName string, raw []byte) (*jsonschema.Schema, error) {
 	doc, err := jsonschema.UnmarshalJSON(bytes.NewReader(raw))
 	if err != nil {
 		return nil, err
@@ -131,13 +132,8 @@ func compileRawSchema(resName string, raw []byte) (*jsonschema.Schema, error) {
 }
 
 // ValidateMetadata validates a metadata object against the provided JSON schema.
-func ValidateMetadata(metadata any, schemaJSON []byte) error {
+func ValidateMetadata(metadata any, compiledSchema *jsonschema.Schema) error {
 	metadataBytes, err := json.Marshal(metadata)
-	if err != nil {
-		return err
-	}
-
-	schema, err := compileRawSchema("schema.json", schemaJSON)
 	if err != nil {
 		return err
 	}
@@ -147,7 +143,7 @@ func ValidateMetadata(metadata any, schemaJSON []byte) error {
 		return err
 	}
 
-	if err := schema.Validate(instanceDoc); err != nil {
+	if err := compiledSchema.Validate(instanceDoc); err != nil {
 		return fmt.Errorf("cannot use metadata. Metadata did not match schema:\n%s", utils.ValidateErrorsToString(err))
 	}
 

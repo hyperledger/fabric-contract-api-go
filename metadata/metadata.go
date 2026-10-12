@@ -12,9 +12,11 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"sync"
 
 	"github.com/go-openapi/spec"
 	"github.com/hyperledger/fabric-contract-api-go/v2/internal/schema"
+	"github.com/santhosh-tekuri/jsonschema/v6"
 )
 
 // MetadataFolder name of the main folder metadata should be placed in
@@ -56,6 +58,10 @@ var contractSchemaJSON []byte
 func GetJSONSchema() []byte {
 	return contractSchemaJSON
 }
+
+var getCompiledSchema = sync.OnceValues(func() (*jsonschema.Schema, error) {
+	return schema.CompileRawSchema("schema.json", GetJSONSchema())
+})
 
 // SchemaValidator validates a property value against a compiled schema.
 type SchemaValidator interface {
@@ -264,5 +270,10 @@ func ReadMetadataFile() (ContractChaincodeMetadata, error) {
 // schema that defines valid metadata structure. If it does not meet the schema it
 // returns an error detailing why
 func ValidateAgainstSchema(metadata ContractChaincodeMetadata) error {
-	return schema.ValidateMetadata(metadata, GetJSONSchema())
+	cachedSchema, err := getCompiledSchema()
+	if err != nil {
+		return err
+	}
+
+	return schema.ValidateMetadata(metadata, cachedSchema)
 }

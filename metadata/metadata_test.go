@@ -78,6 +78,16 @@ func TestGetJSONSchema(t *testing.T) {
 	assert.Equal(t, expectedSchema, schema, "should return same schema as in file")
 }
 
+func TestGetCompiledSchema(t *testing.T) {
+	s1, err := getCompiledSchema()
+	require.NoError(t, err)
+	require.NotNil(t, s1)
+
+	s2, err := getCompiledSchema()
+	require.NoError(t, err)
+	assert.Same(t, s1, s2, "should return the same cached compiled schema instance")
+}
+
 func TestUnmarshalJSON(t *testing.T) {
 	ttm := new(TransactionMetadata)
 
