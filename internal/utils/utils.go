@@ -22,7 +22,7 @@ func ValidateErrorsToString(err error) string {
 	output := valErr.BasicOutput()
 	hasSpecificErrors := false
 	for _, u := range output.Errors {
-		if u.Error.String() != "validation failed" {
+		if u.Error != nil && u.Error.String() != "validation failed" {
 			hasSpecificErrors = true
 			break
 		}
@@ -30,27 +30,38 @@ func ValidateErrorsToString(err error) string {
 
 	msgs := make([]string, 0, len(output.Errors))
 	for _, u := range output.Errors {
-		if hasSpecificErrors && u.Error.String() == "validation failed" {
+		errStr := "validation failed"
+		if u.Error != nil {
+			errStr = u.Error.String()
+		}
+		if hasSpecificErrors && errStr == "validation failed" {
 			continue
 		}
 		loc := strings.TrimPrefix(u.InstanceLocation, "/")
 		msg := ""
 		if loc != "" {
-			msg = loc + ": " + u.Error.String()
+			msg = loc + ": " + errStr
 		} else {
-			msg = "(root): " + u.Error.String()
+			msg = "(root): " + errStr
 		}
 		msgs = append(msgs, msg)
 	}
 
-	sort.Strings(msgs)
-
-	toReturn := ""
-	for i, v := range msgs {
-		toReturn += strconv.Itoa(i+1) + ". " + v + "\n"
+	if len(msgs) == 0 {
+		return valErr.Error()
 	}
 
-	return strings.Trim(toReturn, "\n")
+	sort.Strings(msgs)
+
+	var sb strings.Builder
+	for i, v := range msgs {
+		sb.WriteString(strconv.Itoa(i + 1))
+		sb.WriteString(". ")
+		sb.WriteString(v)
+		sb.WriteByte('\n')
+	}
+
+	return strings.TrimSuffix(sb.String(), "\n")
 }
 
 // StringInSlice returns whether string exists in string slice

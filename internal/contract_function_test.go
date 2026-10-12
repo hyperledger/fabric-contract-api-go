@@ -4,17 +4,15 @@
 package internal
 
 import (
-	"bytes"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
 	"testing"
 
 	"github.com/go-openapi/spec"
+	"github.com/hyperledger/fabric-contract-api-go/v2/internal/schema"
 	metadata "github.com/hyperledger/fabric-contract-api-go/v2/metadata"
 	"github.com/hyperledger/fabric-contract-api-go/v2/serializer"
-	"github.com/santhosh-tekuri/jsonschema/v6"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -137,55 +135,6 @@ func testHandleResponse(t *testing.T, successReturn reflect.Type, errorReturn bo
 	assert.Equal(t, expectedError, errResp, "should have returned error value from response")
 }
 
-func createGoJSONSchemaSchema(propName string, schema *spec.Schema, components *metadata.ComponentMetadata) *jsonschema.Schema {
-	combined := make(map[string]interface{})
-	combined["components"] = components
-	combined["properties"] = make(map[string]interface{})
-	combined["properties"].(map[string]interface{})[propName] = schema
-
-	rawJSON, err := json.Marshal(combined)
-	if err != nil {
-		panic(err)
-	}
-
-	doc, err := jsonschema.UnmarshalJSON(bytes.NewReader(rawJSON))
-	if err != nil {
-		panic(err)
-	}
-
-	c := jsonschema.NewCompiler()
-	c.AssertFormat()
-	base := "http://fabric/"
-	resURL := base + propName + ".json"
-
-	if components != nil {
-		for name, comp := range components.Schemas {
-			rawComp, err := json.Marshal(comp)
-			if err != nil {
-				panic(err)
-			}
-			compDoc, err := jsonschema.UnmarshalJSON(bytes.NewReader(rawComp))
-			if err != nil {
-				panic(err)
-			}
-			if err := c.AddResource(base+name, compDoc); err != nil {
-				panic(err)
-			}
-		}
-	}
-
-	if err := c.AddResource(resURL, doc); err != nil {
-		panic(err)
-	}
-
-	sch, err := c.Compile(resURL)
-	if err != nil {
-		panic(err)
-	}
-
-	return sch
-}
-
 // ================================
 // Tests
 // ================================
@@ -261,16 +210,20 @@ func TestFormatArgs(t *testing.T) {
 	assert.Equal(t, 1, args[0].Interface(), "should return converted values")
 	assert.Equal(t, 2, args[1].Interface(), "should return converted values")
 
+	v1, err1 := schema.CompileSchema("param1", spec.Int64Property(), nil)
+	require.NoError(t, err1)
+	v2, err2 := schema.CompileSchema("param2", spec.Int64Property(), nil)
+	require.NoError(t, err2)
 	supplementaryMetadata.Parameters = []metadata.ParameterMetadata{
 		{
-			Name:           "param1",
-			Schema:         spec.Int64Property(),
-			CompiledSchema: createGoJSONSchemaSchema("param1", spec.Int64Property(), nil),
+			Name:      "param1",
+			Schema:    spec.Int64Property(),
+			Validator: v1,
 		},
 		{
-			Name:           "param2",
-			Schema:         spec.Int64Property(),
-			CompiledSchema: createGoJSONSchemaSchema("param1", spec.Int64Property(), nil),
+			Name:      "param2",
+			Schema:    spec.Int64Property(),
+			Validator: v2,
 		},
 	}
 	args, err = fn.formatArgs(ctx, supplementaryMetadata.Parameters, nil, []string{"1", "2"}, serializer)
@@ -590,28 +543,21 @@ func TestCall(t *testing.T) {
 	assert.Equal(t, expectedStr, actualStr, "should return same string as handle response for good function and params")
 	assert.Equal(t, expectedIface, actualIface, "should return same interface as handle response for good function and params")
 
-	combined := make(map[string]interface{})
-	combined["components"] = nil
-	combined["properties"] = make(map[string]interface{})
-	combined["properties"].(map[string]interface{})["param0"] = spec.StringProperty()
-	combined["properties"].(map[string]interface{})["param1"] = spec.StringProperty()
-	combined["properties"].(map[string]interface{})["returns"] = spec.StringProperty()
+	compiled, err := schema.CompileProperties(map[string]*spec.Schema{
+		"param0":  spec.StringProperty(),
+		"param1":  spec.StringProperty(),
+		"returns": spec.StringProperty(),
+	}, nil)
+	require.NoError(t, err)
 
-	rawJSON, _ := json.Marshal(combined)
-	doc, _ := jsonschema.UnmarshalJSON(bytes.NewReader(rawJSON))
-	c := jsonschema.NewCompiler()
-	c.AssertFormat()
-	_ = c.AddResource("schema://combined.json", doc)
-	compiled, _ := c.Compile("schema://combined.json")
-
-	schema := metadata.TransactionMetadata{}
-	schema.Parameters = []metadata.ParameterMetadata{
-		{Name: "param0", Schema: spec.StringProperty(), CompiledSchema: compiled},
-		{Name: "param1", Schema: spec.StringProperty(), CompiledSchema: compiled},
+	txMetadata := metadata.TransactionMetadata{}
+	txMetadata.Parameters = []metadata.ParameterMetadata{
+		{Name: "param0", Schema: spec.StringProperty(), Validator: compiled},
+		{Name: "param1", Schema: spec.StringProperty(), Validator: compiled},
 	}
-	schema.Returns = metadata.ReturnMetadata{Schema: spec.StringProperty(), CompiledSchema: compiled}
-	expectedStr, expectedIface, expectedErr = testCf.handleResponse([]reflect.Value{reflect.ValueOf("helloworld")}, &schema.Returns, nil, serializer)
-	actualStr, actualIface, actualErr = testCf.Call(ctx, &schema, nil, serializer, "hello", "world")
+	txMetadata.Returns = metadata.ReturnMetadata{Schema: spec.StringProperty(), Validator: compiled}
+	expectedStr, expectedIface, expectedErr = testCf.handleResponse([]reflect.Value{reflect.ValueOf("helloworld")}, &txMetadata.Returns, nil, serializer)
+	actualStr, actualIface, actualErr = testCf.Call(ctx, &txMetadata, nil, serializer, "hello", "world")
 	assert.Equal(t, expectedErr, actualErr, "should return same error as handle response for good function with schema")
 	assert.Equal(t, expectedStr, actualStr, "should return same string as handle response for good function and params with schema")
 	assert.Equal(t, expectedIface, actualIface, "should return same interface as handle response for good function and params with schema")

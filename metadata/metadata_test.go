@@ -4,19 +4,19 @@
 package metadata
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/fs"
 	"os"
 	"path"
 	"path/filepath"
+	"reflect"
 	"runtime"
 	"strings"
 	"testing"
 
 	"github.com/go-openapi/spec"
-	"github.com/santhosh-tekuri/jsonschema/v6"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -252,9 +252,9 @@ func TestCompileSchemas(t *testing.T) {
 	ccm.Contracts["someContract"] = someContract
 	err = ccm.CompileSchemas()
 	require.NoError(t, err, "should not error on good metadata")
-	validateCompiledSchema(t, "goodParam1", make(map[string]interface{}), ccm.Contracts["someContract"].Transactions[0].Parameters[0].CompiledSchema)
-	validateCompiledSchema(t, "goodParam2", "abc", ccm.Contracts["someContract"].Transactions[0].Parameters[1].CompiledSchema)
-	validateCompiledSchema(t, "return", 1, ccm.Contracts["someContract"].Transactions[0].Returns.CompiledSchema)
+	validateWithSchemaValidator(t, "goodParam1", make(map[string]any), ccm.Contracts["someContract"].Transactions[0].Parameters[0].Validator)
+	validateWithSchemaValidator(t, "goodParam2", "abc", ccm.Contracts["someContract"].Transactions[0].Parameters[1].Validator)
+	validateWithSchemaValidator(t, "return", 1, ccm.Contracts["someContract"].Transactions[0].Returns.Validator)
 
 	someTransaction.Returns = nilReturn
 	someTransaction.Parameters = []ParameterMetadata{goodParameter1, goodParameter2}
@@ -262,24 +262,15 @@ func TestCompileSchemas(t *testing.T) {
 	ccm.Contracts["someContract"] = someContract
 	err = ccm.CompileSchemas()
 	require.NoError(t, err, "should not error on good metadata when return is nil")
-	validateCompiledSchema(t, "goodParam1", make(map[string]interface{}), ccm.Contracts["someContract"].Transactions[0].Parameters[0].CompiledSchema)
-	validateCompiledSchema(t, "goodParam2", "abc", ccm.Contracts["someContract"].Transactions[0].Parameters[1].CompiledSchema)
-	assert.Nil(t, ccm.Contracts["someContract"].Transactions[0].Returns.CompiledSchema, "should set compiled schema nil on no return")
+	validateWithSchemaValidator(t, "goodParam1", make(map[string]any), ccm.Contracts["someContract"].Transactions[0].Parameters[0].Validator)
+	validateWithSchemaValidator(t, "goodParam2", "abc", ccm.Contracts["someContract"].Transactions[0].Parameters[1].Validator)
+	assert.Nil(t, ccm.Contracts["someContract"].Transactions[0].Returns.Validator, "should set validator nil on no return")
 }
 
-func validateCompiledSchema(t *testing.T, propName string, propValue interface{}, compiledSchema *jsonschema.Schema) {
+func validateWithSchemaValidator(t *testing.T, propName string, propValue any, validator SchemaValidator) {
 	t.Helper()
-
-	toValidate := make(map[string]interface{})
-	toValidate[propName] = propValue
-
-	raw, err := json.Marshal(toValidate)
-	require.NoError(t, err)
-
-	val, err := jsonschema.UnmarshalJSON(bytes.NewReader(raw))
-	require.NoError(t, err)
-
-	err = compiledSchema.Validate(val)
+	require.NotNil(t, validator)
+	err := validator.Validate(propName, reflect.TypeOf(propValue), fmt.Sprint(propValue), propValue)
 	assert.NoError(t, err, "should validate for %s compiled schema", propName)
 }
 

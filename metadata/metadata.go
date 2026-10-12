@@ -4,7 +4,6 @@
 package metadata
 
 import (
-	"bytes"
 	_ "embed"
 	"encoding/json"
 	"errors"
@@ -15,8 +14,7 @@ import (
 	"reflect"
 
 	"github.com/go-openapi/spec"
-	"github.com/hyperledger/fabric-contract-api-go/v2/internal/utils"
-	"github.com/santhosh-tekuri/jsonschema/v6"
+	"github.com/hyperledger/fabric-contract-api-go/v2/internal/schema"
 )
 
 // MetadataFolder name of the main folder metadata should be placed in
@@ -59,18 +57,23 @@ func GetJSONSchema() []byte {
 	return contractSchemaJSON
 }
 
+// SchemaValidator validates a property value against a compiled schema.
+type SchemaValidator interface {
+	Validate(propName string, typ reflect.Type, stringValue string, obj any) error
+}
+
 // ParameterMetadata details about a parameter used for a transaction.
 type ParameterMetadata struct {
-	Description    string             `json:"description,omitempty"`
-	Name           string             `json:"name"`
-	Schema         *spec.Schema       `json:"schema"`
-	CompiledSchema *jsonschema.Schema `json:"-"`
+	Description string          `json:"description,omitempty"`
+	Name        string          `json:"name"`
+	Schema      *spec.Schema    `json:"schema"`
+	Validator   SchemaValidator `json:"-"`
 }
 
 // ReturnMetadata details about the return type for a transaction
 type ReturnMetadata struct {
-	Schema         *spec.Schema
-	CompiledSchema *jsonschema.Schema
+	Schema    *spec.Schema
+	Validator SchemaValidator `json:"-"`
 }
 
 // TransactionMetadata contains information on what makes up a transaction
@@ -186,66 +189,24 @@ func (ccm *ContractChaincodeMetadata) Append(source ContractChaincodeMetadata) {
 	}
 }
 
-func compileSchema(propName string, schema *spec.Schema, components ComponentMetadata) (*jsonschema.Schema, error) {
-	combined := make(map[string]interface{})
-	combined["components"] = components
-	combined["properties"] = make(map[string]interface{})
-	combined["properties"].(map[string]interface{})[propName] = schema
-
-	rawJSON, err := json.Marshal(combined)
-	if err != nil {
-		return nil, err
-	}
-
-	doc, err := jsonschema.UnmarshalJSON(bytes.NewReader(rawJSON))
-	if err != nil {
-		return nil, err
-	}
-
-	c := jsonschema.NewCompiler()
-	c.AssertFormat()
-	base := "http://fabric/"
-	resURL := base + propName + ".json"
-
-	for name, comp := range components.Schemas {
-		rawComp, err := json.Marshal(comp)
-		if err != nil {
-			return nil, err
-		}
-		compDoc, err := jsonschema.UnmarshalJSON(bytes.NewReader(rawComp))
-		if err != nil {
-			return nil, err
-		}
-		if err := c.AddResource(base+name, compDoc); err != nil {
-			return nil, err
-		}
-	}
-
-	if err := c.AddResource(resURL, doc); err != nil {
-		return nil, err
-	}
-
-	return c.Compile(resURL)
-}
-
 func compileTransaction(tx TransactionMetadata, contractName string, components ComponentMetadata) (TransactionMetadata, error) {
 	for paramIdx, param := range tx.Parameters {
-		gjsSchema, err := compileSchema(param.Name, param.Schema, components)
+		validator, err := schema.CompileSchema(param.Name, param.Schema, components)
 		if err != nil {
 			return tx, fmt.Errorf("error compiling schema for %s [%s]. %s schema invalid. %s", contractName, tx.Name, param.Name, err.Error())
 		}
 
-		param.CompiledSchema = gjsSchema
+		param.Validator = validator
 		tx.Parameters[paramIdx] = param
 	}
 
 	if tx.Returns.Schema != nil {
-		gjsSchema, err := compileSchema("return", tx.Returns.Schema, components)
+		validator, err := schema.CompileSchema("return", tx.Returns.Schema, components)
 		if err != nil {
 			return tx, fmt.Errorf("error compiling schema for %s [%s]. Return schema invalid. %s", contractName, tx.Name, err.Error())
 		}
 
-		tx.Returns.CompiledSchema = gjsSchema
+		tx.Returns.Validator = validator
 	}
 
 	return tx, nil
@@ -303,32 +264,5 @@ func ReadMetadataFile() (ContractChaincodeMetadata, error) {
 // schema that defines valid metadata structure. If it does not meet the schema it
 // returns an error detailing why
 func ValidateAgainstSchema(metadata ContractChaincodeMetadata) error {
-	metadataBytes, _ := json.Marshal(metadata)
-
-	schemaDoc, err := jsonschema.UnmarshalJSON(bytes.NewReader(GetJSONSchema()))
-	if err != nil {
-		return err
-	}
-
-	c := jsonschema.NewCompiler()
-	c.AssertFormat()
-	if err := c.AddResource("schema.json", schemaDoc); err != nil {
-		return err
-	}
-
-	schema, err := c.Compile("schema.json")
-	if err != nil {
-		return err
-	}
-
-	instanceDoc, err := jsonschema.UnmarshalJSON(bytes.NewReader(metadataBytes))
-	if err != nil {
-		return err
-	}
-
-	if err := schema.Validate(instanceDoc); err != nil {
-		return fmt.Errorf("cannot use metadata. Metadata did not match schema:\n%s", utils.ValidateErrorsToString(err))
-	}
-
-	return nil
+	return schema.ValidateMetadata(metadata, GetJSONSchema())
 }
