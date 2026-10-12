@@ -4,6 +4,7 @@
 package serializer
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"reflect"
@@ -13,9 +14,9 @@ import (
 	"github.com/go-openapi/spec"
 	"github.com/hyperledger/fabric-contract-api-go/v2/internal/types"
 	"github.com/hyperledger/fabric-contract-api-go/v2/metadata"
+	"github.com/santhosh-tekuri/jsonschema/v6"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/xeipuuv/gojsonschema"
 )
 
 // ================================
@@ -46,17 +47,53 @@ func (us usefulStruct) DoNothing() string {
 	return "nothing"
 }
 
-func createGoJSONSchemaSchema(propName string, schema *spec.Schema, components *metadata.ComponentMetadata) *gojsonschema.Schema {
+func createGoJSONSchemaSchema(propName string, schema *spec.Schema, components *metadata.ComponentMetadata) *jsonschema.Schema {
 	combined := make(map[string]interface{})
 	combined["components"] = components
 	combined["properties"] = make(map[string]interface{})
 	combined["properties"].(map[string]interface{})[propName] = schema
 
-	combinedLoader := gojsonschema.NewGoLoader(combined)
+	rawJSON, err := json.Marshal(combined)
+	if err != nil {
+		panic(err)
+	}
 
-	gjs, _ := gojsonschema.NewSchema(combinedLoader)
+	doc, err := jsonschema.UnmarshalJSON(bytes.NewReader(rawJSON))
+	if err != nil {
+		panic(err)
+	}
 
-	return gjs
+	c := jsonschema.NewCompiler()
+	c.AssertFormat()
+	base := "http://fabric/"
+	resURL := base + propName + ".json"
+
+	if components != nil {
+		for name, comp := range components.Schemas {
+			rawComp, err := json.Marshal(comp)
+			if err != nil {
+				panic(err)
+			}
+			compDoc, err := jsonschema.UnmarshalJSON(bytes.NewReader(rawComp))
+			if err != nil {
+				panic(err)
+			}
+			if err := c.AddResource(base+name, compDoc); err != nil {
+				panic(err)
+			}
+		}
+	}
+
+	if err := c.AddResource(resURL, doc); err != nil {
+		panic(err)
+	}
+
+	sch, err := c.Compile(resURL)
+	if err != nil {
+		panic(err)
+	}
+
+	return sch
 }
 
 func testConvertArgsBasicType(t *testing.T, expected interface{}, str string) {
@@ -201,7 +238,7 @@ func TestConvertArg(t *testing.T) {
 }
 
 func TestValidateAgainstSchema(t *testing.T) {
-	var comparisonSchema *gojsonschema.Schema
+	var comparisonSchema *jsonschema.Schema
 	var err error
 
 	components := new(metadata.ComponentMetadata)
@@ -233,7 +270,7 @@ func TestFromString(t *testing.T) {
 	var value reflect.Value
 	var expectedErr error
 	var schema *spec.Schema
-	var compiledSchema *gojsonschema.Schema
+	var compiledSchema *jsonschema.Schema
 	var paramMetadata metadata.ParameterMetadata
 
 	serializer := new(JSONSerializer)
@@ -273,7 +310,7 @@ func TestToString(t *testing.T) {
 	var value string
 	var expectedErr error
 	var schema *spec.Schema
-	var compiledSchema *gojsonschema.Schema
+	var compiledSchema *jsonschema.Schema
 	var returnMetadata metadata.ReturnMetadata
 
 	serializer := new(JSONSerializer)

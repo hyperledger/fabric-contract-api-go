@@ -4,23 +4,50 @@
 package utils
 
 import (
+	"errors"
 	"sort"
 	"strconv"
 	"strings"
 
-	"github.com/xeipuuv/gojsonschema"
+	"github.com/santhosh-tekuri/jsonschema/v6"
 )
 
 // ValidateErrorsToString converts errors from JSON schema output into readable string
-func ValidateErrorsToString(resErrors []gojsonschema.ResultError) string {
+func ValidateErrorsToString(err error) string {
+	var valErr *jsonschema.ValidationError
+	if !errors.As(err, &valErr) {
+		return err.Error()
+	}
+
+	output := valErr.BasicOutput()
+	hasSpecificErrors := false
+	for _, u := range output.Errors {
+		if u.Error.String() != "validation failed" {
+			hasSpecificErrors = true
+			break
+		}
+	}
+
+	msgs := make([]string, 0, len(output.Errors))
+	for _, u := range output.Errors {
+		if hasSpecificErrors && u.Error.String() == "validation failed" {
+			continue
+		}
+		loc := strings.TrimPrefix(u.InstanceLocation, "/")
+		msg := ""
+		if loc != "" {
+			msg = loc + ": " + u.Error.String()
+		} else {
+			msg = "(root): " + u.Error.String()
+		}
+		msgs = append(msgs, msg)
+	}
+
+	sort.Strings(msgs)
+
 	toReturn := ""
-
-	sort.Slice(resErrors[:], func(i, j int) bool {
-		return resErrors[i].String() < resErrors[j].String()
-	})
-
-	for i, v := range resErrors {
-		toReturn += strconv.Itoa(i+1) + ". " + v.String() + "\n"
+	for i, v := range msgs {
+		toReturn += strconv.Itoa(i+1) + ". " + v + "\n"
 	}
 
 	return strings.Trim(toReturn, "\n")

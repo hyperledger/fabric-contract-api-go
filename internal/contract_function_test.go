@@ -4,6 +4,8 @@
 package internal
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
@@ -12,9 +14,9 @@ import (
 	"github.com/go-openapi/spec"
 	metadata "github.com/hyperledger/fabric-contract-api-go/v2/metadata"
 	"github.com/hyperledger/fabric-contract-api-go/v2/serializer"
+	"github.com/santhosh-tekuri/jsonschema/v6"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/xeipuuv/gojsonschema"
 )
 
 // ================================
@@ -135,17 +137,53 @@ func testHandleResponse(t *testing.T, successReturn reflect.Type, errorReturn bo
 	assert.Equal(t, expectedError, errResp, "should have returned error value from response")
 }
 
-func createGoJSONSchemaSchema(propName string, schema *spec.Schema, components *metadata.ComponentMetadata) *gojsonschema.Schema {
+func createGoJSONSchemaSchema(propName string, schema *spec.Schema, components *metadata.ComponentMetadata) *jsonschema.Schema {
 	combined := make(map[string]interface{})
 	combined["components"] = components
 	combined["properties"] = make(map[string]interface{})
 	combined["properties"].(map[string]interface{})[propName] = schema
 
-	combinedLoader := gojsonschema.NewGoLoader(combined)
+	rawJSON, err := json.Marshal(combined)
+	if err != nil {
+		panic(err)
+	}
 
-	gjs, _ := gojsonschema.NewSchema(combinedLoader)
+	doc, err := jsonschema.UnmarshalJSON(bytes.NewReader(rawJSON))
+	if err != nil {
+		panic(err)
+	}
 
-	return gjs
+	c := jsonschema.NewCompiler()
+	c.AssertFormat()
+	base := "http://fabric/"
+	resURL := base + propName + ".json"
+
+	if components != nil {
+		for name, comp := range components.Schemas {
+			rawComp, err := json.Marshal(comp)
+			if err != nil {
+				panic(err)
+			}
+			compDoc, err := jsonschema.UnmarshalJSON(bytes.NewReader(rawComp))
+			if err != nil {
+				panic(err)
+			}
+			if err := c.AddResource(base+name, compDoc); err != nil {
+				panic(err)
+			}
+		}
+	}
+
+	if err := c.AddResource(resURL, doc); err != nil {
+		panic(err)
+	}
+
+	sch, err := c.Compile(resURL)
+	if err != nil {
+		panic(err)
+	}
+
+	return sch
 }
 
 // ================================
@@ -558,8 +596,14 @@ func TestCall(t *testing.T) {
 	combined["properties"].(map[string]interface{})["param0"] = spec.StringProperty()
 	combined["properties"].(map[string]interface{})["param1"] = spec.StringProperty()
 	combined["properties"].(map[string]interface{})["returns"] = spec.StringProperty()
-	combinedLoader := gojsonschema.NewGoLoader(combined)
-	compiled, _ := gojsonschema.NewSchema(combinedLoader)
+
+	rawJSON, _ := json.Marshal(combined)
+	doc, _ := jsonschema.UnmarshalJSON(bytes.NewReader(rawJSON))
+	c := jsonschema.NewCompiler()
+	c.AssertFormat()
+	_ = c.AddResource("schema://combined.json", doc)
+	compiled, _ := c.Compile("schema://combined.json")
+
 	schema := metadata.TransactionMetadata{}
 	schema.Parameters = []metadata.ParameterMetadata{
 		{Name: "param0", Schema: spec.StringProperty(), CompiledSchema: compiled},

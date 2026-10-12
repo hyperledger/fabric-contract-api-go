@@ -39,14 +39,14 @@ Feature: Error paths
         And   I should be able to initialise the chaincode
         When I submit the "NewObject" transaction
             | OBJECT_1 | {"firstname": "Andy", "contact": "Leave well alone"} | 1000 | ["red", "white", "blue"] |
-        Then I should receive an unsuccessful response "error managing parameter param1. value did not match schema:\n1. param1: Additional property firstname is not allowed\n2. param1: name is required"
+        Then I should receive an unsuccessful response "error managing parameter param1. value did not match schema:\n1. param1: additional properties 'firstname' not allowed\n2. param1: missing property 'name'"
 
     Scenario: User sends data that does not match custom metadata
         Given I am using metadata file "contracts/complexcontract/contract-metadata/metadata.json"
         And I have created chaincode from "ComplexContract"
         When I submit the "NewObject" transaction
             | OBJECT_A | {"name": "Andy", "contact": "Leave well alone"} | 1000 | ["red", "white", "blue"] |
-        Then I should receive an unsuccessful response "error managing parameter param0. value did not match schema:\n1. param0: Does not match pattern '^OBJECT_\d$'"
+        Then I should receive an unsuccessful response "error managing parameter param0. value did not match schema:\n1. param0: 'OBJECT_A' does not match pattern '^OBJECT_\\d$'"
 
     Scenario: Contract returns data that does not match custom metadata
         Given I am using metadata file "contracts/complexcontract/contract-metadata/metadata.json"
@@ -56,7 +56,7 @@ Feature: Error paths
         And I receive a successful response
         When I submit the "GetValue" transaction
             | OBJECT_1 |
-        Then I should receive an unsuccessful response "error handling success response. value did not match schema:\n1. return: Must be less than or equal to 10"
+        Then I should receive an unsuccessful response "error handling success response. value did not match schema:\n1. return: maximum: got 1,000, want 10"
 
     Scenario: User configures bad metadata file
         Given I am using metadata file "utils/bad_metadata.json"

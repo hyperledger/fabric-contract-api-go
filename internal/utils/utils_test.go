@@ -4,26 +4,15 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"testing"
 
+	"github.com/santhosh-tekuri/jsonschema/v6"
 	"github.com/stretchr/testify/assert"
-	"github.com/xeipuuv/gojsonschema"
+	"github.com/stretchr/testify/require"
 )
-
-// ================================
-// HELPERS
-// ================================
-
-type MyResultError struct {
-	gojsonschema.ResultError
-	message string
-}
-
-func (re MyResultError) String() string {
-	return re.message
-}
 
 // ================================
 // TESTS
@@ -45,16 +34,36 @@ func TestMain(m *testing.M) {
 }
 
 func TestValidateErrorsToString(t *testing.T) {
-	// should join errors with a new line
-	error1 := MyResultError{
-		message: "some error message",
-	}
-	error2 := MyResultError{
-		message: "yet another error message",
-	}
+	// Non-validation error fallback
+	genericErr := errors.New("generic error")
+	assert.Equal(t, "generic error", ValidateErrorsToString(genericErr))
 
-	assert.Equal(t, "1. some error message", ValidateErrorsToString([]gojsonschema.ResultError{error1}), "should return nicely formatted single error")
-	assert.Equal(t, "1. some error message\n2. yet another error message", ValidateErrorsToString([]gojsonschema.ResultError{error1, error2}), "should return nicely formatted multiple error")
+	// Single root error
+	c := jsonschema.NewCompiler()
+	_ = c.AddResource("schema1.json", map[string]any{
+		"type": "string",
+	})
+	sch1, err := c.Compile("schema1.json")
+	require.NoError(t, err)
+
+	valErr1 := sch1.Validate(123)
+	assert.Equal(t, "1. (root): got number, want string", ValidateErrorsToString(valErr1))
+
+	// Multiple errors including a property location
+	_ = c.AddResource("schema2.json", map[string]any{
+		"type":     "object",
+		"required": []any{"name"},
+		"properties": map[string]any{
+			"age": map[string]any{"type": "integer"},
+		},
+	})
+	sch2, err := c.Compile("schema2.json")
+	require.NoError(t, err)
+
+	valErr2 := sch2.Validate(map[string]any{
+		"age": "invalid",
+	})
+	assert.Equal(t, "1. (root): missing property 'name'\n2. age: got string, want integer", ValidateErrorsToString(valErr2))
 }
 
 func TestStringInSlice(t *testing.T) {

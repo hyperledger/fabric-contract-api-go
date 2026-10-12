@@ -4,6 +4,7 @@
 package metadata
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"io/fs"
@@ -15,9 +16,9 @@ import (
 	"testing"
 
 	"github.com/go-openapi/spec"
+	"github.com/santhosh-tekuri/jsonschema/v6"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/xeipuuv/gojsonschema"
 )
 
 // ================================
@@ -266,17 +267,20 @@ func TestCompileSchemas(t *testing.T) {
 	assert.Nil(t, ccm.Contracts["someContract"].Transactions[0].Returns.CompiledSchema, "should set compiled schema nil on no return")
 }
 
-func validateCompiledSchema(t *testing.T, propName string, propValue interface{}, compiledSchema *gojsonschema.Schema) {
+func validateCompiledSchema(t *testing.T, propName string, propValue interface{}, compiledSchema *jsonschema.Schema) {
 	t.Helper()
 
-	returnValidator := make(map[string]interface{})
-	returnValidator["return"] = propValue
+	toValidate := make(map[string]interface{})
+	toValidate[propName] = propValue
 
-	toValidateLoader := gojsonschema.NewGoLoader(returnValidator)
+	raw, err := json.Marshal(toValidate)
+	require.NoError(t, err)
 
-	result, _ := compiledSchema.Validate(toValidateLoader)
+	val, err := jsonschema.UnmarshalJSON(bytes.NewReader(raw))
+	require.NoError(t, err)
 
-	assert.True(t, result.Valid(), "should validate for %s compiled schema", propName)
+	err = compiledSchema.Validate(val)
+	assert.NoError(t, err, "should validate for %s compiled schema", propName)
 }
 
 func TestReadMetadataFile(t *testing.T) {
@@ -337,7 +341,7 @@ func TestValidateAgainstSchema(t *testing.T) {
 
 	t.Run("Error on empty metadata", func(t *testing.T) {
 		err := ValidateAgainstSchema(ContractChaincodeMetadata{})
-		require.EqualError(t, err, "cannot use metadata. Metadata did not match schema:\n1. (root): info is required\n2. contracts: Invalid type. Expected: object, given: null", "should error when metadata given does not match schema")
+		require.EqualError(t, err, "cannot use metadata. Metadata did not match schema:\n1. (root): missing property 'info'\n2. contracts: got null, want object", "should error when metadata given does not match schema")
 	})
 
 	t.Run("Valid metadata", func(t *testing.T) {
