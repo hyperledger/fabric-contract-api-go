@@ -213,6 +213,18 @@ func (oc *optionalFieldsContract) TxFunction(arg *optionalFieldArg) (*optionalFi
 	return arg, nil
 }
 
+type requiredFieldArg struct {
+	Required string `json:"required"`
+}
+
+type requiredFieldContract struct {
+	Contract
+}
+
+func (rc *requiredFieldContract) TxFunction(arg requiredFieldArg) string {
+	return arg.Required
+}
+
 func testContractChaincodeContractMatchesContract(t *testing.T, actual contractChaincodeContract, expected contractChaincodeContract) {
 	t.Helper()
 
@@ -727,4 +739,22 @@ func TestInit(t *testing.T) {
 
 func TestInvoke(t *testing.T) {
 	testCallingContractFunctions(t, invokeType)
+}
+
+func TestInvokeValidatesParametersRegardlessOfFunctionNameCase(t *testing.T) {
+	cc, err := NewChaincode(new(requiredFieldContract))
+	require.NoError(t, err)
+
+	for _, fn := range []string{"TxFunction", "txFunction"} {
+		t.Run(fn, func(t *testing.T) {
+			mockStub := NewMockChaincodeStub(t)
+			mockStub.EXPECT().GetFunctionAndParameters().Return(fn, []string{"{}"})
+			mockStub.EXPECT().GetCreator().Maybe().Return([]byte{}, nil)
+
+			response := cc.Invoke(mockStub)
+
+			require.EqualValues(t, shim.ERROR, response.GetStatus(), "should fail schema validation")
+			require.Contains(t, response.GetMessage(), "value did not match schema")
+		})
+	}
 }
