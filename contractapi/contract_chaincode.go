@@ -187,7 +187,9 @@ func (cc *ContractChaincode) Invoke(stub shim.ChaincodeStubInterface) *peer.Resp
 
 	serializer := cc.TransactionSerializer
 
-	if contractFn, ok := nsContract.functions[toFirstRuneUpperCase(fn)]; !ok {
+	fnName := toFirstRuneUpperCase(fn)
+
+	if contractFn, ok := nsContract.functions[fnName]; !ok {
 		unknownTransaction := nsContract.unknownTransaction
 		if unknownTransaction == nil {
 			return shim.Error(fmt.Sprintf("Function %s not found in contract %s", fn, ns))
@@ -198,7 +200,7 @@ func (cc *ContractChaincode) Invoke(stub shim.ChaincodeStubInterface) *peer.Resp
 		var transactionSchema *metadata.TransactionMetadata
 
 		for i, v := range cc.metadata.Contracts[ns].Transactions {
-			if v.Name == fn {
+			if v.Name == fnName {
 				transactionSchema = &cc.metadata.Contracts[ns].Transactions[i]
 				break
 			}
